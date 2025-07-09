@@ -14,7 +14,7 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
 ### 1. Clonar o Repositório
 
 ```bash
-git clone [https://github.com/thalsime/uc8_zaladoria.git](https://github.com/thalsime/uc8_zaladoria.git)
+git clone https://github.com/thalsime/uc8_zaladoria.git
 cd zeladoria # Navegue até a pasta raiz do projeto (onde está manage.py)
 ```
 
@@ -489,4 +489,4 @@ export default SalaCard;
 
 ## Próximos Passos e Melhorias Futuras
 
-Este projeto é uma base robusta para o Sistema de Mapeamento da Limpeza de Salas. Ele ainda será aprimorado e novos recursos serão adicionados para otimizar ainda mais o gerenciamento da zeladoria e a experiência do usuário. Fique atento às atualizações\!
+Este projeto é uma base para um Sistema de Mapeamento da Limpeza de Salas. Ele ainda será aprimorado e novos recursos serão adicionados para otimizar ainda mais o gerenciamento da zeladoria e a experiência do usuário.
