@@ -8,7 +8,7 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
 
 ### Pré-requisitos
 
-  * Python 3.8+
+  * Python 3.12+
   * pip (gerenciador de pacotes do Python)
 
 ### 1. Clonar o Repositório
