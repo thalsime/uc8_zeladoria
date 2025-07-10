@@ -14,8 +14,8 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
 ### 1. Clonar o Repositório
 
 ```bash
-git clone https://github.com/thalsime/uc8_zaladoria.git
-cd zeladoria # Navegue até a pasta raiz do projeto (onde está manage.py)
+git clone https://github.com/thalsime/uc8_zeladoria.git
+cd uc8_zeladoria # Navegue até a pasta raiz do projeto (onde está manage.py)
 ```
 
 ### 2. Configurar o Ambiente Virtual (venv)
