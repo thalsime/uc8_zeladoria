@@ -36,7 +36,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 # :ivar ALLOWED_HOSTS: :class:`list` Lista de strings que definem os hosts/domínios que podem servir a aplicação.
 #                     É uma medida de segurança para evitar ataques de cabeçalho HTTP Host.
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Definição das aplicações.

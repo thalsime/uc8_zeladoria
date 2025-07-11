@@ -100,7 +100,9 @@ Siga as instruções no terminal para criar seu superusuário.
 Com todas as configurações prontas, você pode iniciar o servidor de desenvolvimento do Django:
 
 ```bash
-python manage.py runserver
+# 0.0.0.0:8000 permite que todos os IPs da máquina
+# escutem a porta 8000 e não somente 127.0.0.1
+python manage.py runserver 0.0.0.0:8000
 ```
 
 O servidor estará rodando em `http://127.0.0.1:8000/`. Você pode acessar o painel de administração em `http://127.0.0.1:8000/admin/`.
