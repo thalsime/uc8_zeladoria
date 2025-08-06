@@ -167,8 +167,40 @@ Gerencia a autenticação de usuários e a criação de novas contas.
         "is_superuser": false
     }
     ```
+  
+#### 1.3. Listar Usuários
 
-#### 1.3. Criar Novo Usuário (Apenas Administradores)
+* **Endpoint:** `GET /api/accounts/list_users/`
+* **Descrição:** Retorna uma lista de todos os usuários cadastrados no sistema, com informações básicas.
+* **Permissões:** Apenas **administradores** (usuários com `is_staff` ou `is_superuser` igual a `True`).
+* **Exemplo de Resposta (200 OK):**
+    ```json
+    [
+        {
+            "id": 1,
+            "username": "admin",
+            "email": "admin@example.com",
+            "is_staff": true,
+            "is_superuser": true
+        },
+        {
+            "id": 2,
+            "username": "zelador_a",
+            "email": "zelador.a@example.com",
+            "is_staff": true,
+            "is_superuser": false
+        },
+        {
+            "id": 3,
+            "username": "funcionario_comum",
+            "email": "funcionario.comum@example.com",
+            "is_staff": false,
+            "is_superuser": false
+        }
+    ]
+    ```
+
+#### 1.4. Criar Novo Usuário (Apenas Administradores)
 
   * **URI:** `/api/accounts/create_user/`
   * **Verbos HTTP:** `POST`
@@ -208,7 +240,7 @@ Gerencia a autenticação de usuários e a criação de novas contas.
     }
     ```
 
-#### 1.4. Mudar Senha do Usuário Autenticado
+#### 1.5. Mudar Senha do Usuário Autenticado
 
   * **URI:** `/api/accounts/change_password/`
   * **Verbos HTTP:** `POST`

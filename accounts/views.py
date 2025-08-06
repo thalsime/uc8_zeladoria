@@ -63,6 +63,24 @@ class AuthViewSet(viewsets.ViewSet):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
+    def list_users(self, request):
+        """
+        Endpoint para listar todos os usuários do sistema.
+
+        Acesso restrito apenas a usuários com permissões de administrador.
+        Retorna os dados de todos os usuários, utilizando o UserSerializer
+        para evitar exposição de informações sensíveis como senhas e tokens.
+
+        :param request: O objeto da requisição HTTP.
+        :type request: :class:`~rest_framework.request.Request`
+        :returns: Uma resposta HTTP 200 OK com a lista de todos os usuários.
+        :rtype: :class:`~rest_framework.response.Response`
+        """
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def create_user(self, request):
         """
