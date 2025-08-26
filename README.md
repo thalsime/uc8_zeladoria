@@ -14,7 +14,7 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
 ### 1. Clonar o Repositório
 
 ```bash
-git clone https://github.com/thalsime/uc8_zeladoria.git
+git clone [https://github.com/thalsime/uc8_zeladoria.git](https://github.com/thalsime/uc8_zeladoria.git)
 cd uc8_zeladoria # Navegue até a pasta raiz do projeto (onde está manage.py)
 ```
 
@@ -292,12 +292,15 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
   * **Proposta:**
       * `GET`: Recupera uma lista de todas as salas cadastradas no sistema.
       * `POST`: Cria um novo registro de sala no banco de dados.
-  * **Headers Necessários (`GET`):**
-      * `Authorization: Token SEU_TOKEN_AQUI` (Para qualquer usuário autenticado).
-  * **Headers Necessários (`POST`):**
-      * `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI` (Apenas token de usuário administrador).
-      * `Content-Type: application/json`
-  * **Body JSON (`GET`):** Não necessário.
+  * **Permissões:**
+      * `GET`: Qualquer usuário autenticado.
+      * `POST`: Apenas **administradores**.
+  * **Headers Necessários:**
+      * `Authorization: Token SEU_TOKEN_AQUI` (Para `GET` e `POST`).
+      * `Content-Type: application/json` (Apenas para `POST`).
+  * **Parâmetros de Query (`GET` - Opcional):**
+      * `localizacao` (string): Filtra as salas por uma localização exata (ex: `/api/salas/?localizacao=Bloco A`).
+      * `status_limpeza` (string): Filtra as salas pelo status de limpeza. Valores possíveis: `Limpa` ou `Limpeza Pendente` (ex: `/api/salas/?status_limpeza=Limpa`).
   * **Body JSON (`POST` - Obrigatório):**
     ```json
     {
@@ -355,11 +358,12 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
       * `PUT`: Atualiza *todos* os campos de uma sala existente.
       * `PATCH`: Atualiza *parcialmente* os campos de uma sala existente.
       * `DELETE`: Exclui uma sala específica.
-  * **Headers Necessários (`GET`, `PUT`, `PATCH`, `DELETE`):**
-      * `Authorization: Token SEU_TOKEN_AQUI` (Para qualquer usuário autenticado com `GET`).
-      * `Authorization: Token SEU_TOKEN_AQUI` (Apenas token de usuário administrador com `PUT`, `PATCH`, `DELETE`).
+  * **Permissões:**
+      * `GET`: Qualquer usuário autenticado.
+      * `PUT`, `PATCH`, `DELETE`: Apenas **administradores**.
+  * **Headers Necessários:**
+      * `Authorization: Token SEU_TOKEN_AQUI`.
       * `Content-Type: application/json` (Apenas para `PUT` e `PATCH`).
-  * **Body JSON (`GET`, `DELETE`):** Não necessário.
   * **Body JSON (`PUT` - Obrigatório):**
       * A estrutura é a mesma do `POST /api/salas/`, mas *todos* os campos são obrigatórios.
   * **Body JSON (`PATCH` - Opcional):**
@@ -370,10 +374,8 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
             "capacidade": 35
         }
         ```
-  * **Exemplo de Resposta de Sucesso (`GET` - Status 200 OK):**
+  * **Exemplo de Resposta de Sucesso (`GET`, `PUT`, `PATCH`):**
       * Mesma estrutura da resposta de `POST /api/salas/`.
-  * **Exemplo de Resposta de Sucesso (`PUT`/`PATCH` - Status 200 OK):**
-      * Mesma estrutura da resposta de `POST /api/salas/`, mas com os dados atualizados.
   * **Exemplo de Resposta de Sucesso (`DELETE` - Status 204 No Content):**
       * Nenhum conteúdo no corpo da resposta.
 
@@ -382,8 +384,9 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
   * **URI:** `/api/salas/{id}/marcar_como_limpa/` (onde `{id}` é o ID numérico da sala)
   * **Verbos HTTP:** `POST`
   * **Proposta:** Registra que uma sala específica foi limpa pelo funcionário autenticado, criando um novo `LimpezaRegistro`.
+  * **Permissões:** Qualquer usuário autenticado.
   * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_AQUI` (Para qualquer usuário autenticado).
+      * `Authorization: Token SEU_TOKEN_AQUI`.
       * `Content-Type: application/json`
   * **Body JSON (Opcional):**
       * Pode ser um objeto JSON vazio `{}` ou conter o campo `observacoes`.
@@ -406,6 +409,44 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
         },
         "observacoes": "Limpeza realizada com atenção aos detalhes, janelas abertas."
     }
+    ```
+
+#### 2.4. Listar Registros de Limpeza (Apenas Administradores)
+
+  * **URI:** `/api/limpezas/`
+  * **Verbos HTTP:** `GET`
+  * **Proposta:** Recupera uma lista de todos os registros históricos de limpeza. Este endpoint é de apenas leitura.
+  * **Permissões:** Apenas **administradores**.
+  * **Headers Necessários:**
+      * `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`.
+  * **Parâmetros de Query (`GET` - Opcional):**
+      * `sala_id` (integer): Filtra os registros de limpeza por uma sala específica (ex: `/api/limpezas/?sala_id=1`).
+  * **Exemplo de Resposta de Sucesso (`GET` - Status 200 OK):**
+    ```json
+    [
+        {
+            "id": 10,
+            "sala": 1,
+            "sala_nome": "Sala 101",
+            "data_hora_limpeza": "2025-07-09T13:15:30.123456Z",
+            "funcionario_responsavel": {
+                "id": 1,
+                "username": "funcionariocz"
+            },
+            "observacoes": "Limpeza realizada com atenção aos detalhes."
+        },
+        {
+            "id": 9,
+            "sala": 2,
+            "sala_nome": "Laboratório de Informática",
+            "data_hora_limpeza": "2025-07-09T11:45:00.000000Z",
+            "funcionario_responsavel": {
+                "id": 2,
+                "username": "zelador_b"
+            },
+            "observacoes": ""
+        }
+    ]
     ```
 
 -----
