@@ -8,6 +8,8 @@ Utiliza um roteador padrão para organizar as URLs dos ViewSets.
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter # Importe DefaultRouter aqui
 from decouple import config
 
@@ -40,3 +42,7 @@ urlpatterns = [
     # Inclui as URLs geradas automaticamente pelo roteador, todas sob o prefixo 'api/'.
     path('api/', include(router.urls)),
 ]
+
+# Isto serve os arquivos de mídia apenas durante o desenvolvimento (DEBUG=True)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

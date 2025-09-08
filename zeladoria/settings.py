@@ -171,6 +171,13 @@ USE_TZ = config("USE_TZ", default=True, cast=bool)
 # :ivar STATIC_URL: :class:`str` URL para servir arquivos estáticos.
 STATIC_URL = "static/"
 
+# Configurações de Arquivos de Mídia (Uploads de Usuários)
+# URL base para servir os arquivos de mídia enviados pelos usuários.
+MEDIA_URL = '/media/'
+
+# Caminho absoluto no sistema de arquivos onde os arquivos de mídia serão armazenados.
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Tipo de campo de chave primária padrão.
 # Consulte https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field para mais informações.
 # :ivar DEFAULT_AUTO_FIELD: :class:`str` Define o tipo de campo automático para chaves primárias em novos modelos.

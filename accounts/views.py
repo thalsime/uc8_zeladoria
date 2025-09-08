@@ -4,15 +4,18 @@ Módulo de Views para a aplicação Accounts.
 Define o ViewSet para operações de autenticação e gerenciamento de usuários.
 """
 
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status, permissions, generics, parsers
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework import generics # Importe os generics do DRF
 from django.contrib.auth.models import Group, User
+from .models import Profile
 from .serializers import UserSerializer, LoginSerializer, UserCreateSerializer, \
-    PasswordChangeSerializer, AdminPasswordChangeSerializer, GroupSerializer
+    PasswordChangeSerializer, AdminPasswordChangeSerializer, GroupSerializer, ProfileSerializer
+
 
 class AuthViewSet(viewsets.ViewSet):
     """
@@ -162,6 +165,35 @@ class AuthViewSet(viewsets.ViewSet):
         groups = Group.objects.all().order_by('name')
         serializer = GroupSerializer(groups, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get', 'put', 'patch'], permission_classes=[IsAuthenticated], parser_classes=[parsers.MultiPartParser, parsers.JSONParser])
+    def profile(self, request):
+        """
+        Endpoint para um usuário visualizar e atualizar seu próprio perfil.
+
+        - GET: Retorna os dados do perfil do usuário autenticado.
+        - PUT/PATCH: Atualiza os dados do perfil do usuário autenticado.
+          Para upload de fotos, use o método PUT ou PATCH com Content-Type: multipart/form-data.
+
+        :param request: O objeto da requisição HTTP.
+        :type request: :class:`~rest_framework.request.Request`
+        :returns: Uma resposta HTTP 200 OK com os dados do perfil.
+        :rtype: :class:`~rest_framework.response.Response`
+        """
+        # O objeto do perfil é sempre o do usuário que faz a requisição.
+        profile = request.user.profile
+
+        if request.method == 'GET':
+            serializer = ProfileSerializer(profile)
+            return Response(serializer.data)
+
+        elif request.method in ['PUT', 'PATCH']:
+            # A flag 'partial' é True para PATCH, permitindo atualizações parciais.
+            partial = (request.method == 'PATCH')
+            serializer = ProfileSerializer(profile, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
 
     # TODO: Refatorar set_user_password().
     # Há falhas relacionadas a esse endpoint que precisa ser revisadas.

@@ -8,6 +8,15 @@ e mudança de senha) são serializados e deserializados para/de representações
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from rest_framework.authtoken.models import Token
+from .models import Profile # Importe o novo modelo Profile
+
+class ProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer para o modelo Profile.
+    """
+    class Meta:
+        model = Profile
+        fields = ['profile_picture']
 
 class UserSerializer(serializers.ModelSerializer):
     """
@@ -19,15 +28,17 @@ class UserSerializer(serializers.ModelSerializer):
     :ivar id: :class:`int` ID único do usuário.
     :ivar username: :class:`str` Nome de usuário.
     :ivar email: :class:`str` Endereço de e-mail do usuário.
-    :ivar is_staff: :class:`bool` Indica se o usuário pode acessar o painel de administração.
     :ivar is_superuser: :class:`bool` Indica se o usuário possui todas as permissões sem ser explicitamente atribuídas.
     """
+
+    profile = ProfileSerializer(read_only=True)
+
     class Meta:
         """
         Metadados para o UserSerializer.
         """
         model = User
-        fields = ['id', 'username', 'email', 'is_superuser', 'groups']
+        fields = ['id', 'username', 'email', 'is_superuser', 'groups', 'profile']
 
 class LoginSerializer(serializers.Serializer):
     """
