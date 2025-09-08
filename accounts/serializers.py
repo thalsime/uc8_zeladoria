@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
         Metadados para o UserSerializer.
         """
         model = User
-        fields = ['id', 'username', 'email', 'is_staff', 'is_superuser']
+        fields = ['id', 'username', 'email', 'is_superuser']
 
 class LoginSerializer(serializers.Serializer):
     """
@@ -93,9 +93,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         Metadados para o UserCreateSerializer.
         """
         model = User
-        fields = ['username', 'email', 'password', 'confirm_password', 'is_staff', 'is_superuser']
+        fields = ['username', 'email', 'password', 'confirm_password', 'is_superuser']
         extra_kwargs = {
-            'is_staff': {'required': False, 'default': False},
             'is_superuser': {'required': False, 'default': False},
             'email': {'required': False, 'allow_blank': True}
         }

@@ -143,7 +143,6 @@ Gerencia a autenticação de usuários e a criação de novas contas.
             "id": 1,
             "username": "seu_nome_de_usuario",
             "email": "email@example.com",
-            "is_staff": false,
             "is_superuser": false
         }
     }
@@ -163,7 +162,6 @@ Gerencia a autenticação de usuários e a criação de novas contas.
         "id": 1,
         "username": "seu_nome_de_usuario",
         "email": "email@example.com",
-        "is_staff": true,
         "is_superuser": false
     }
     ```
@@ -172,7 +170,7 @@ Gerencia a autenticação de usuários e a criação de novas contas.
 
 * **Endpoint:** `GET /api/accounts/list_users/`
 * **Descrição:** Retorna uma lista de todos os usuários cadastrados no sistema, com informações básicas.
-* **Permissões:** Apenas **administradores** (usuários com `is_staff` ou `is_superuser` igual a `True`).
+* **Permissões:** Apenas **administradores** (usuários com `is_superuser` igual a `True`).
 * **Exemplo de Resposta (200 OK):**
     ```json
     [
@@ -180,21 +178,18 @@ Gerencia a autenticação de usuários e a criação de novas contas.
             "id": 1,
             "username": "admin",
             "email": "admin@example.com",
-            "is_staff": true,
             "is_superuser": true
         },
         {
             "id": 2,
             "username": "zelador_a",
             "email": "zelador.a@example.com",
-            "is_staff": true,
             "is_superuser": false
         },
         {
             "id": 3,
             "username": "funcionario_comum",
             "email": "funcionario.comum@example.com",
-            "is_staff": false,
             "is_superuser": false
         }
     ]
@@ -204,7 +199,7 @@ Gerencia a autenticação de usuários e a criação de novas contas.
 
   * **URI:** `/api/accounts/create_user/`
   * **Verbos HTTP:** `POST`
-  * **Proposta:** Permite que um usuário com privilégios de administrador (`is_staff=True` ou `is_superuser=True`) crie novas contas de usuário no sistema.
+  * **Proposta:** Permite que um usuário com privilégios de administrador (`is_superuser=True`) crie novas contas de usuário no sistema.
   * **Headers Necessários:**
       * `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI` (Token de um usuário administrador).
       * `Content-Type: application/json`
@@ -221,7 +216,6 @@ Gerencia a autenticação de usuários e a criação de novas contas.
         ```json
         {
             "email": "email_novo@example.com",     // string: E-mail do usuário (opcional, pode ser vazio).
-            "is_staff": false,                     // boolean: Define se o usuário terá acesso ao admin (padrão: false).
             "is_superuser": false                  // boolean: Define se o usuário será um superusuário (padrão: false).
         }
         ```
@@ -233,7 +227,6 @@ Gerencia a autenticação de usuários e a criação de novas contas.
             "id": 2,
             "username": "novo_nome_de_usuario",
             "email": "email_novo@example.com",
-            "is_staff": false,
             "is_superuser": false
         },
         "token": "x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0"
