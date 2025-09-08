@@ -82,7 +82,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
     :ivar confirm_password: :class:`str` Confirmação da senha (apenas escrita).
     :ivar username: :class:`str` Nome de usuário do novo usuário.
     :ivar email: :class:`str` Endereço de e-mail do novo usuário.
-    :ivar is_staff: :class:`bool` Indica se o novo usuário terá acesso ao painel de administração.
     :ivar is_superuser: :class:`bool` Indica se o novo usuário terá permissões de superusuário.
     """
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})

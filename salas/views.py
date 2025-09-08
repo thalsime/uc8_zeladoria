@@ -7,10 +7,11 @@ Define os ViewSets que lidam com as operações da API para salas e registros de
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from .models import Sala, LimpezaRegistro
 from .serializers import SalaSerializer, LimpezaRegistroSerializer
+from core.permissions import IsAdminUser, IsZeladorUser, IsCorpoDocenteUser
 
 class SalaViewSet(viewsets.ModelViewSet):
     """
@@ -31,26 +32,38 @@ class SalaViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        Define as permissões de acesso para cada ação do ViewSet.
+        Define as permissões de acesso para cada ação do ViewSet de forma granular
+        baseado em grupos de usuários.
 
         Permissões:
-            - Usuários autenticados (`IsAuthenticated`) podem listar (`list`), recuperar (`retrieve`)
-              e marcar o status de limpeza (`marcar_como_limpa`).
-            - Apenas administradores (`IsAdminUser`) podem criar (`create`), atualizar (`update`,
-              `partial_update`) ou deletar (`destroy`) salas.
+            - Apenas administradores (`IsAdminUser`) podem criar (`create`), atualizar
+              (`update`, `partial_update`) ou deletar (`destroy`) salas.
+            - Apenas usuários do grupo Zeladoria (`IsZeladorUser`) podem marcar uma
+              sala como limpa (`marcar_como_limpa`).
+            - Qualquer usuário autenticado (`IsAuthenticated`) pode listar (`list`) e
+              recuperar detalhes (`retrieve`) de salas.
 
-        :returns: Uma lista de objetos de permissão que serão aplicados à requisição atual.
-        :rtype: list[:class:`~rest_framework.permissions.BasePermission`]
+        :returns: Uma lista de instâncias de classes de permissão.
+        :rtype: list
         """
-        if self.action in ['list', 'retrieve', 'marcar_como_limpa']:
-            # Qualquer usuário autenticado pode listar, ver detalhes e marcar como limpa
-            return [IsAuthenticated()]
-        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
-            # Apenas administradores podem criar, atualizar ou deletar
-            return [IsAdminUser()]
-        # Retorna IsAdminUser como permissão padrão para qualquer outra ação não explicitamente coberta,
-        # garantindo que novas ações sejam restritas por padrão.
-        return [IsAdminUser()]
+        # Ações de escrita e gerenciamento de salas são restritas a Admins.
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAdminUser]
+
+        # A ação principal da equipe de limpeza.
+        elif self.action == 'marcar_como_limpa':
+            permission_classes = [IsZeladorUser]
+
+        # Ações de leitura são permitidas para qualquer usuário logado.
+        elif self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticated]
+
+        # Como padrão, para qualquer outra ação futura, exigimos permissão de Admin.
+        # Isso garante que novos endpoints não fiquem abertos acidentalmente.
+        else:
+            permission_classes = [IsAdminUser]
+
+        return [permission() for permission in permission_classes]
 
 
     def get_queryset(self):

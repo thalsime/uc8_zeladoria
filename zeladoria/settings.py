@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "accounts",
     "salas",
+    "core",
 ]
 
 # Classes de middleware.

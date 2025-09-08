@@ -377,7 +377,7 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
   * **URI:** `/api/salas/{id}/marcar_como_limpa/` (onde `{id}` é o ID numérico da sala)
   * **Verbos HTTP:** `POST`
   * **Proposta:** Registra que uma sala específica foi limpa pelo funcionário autenticado, criando um novo `LimpezaRegistro`.
-  * **Permissões:** Qualquer usuário autenticado.
+  * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
   * **Headers Necessários:**
       * `Authorization: Token SEU_TOKEN_AQUI`.
       * `Content-Type: application/json`
