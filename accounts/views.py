@@ -4,14 +4,15 @@ Módulo de Views para a aplicação Accounts.
 Define o ViewSet para operações de autenticação e gerenciamento de usuários.
 """
 
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
-from django.contrib.auth.models import User
+from rest_framework.viewsets import ReadOnlyModelViewSet
+from django.contrib.auth.models import Group, User
 from .serializers import UserSerializer, LoginSerializer, UserCreateSerializer, \
-                         PasswordChangeSerializer, AdminPasswordChangeSerializer
+    PasswordChangeSerializer, AdminPasswordChangeSerializer, GroupSerializer
 
 class AuthViewSet(viewsets.ViewSet):
     """
@@ -143,6 +144,24 @@ class AuthViewSet(viewsets.ViewSet):
         token, created = Token.objects.get_or_create(user=user) # Cria um novo token
 
         return Response({'message': 'Senha alterada com sucesso.'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def list_groups(self, request):
+        """
+        Endpoint para listar todos os grupos de usuários disponíveis.
+
+        Este endpoint é acessível a qualquer usuário autenticado e serve para
+        que as aplicações cliente possam obter uma lista de papéis (grupos)
+        disponíveis no sistema.
+
+        :param request: O objeto da requisição HTTP.
+        :type request: :class:`~rest_framework.request.Request`
+        :returns: Uma resposta HTTP 200 OK com a lista de todos os grupos.
+        :rtype: :class:`~rest_framework.response.Response`
+        """
+        groups = Group.objects.all().order_by('name')
+        serializer = GroupSerializer(groups, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # TODO: Refatorar set_user_password().
     # Há falhas relacionadas a esse endpoint que precisa ser revisadas.

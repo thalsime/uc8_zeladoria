@@ -207,7 +207,7 @@ Gerencia a autenticação de usuários e a criação de novas contas.
       * **Estrutura Obrigatória:**
         ```json
         {
-            "username": "novo_nome_de_usuario",   // string: Nome de usuário único.
+            "username": "novo_nome_de_usuario",    // string: Nome de usuário único.
             "password": "senha_segura",            // string: Senha para o novo usuário.
             "confirm_password": "senha_segura"     // string: Confirmação da senha (deve ser idêntica a 'password').
         }
@@ -216,7 +216,8 @@ Gerencia a autenticação de usuários e a criação de novas contas.
         ```json
         {
             "email": "email_novo@example.com",     // string: E-mail do usuário (opcional, pode ser vazio).
-            "is_superuser": false                  // boolean: Define se o usuário será um superusuário (padrão: false).
+            "is_superuser": false,                 // boolean: Define se o usuário será um superusuário (padrão: false).
+            "groups": [1]                          // array[integer]: Lista de IDs dos grupos (Ex: 1 pode ser o ID de 'Zeladoria').
         }
         ```
   * **Exemplo de Resposta de Sucesso (Status 201 Created):**
@@ -271,6 +272,28 @@ Gerencia a autenticação de usuários e a criação de novas contas.
         ]
     }
     ```
+#### 1.6. Listar Grupos Disponíveis
+
+* **URI:** `/api/accounts/list_groups/`
+* **Verbos HTTP:** `GET`
+* **Proposta:** Retorna uma lista de todos os grupos (papéis) de usuários disponíveis no sistema. Útil para preencher formulários de criação/edição de usuários no front-end.
+* **Permissões:** Qualquer usuário autenticado.
+* **Headers Necessários:**
+    * `Authorization: Token SEU_TOKEN_AQUI`
+* **Exemplo de Resposta de Sucesso (Status 200 OK):**
+    ```json
+    [
+        {
+            "id": 2,
+            "name": "Corpo Docente"
+        },
+        {
+            "id": 1,
+            "name": "Zeladoria"
+        }
+    ]
+    ```
+  
 
 -----
 

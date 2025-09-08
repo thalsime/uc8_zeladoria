@@ -6,7 +6,7 @@ e mudança de senha) são serializados e deserializados para/de representações
 """
 
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from rest_framework.authtoken.models import Token
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
         Metadados para o UserSerializer.
         """
         model = User
-        fields = ['id', 'username', 'email', 'is_superuser']
+        fields = ['id', 'username', 'email', 'is_superuser', 'groups']
 
 class LoginSerializer(serializers.Serializer):
     """
@@ -86,13 +86,19 @@ class UserCreateSerializer(serializers.ModelSerializer):
     """
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     confirm_password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    groups = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Group.objects.all(),
+        required=False,
+        help_text="Lista de IDs de grupos aos quais o usuário pertencerá."
+    )
 
     class Meta:
         """
         Metadados para o UserCreateSerializer.
         """
         model = User
-        fields = ['username', 'email', 'password', 'confirm_password', 'is_superuser']
+        fields = ['username', 'email', 'password', 'confirm_password', 'is_superuser', 'groups']
         extra_kwargs = {
             'is_superuser': {'required': False, 'default': False},
             'email': {'required': False, 'allow_blank': True}
@@ -115,17 +121,23 @@ class UserCreateSerializer(serializers.ModelSerializer):
         """
         Cria uma nova instância do modelo User com os dados validados.
 
-        Define a senha de forma segura e cria um token de autenticação para o novo usuário.
+        Define a senha de forma segura, atribui o usuário aos grupos especificados
+        e cria um token de autenticação para o novo usuário.
 
         :param validated_data: :class:`dict` Dicionário com os dados validados para criar o usuário.
         :returns: A nova instância de usuário criada.
         :rtype: :class:`~django.contrib.auth.models.User`
         """
+        groups_data = validated_data.pop('groups', None)
         validated_data.pop('confirm_password')
         password = validated_data.pop('password')
+
         user = User(**validated_data)
         user.set_password(password)
         user.save()
+
+        if groups_data:
+            user.groups.set(groups_data)
 
         Token.objects.get_or_create(user=user)
 
@@ -189,3 +201,15 @@ class AdminPasswordChangeSerializer(serializers.Serializer):
         if data['new_password'] != data['confirm_new_password']:
             raise serializers.ValidationError({"new_password": "As novas senhas não coincidem."})
         return data
+
+class GroupSerializer(serializers.ModelSerializer):
+    """
+    Serializer para o modelo Group.
+
+    Expõe os campos essenciais de um grupo para listagem na API,
+    permitindo que aplicações cliente saibam quais grupos estão disponíveis.
+    """
+
+    class Meta:
+        model = Group
+        fields = ['id', 'name']
