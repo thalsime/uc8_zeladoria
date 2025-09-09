@@ -117,33 +117,35 @@ A API é composta por endpoints para gerenciamento de contas de usuário e geren
 
 ### 1. Endpoints da Aplicação `accounts`
 
-Gerencia a autenticação de usuários e a criação de novas contas.
+Endpoints para autenticação e gerenciamento de usuários.
 
 #### 1.1. Login de Usuário
 
   * **URI:** `/api/accounts/login/`
   * **Verbos HTTP:** `POST`
-  * **Proposta:** Autentica um usuário no sistema e retorna um token de autenticação (Token Auth do DRF) para ser usado em requisições subsequentes, além dos dados básicos do usuário logado.
-  * **Headers Necessários:**
-      * `Content-Type: application/json`
+  * **Proposta:** Autentica um usuário e retorna um token de autenticação junto com os dados do usuário logado.
   * **Body JSON (Obrigatório):**
     ```json
     {
-        "username": "seu_nome_de_usuario", // string: Nome de usuário válido.
-        "password": "sua_senha"            // string: Senha do usuário.
+        "username": "seu_nome_de_usuario",
+        "password": "sua_senha"
     }
     ```
   * **Exemplo de Resposta de Sucesso (Status 200 OK):**
     ```json
     {
-        "username": "seu_nome_de_usuario",
-        "password": "sua_senha",
         "token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
         "user_data": {
             "id": 1,
             "username": "seu_nome_de_usuario",
             "email": "email@example.com",
-            "is_superuser": false
+            "is_superuser": false,
+            "groups": [
+                1
+            ],
+            "profile": {
+                "profile_picture": "http://127.0.0.1:8000/media/profile_pics/imagem.jpg"
+            }
         }
     }
     ```
@@ -152,45 +154,54 @@ Gerencia a autenticação de usuários e a criação de novas contas.
 
   * **URI:** `/api/accounts/current_user/`
   * **Verbos HTTP:** `GET`
-  * **Proposta:** Permite que um cliente autenticado recupere as informações do usuário associado ao token de autenticação.
+  * **Proposta:** Permite que um cliente autenticado recupere suas próprias informações.
   * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_AQUI` (substitua `SEU_TOKEN_AQUI` pelo token obtido no login).
-  * **Body JSON:** Não necessário.
+      * `Authorization: Token SEU_TOKEN_AQUI`
   * **Exemplo de Resposta de Sucesso (Status 200 OK):**
     ```json
     {
         "id": 1,
         "username": "seu_nome_de_usuario",
         "email": "email@example.com",
-        "is_superuser": false
+        "is_superuser": false,
+        "groups": [
+            1
+        ],
+        "profile": {
+            "profile_picture": "http://127.0.0.1:8000/media/profile_pics/imagem.jpg"
+        }
     }
     ```
-  
+
 #### 1.3. Listar Usuários
 
-* **Endpoint:** `GET /api/accounts/list_users/`
-* **Descrição:** Retorna uma lista de todos os usuários cadastrados no sistema, com informações básicas.
-* **Permissões:** Apenas **administradores** (usuários com `is_superuser` igual a `True`).
-* **Exemplo de Resposta (200 OK):**
+  * **Endpoint:** `GET /api/accounts/list_users/`
+  * **Descrição:** Retorna uma lista de todos os usuários cadastrados no sistema.
+  * **Permissões:** Apenas administradores (usuários com `is_staff=True`).
+  * **Exemplo de Resposta (200 OK):**
     ```json
     [
         {
             "id": 1,
             "username": "admin",
             "email": "admin@example.com",
-            "is_superuser": true
+            "is_superuser": true,
+            "groups": [],
+            "profile": {
+                "profile_picture": null
+            }
         },
         {
             "id": 2,
             "username": "zelador_a",
             "email": "zelador.a@example.com",
-            "is_superuser": false
-        },
-        {
-            "id": 3,
-            "username": "funcionario_comum",
-            "email": "funcionario.comum@example.com",
-            "is_superuser": false
+            "is_superuser": false,
+            "groups": [
+                1
+            ],
+            "profile": {
+                "profile_picture": "http://127.0.0.1:8000/media/profile_pics/imagem_zelador.jpg"
+            }
         }
     ]
     ```
@@ -207,17 +218,17 @@ Gerencia a autenticação de usuários e a criação de novas contas.
       * **Estrutura Obrigatória:**
         ```json
         {
-            "username": "novo_nome_de_usuario",    // string: Nome de usuário único.
-            "password": "senha_segura",            // string: Senha para o novo usuário.
-            "confirm_password": "senha_segura"     // string: Confirmação da senha (deve ser idêntica a 'password').
+            "username": "novo_nome_de_usuario",
+            "password": "senha_segura",
+            "confirm_password": "senha_segura"
         }
         ```
       * **Estrutura Opcional:**
         ```json
         {
-            "email": "email_novo@example.com",     // string: E-mail do usuário (opcional, pode ser vazio).
-            "is_superuser": false,                 // boolean: Define se o usuário será um superusuário (padrão: false).
-            "groups": [1]                          // array[integer]: Lista de IDs dos grupos (Ex: 1 pode ser o ID de 'Zeladoria').
+            "email": "email_novo@example.com",
+            "is_superuser": false,
+            "groups": [1]
         }
         ```
   * **Exemplo de Resposta de Sucesso (Status 201 Created):**
@@ -225,10 +236,16 @@ Gerencia a autenticação de usuários e a criação de novas contas.
     {
         "message": "Usuário criado com sucesso.",
         "user": {
-            "id": 2,
+            "id": 3,
             "username": "novo_nome_de_usuario",
             "email": "email_novo@example.com",
-            "is_superuser": false
+            "is_superuser": false,
+            "groups": [
+                1
+            ],
+            "profile": {
+                "profile_picture": null
+            }
         },
         "token": "x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0"
     }
@@ -245,9 +262,9 @@ Gerencia a autenticação de usuários e a criação de novas contas.
   * **Body JSON (Obrigatório):**
     ```json
     {
-        "old_password": "sua_senha_antiga",      // string: A senha atual do usuário.
-        "new_password": "sua_nova_senha",         // string: A nova senha desejada.
-        "confirm_new_password": "sua_nova_senha"  // string: Confirmação da nova senha (deve ser idêntica a 'new_password').
+        "old_password": "sua_senha_antiga",
+        "new_password": "sua_nova_senha",
+        "confirm_new_password": "sua_nova_senha"
     }
     ```
   * **Exemplo de Resposta de Sucesso (Status 200 OK):**
@@ -293,7 +310,37 @@ Gerencia a autenticação de usuários e a criação de novas contas.
         }
     ]
     ```
-  
+
+#### 1.7. Gerenciar Perfil do Usuário
+
+Permite que um usuário autenticado visualize e atualize seu próprio perfil, incluindo a foto.
+
+  * **URI:** `/api/accounts/profile/`
+  * **Verbos HTTP:** `GET`, `PUT`, `PATCH`
+  * **Permissões:** Apenas o próprio usuário autenticado.
+
+##### Visualizar Perfil (GET)
+
+  * **Exemplo de Resposta de Sucesso (Status 200 OK):**
+    ```json
+    {
+        "profile_picture": "http://127.0.0.1:8000/media/profile_pics/imagem.jpg"
+    }
+    ```
+
+##### Atualizar Perfil (PUT, PATCH)
+
+Para enviar uma foto, a requisição deve ser do tipo `multipart/form-data`.
+
+  * **Corpo da Requisição (Form-data):**
+      * **Chave:** `profile_picture`
+      * **Valor:** O arquivo da imagem (ex: `minha_foto.png`)
+  * **Exemplo de Resposta de Sucesso (Status 200 OK):**
+    ```json
+    {
+        "profile_picture": "http://127.0.0.1:8000/media/profile_pics/imagem_atualizada.jpg"
+    }
+    ```
 
 -----
 
@@ -367,7 +414,7 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
 
 #### 2.2. Obter Detalhes / Atualizar / Excluir Sala Específica
 
-  * **URI:** `/api/salas/{id}/` (onde `{id}` é o ID numérico da sala)
+  * **URI:** `/api/salas/{id}/`
   * **Verbos HTTP:** `GET`, `PUT`, `PATCH`, `DELETE`
   * **Proposta:**
       * `GET`: Recupera os detalhes de uma sala específica.
@@ -376,7 +423,7 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
       * `DELETE`: Exclui uma sala específica.
   * **Permissões:**
       * `GET`: Qualquer usuário autenticado.
-      * `PUT`, `PATCH`, `DELETE`: Apenas **administradores**.
+      * `PUT`, `PATCH`, `DELETE`: Apenas administradores (`is_superuser=True`).
   * **Headers Necessários:**
       * `Authorization: Token SEU_TOKEN_AQUI`.
       * `Content-Type: application/json` (Apenas para `PUT` e `PATCH`).
@@ -397,7 +444,7 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
 
 #### 2.3. Marcar Sala como Limpa
 
-  * **URI:** `/api/salas/{id}/marcar_como_limpa/` (onde `{id}` é o ID numérico da sala)
+  * **URI:** `/api/salas/{id}/marcar_como_limpa/`
   * **Verbos HTTP:** `POST`
   * **Proposta:** Registra que uma sala específica foi limpa pelo funcionário autenticado, criando um novo `LimpezaRegistro`.
   * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
@@ -427,12 +474,12 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
     }
     ```
 
-#### 2.4. Listar Registros de Limpeza (Apenas Administradores)
+#### 2.4. Listar Registros de Limpeza
 
   * **URI:** `/api/limpezas/`
   * **Verbos HTTP:** `GET`
   * **Proposta:** Recupera uma lista de todos os registros históricos de limpeza. Este endpoint é de apenas leitura.
-  * **Permissões:** Apenas **administradores**.
+  * **Permissões:** Apenas administradores (`is_superuser=True`).
   * **Headers Necessários:**
       * `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`.
   * **Parâmetros de Query (`GET` - Opcional):**
