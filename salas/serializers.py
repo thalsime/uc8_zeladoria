@@ -40,12 +40,29 @@ class SalaSerializer(serializers.ModelSerializer):
     status_limpeza = serializers.SerializerMethodField()
     ultima_limpeza_data_hora = serializers.SerializerMethodField()
     ultima_limpeza_funcionario = serializers.SerializerMethodField()
+    responsaveis = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=User.objects.filter(groups__name='Zeladoria'),
+        required=False  # Torna o campo não obrigatório
+    )
 
     class Meta:
         model = Sala
         fields = ['id', 'qr_code_id', 'nome_numero', 'capacidade', 'descricao', 'instrucoes', 'localizacao', 'ativa',
-                  'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
+                  'responsaveis', 'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
         read_only_fields = ['id', 'qr_code_id']
+
+    def to_representation(self, instance):
+        """
+        Customiza a representação da Sala para exibir os detalhes dos
+        usuários responsáveis, em vez de apenas seus IDs.
+        """
+        # Pega a representação padrão (que terá os IDs dos responsáveis)
+        representation = super().to_representation(instance)
+
+        # Substitui os IDs dos responsáveis pelos dados do BasicUserSerializer
+        representation['responsaveis'] = BasicUserSerializer(instance.responsaveis.all(), many=True).data
+        return representation
 
     def get_status_limpeza(self, obj):
         """

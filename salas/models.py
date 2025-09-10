@@ -44,6 +44,13 @@ class Sala(models.Model):
         verbose_name="ID para QR Code"
     )
     ativa = models.BooleanField(default=True, verbose_name="Ativa")
+    responsaveis = models.ManyToManyField(
+        User,
+        related_name='salas_responsaveis',
+        blank=True,
+        verbose_name="Responsáveis pela Limpeza",
+        limit_choices_to={'groups__name': 'Zeladoria'}
+    )
 
     class Meta:
         """
