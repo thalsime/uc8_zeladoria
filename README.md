@@ -144,7 +144,7 @@ Endpoints para autenticação e gerenciamento de usuários.
                 1
             ],
             "profile": {
-                "profile_picture": "[http://127.0.0.1:8000/media/profile_pics/1.jpg](http://127.0.0.1:8000/media/profile_pics/1.jpg)"
+                "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
             }
         }
     }
