@@ -51,6 +51,13 @@ class Sala(models.Model):
         verbose_name="Responsáveis pela Limpeza",
         limit_choices_to={'groups__name': 'Zeladoria'}
     )
+    validade_limpeza_horas = models.IntegerField(
+        default=4,
+        verbose_name="Validade da Limpeza (em horas)",
+        validators=[
+            MinValueValidator(1, message="A validade da limpeza deve ser de no mínimo 1 hora.")
+        ]
+    )
 
     class Meta:
         """

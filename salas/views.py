@@ -68,22 +68,10 @@ class SalaViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
-
     def get_queryset(self):
         """
         Sobrescreve o queryset base para permitir filtragem de salas.
-
-        Permite filtrar as salas por localização exata e por status de limpeza,
-        conforme determinado por uma lógica de tempo no serializador.
-
-        :param self: A instância do ViewSet.
-        :type self: :class:`SalaViewSet`
-        :query_param localizacao: Opcional. Filtra salas por uma localização exata (case-insensitive).
-        :type localizacao: str
-        :query_param status_limpeza: Opcional. Filtra salas por status de limpeza ('Limpa' ou 'Limpeza Pendente').
-        :type status_limpeza: str
-        :returns: Um QuerySet de objetos :class:`~salas.models.Sala` filtrados.
-        :rtype: :class:`~django.db.models.QuerySet`
+        Permite filtrar as salas por localização exata e por status de limpeza.
         """
         queryset = super().get_queryset()
         localizacao = self.request.query_params.get('localizacao')
@@ -92,22 +80,32 @@ class SalaViewSet(viewsets.ModelViewSet):
         if localizacao:
             queryset = queryset.filter(localizacao__iexact=localizacao)
 
+        # --- Bloco de código corrigido ---
         if status_limpeza_filter:
-            # Reavalia o status de limpeza para cada sala no queryset
-            # Pode ser ineficiente para muitos registros, considerar otimização se necessário.
-            if status_limpeza_filter.lower() == 'limpa':
-                return [sala for sala in queryset if sala.status_limpeza == "Limpa"]
-            elif status_limpeza_filter.lower() == 'limpeza pendente':
-                return [sala for sala in queryset if sala.status_limpeza == "Limpeza Pendente"]
-            else:
-                # Retorna queryset vazio ou erro se o status for inválido
-                return []
+            salas_filtradas = []
+            # Itera sobre as salas para calcular o status de cada uma
+            for sala in queryset:
+                # Lógica replicada do SalaSerializer para calcular o status
+                ultimo_registro = sala.registros_limpeza.first()
+                status_atual = "Limpeza Pendente"  # Define o padrão
+                if ultimo_registro:
+                    validade_em_segundos = sala.validade_limpeza_horas * 3600
+                    tempo_decorrido = (timezone.now() - ultimo_registro.data_hora_limpeza).total_seconds()
+                    if tempo_decorrido < validade_em_segundos:
+                        status_atual = "Limpa"
+
+                # Compara o status calculado com o filtro da URL
+                if status_limpeza_filter.lower() == status_atual.lower():
+                    salas_filtradas.append(sala)
+
+            return salas_filtradas
+
         return queryset
 
     # A linha 'permission_classes=[IsAuthenticated]' foi removida do decorador @action,
     # pois a permissão agora é gerenciada centralmente em get_permissions.
     @action(detail=True, methods=['post'])
-    def marcar_como_limpa(self, request, pk=None):
+    def marcar_como_limpa(self, request, qr_code_id=None):
         """
         Marca uma sala específica como limpa, criando um novo registro de limpeza.
 

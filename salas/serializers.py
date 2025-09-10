@@ -48,7 +48,8 @@ class SalaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sala
-        fields = ['id', 'qr_code_id', 'nome_numero', 'capacidade', 'descricao', 'instrucoes', 'localizacao', 'ativa',
+        fields = ['id', 'qr_code_id', 'nome_numero', 'capacidade', 'validade_limpeza_horas', 'descricao', 'instrucoes',
+                  'localizacao', 'ativa',
                   'responsaveis', 'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
         read_only_fields = ['id', 'qr_code_id']
 
@@ -67,21 +68,19 @@ class SalaSerializer(serializers.ModelSerializer):
     def get_status_limpeza(self, obj):
         """
         Calcula e retorna o status de limpeza de uma sala.
-
-        A lógica atual define a sala como "Limpa" se o último registro de limpeza
-        tiver ocorrido há menos de 4 horas (14400 segundos). Caso contrário,
-        a sala é considerada "Limpeza Pendente".
-
-        :param obj: A instância :class:`Sala` da qual obter o status.
-        :type obj: :class:`~salas.models.Sala`
-        :returns: O status de limpeza da sala ("Limpa" ou "Limpeza Pendente").
-        :rtype: str
+        A lógica agora usa o campo 'validade_limpeza_horas' da própria sala
+        para determinar se ela está "Limpa" ou com "Limpeza Pendente".
         """
         ultimo_registro = obj.registros_limpeza.first()
         if ultimo_registro:
-            # TODO: Revisar lógica de tempo para determinar "pendente"
-            # Se intervalo entre agora e ultima limpeza menor que 4 horas, Limpa.
-            if (timezone.now() - ultimo_registro.data_hora_limpeza).seconds < 14400:
+            # --- Lógica atualizada ---
+            # Converte a validade da limpeza de horas para segundos
+            validade_em_segundos = obj.validade_limpeza_horas * 3600
+
+            # Compara o tempo decorrido com a validade configurada para a sala
+            tempo_decorrido = (timezone.now() - ultimo_registro.data_hora_limpeza).total_seconds()
+
+            if tempo_decorrido < validade_em_segundos:
                 return "Limpa"
         return "Limpeza Pendente"
 

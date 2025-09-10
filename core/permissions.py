@@ -30,7 +30,7 @@ class IsAdminUser(permissions.BasePermission):
     Um administrador é definido como um usuário que tem o atributo `is_staff` como True.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.is_staff
+        return request.user and request.user.is_superuser
 
 
 class IsZeladorUser(permissions.BasePermission):
