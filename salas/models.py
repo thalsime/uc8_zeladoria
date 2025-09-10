@@ -8,6 +8,7 @@ interagindo com o banco de dados.
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Sala(models.Model):
     """
@@ -24,8 +25,15 @@ class Sala(models.Model):
                              registros de limpeza (:class:`~salas.models.LimpezaRegistro`) associados a esta sala.
     """
     nome_numero = models.CharField(max_length=100, unique=True, verbose_name="Nome/Número")
-    capacidade = models.IntegerField(verbose_name="Capacidade")
-    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
+    capacidade = models.IntegerField(
+        verbose_name="Capacidade",
+        validators=[
+            MinValueValidator(1, message="A capacidade deve ser de no mínimo 1."),
+            MaxValueValidator(2000, message="A capacidade máxima não pode exceder 2000.")
+        ]
+    )
+    descricao = models.TextField(max_length=100, blank=True, null=True, verbose_name="Descrição")
+    instrucoes = models.TextField(blank=True, null=True, verbose_name="Instruções de Limpeza")
     localizacao = models.CharField(max_length=100, verbose_name="Localização")
     qr_code_id = models.UUIDField(
         default=uuid.uuid4,
