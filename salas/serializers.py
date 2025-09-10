@@ -43,7 +43,7 @@ class SalaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sala
-        fields = ['id', 'nome_numero', 'capacidade', 'descricao', 'localizacao',
+        fields = ['id', 'nome_numero', 'capacidade', 'descricao', 'localizacao', 'ativa',
                   'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
 
     def get_status_limpeza(self, obj):

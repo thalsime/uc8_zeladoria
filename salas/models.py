@@ -26,6 +26,7 @@ class Sala(models.Model):
     capacidade = models.IntegerField(verbose_name="Capacidade")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
     localizacao = models.CharField(max_length=100, verbose_name="Localização")
+    ativa = models.BooleanField(default=True, verbose_name="Ativa")
 
     class Meta:
         """

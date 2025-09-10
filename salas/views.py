@@ -122,6 +122,13 @@ class SalaViewSet(viewsets.ModelViewSet):
         :payloadtype observacoes: str
         """
         sala = self.get_object()
+
+        if not sala.ativa:
+            return Response(
+                {'detail': 'Esta sala não está ativa e não pode ser marcada como limpa.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         observacoes = request.data.get('observacoes', '')
 
         # O `data_hora_limpeza` é definido automaticamente pelo modelo (auto_now_add=True)
@@ -132,6 +139,20 @@ class SalaViewSet(viewsets.ModelViewSet):
         )
         serializer = LimpezaRegistroSerializer(registro_limpeza)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Impede a exclusão de salas que não estão ativas.
+        """
+        sala = self.get_object()
+        if not sala.ativa:
+            return Response(
+                {'detail': 'Salas inativas não podem ser excluídas. Ative a sala primeiro.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().destroy(request, *args, **kwargs)
 
 class LimpezaRegistroViewSet(viewsets.ReadOnlyModelViewSet):
     """
