@@ -5,6 +5,7 @@ Define as estruturas de dados para salas e registros de limpeza,
 interagindo com o banco de dados.
 """
 
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -26,6 +27,14 @@ class Sala(models.Model):
     capacidade = models.IntegerField(verbose_name="Capacidade")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
     localizacao = models.CharField(max_length=100, verbose_name="Localização")
+    qr_code_id = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        db_index=True,
+        # null=True,
+        verbose_name="ID para QR Code"
+    )
     ativa = models.BooleanField(default=True, verbose_name="Ativa")
 
     class Meta:

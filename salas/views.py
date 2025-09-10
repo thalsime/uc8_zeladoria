@@ -30,6 +30,9 @@ class SalaViewSet(viewsets.ModelViewSet):
     # A linha 'permission_classes = [IsAuthenticated]' foi removida daqui,
     # pois as permissões agora são definidas dinamicamente no método get_permissions.
 
+    lookup_field = 'qr_code_id'
+    lookup_value_regex = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
     def get_permissions(self):
         """
         Define as permissões de acesso para cada ação do ViewSet de forma granular
