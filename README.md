@@ -11,14 +11,14 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
   * Python 3.12+
   * pip (gerenciador de pacotes do Python)
 
-### 1. Clonar o Repositório
+### 1\. Clonar o Repositório
 
 ```bash
 git clone https://github.com/thalsime/uc8_zeladoria.git
 cd uc8_zeladoria # Navegue até a pasta raiz do projeto (onde está manage.py)
 ```
 
-### 2. Configurar o Ambiente Virtual (venv)
+### 2\. Configurar o Ambiente Virtual (venv)
 
 É uma boa prática usar `venv` para gerenciar as dependências do seu projeto, evitando conflitos com outras instalações Python. Acesse a pasta do projeto clonado e siga as instruções:
 
@@ -38,7 +38,7 @@ venv\Scripts\activate.bat
 venv\Scripts\Activate.ps1
 ```
 
-### 3. Configurar Variáveis de Ambiente (`.env`)
+### 3\. Configurar Variáveis de Ambiente (`.env`)
 
 Este projeto utiliza a biblioteca `python-decouple` para gerenciar variáveis de ambiente, mantendo configurações sensíveis (como `SECRET_KEY`) e variáveis de ambiente (como `DEBUG`, `TIME_ZONE`) fora do código-fonte e do controle de versão.
 
@@ -63,7 +63,7 @@ USE_TZ=True
 
 O `settings.py` utiliza a função `config()` da biblioteca `decouple` para ler esses valores, por exemplo: `SECRET_KEY = config("SECRET_KEY")`.
 
-### 4. Instalar as Dependências
+### 4\. Instalar as Dependências
 
 Com o ambiente virtual ativado, instale todas as bibliotecas necessárias listadas no arquivo `requirements.txt`:
 
@@ -95,7 +95,7 @@ python manage.py createsuperuser
 
 Siga as instruções no terminal para criar seu superusuário.
 
-### 7. Rodar o Servidor de Desenvolvimento
+### 7\. Rodar o Servidor de Desenvolvimento
 
 Com todas as configurações prontas, você pode iniciar o servidor de desenvolvimento do Django:
 
@@ -115,7 +115,7 @@ A API é composta por endpoints para gerenciamento de contas de usuário e geren
 
 -----
 
-### 1. Endpoints da Aplicação `accounts`
+### 1\. Endpoints da Aplicação `accounts`
 
 Endpoints para autenticação e gerenciamento de usuários.
 
@@ -176,8 +176,13 @@ Endpoints para autenticação e gerenciamento de usuários.
 #### 1.3. Listar Usuários
 
   * **Endpoint:** `GET /api/accounts/list_users/`
-  * **Descrição:** Retorna uma lista de todos os usuários cadastrados no sistema.
-  * **Permissões:** Apenas administradores (usuários com `is_staff=True`).
+  * **Descrição:** Retorna uma lista de todos os usuários cadastrados no sistema, com suporte a filtros avançados.
+  * **Permissões:** Apenas administradores (`is_superuser=True`).
+  * **Parâmetros de Query (`GET` - Opcional):**
+      * `username` (string): Busca parcial por nome de usuário (ex: `/api/accounts/list_users/?username=admin`).
+      * `email` (string): Busca parcial por e-mail (ex: `/api/accounts/list_users/?email=@example.com`).
+      * `is_superuser` (boolean): Filtra por status de superusuário (ex: `/api/accounts/list_users/?is_superuser=true`).
+      * `group` (string): Filtra por nome exato do grupo (não diferencia maiúsculas/minúsculas) (ex: `/api/accounts/list_users/?group=Zeladoria`).
   * **Exemplo de Resposta (200 OK):**
     ```json
     [
@@ -289,6 +294,7 @@ Endpoints para autenticação e gerenciamento de usuários.
         ]
     }
     ```
+
 #### 1.6. Listar Grupos Disponíveis
 
   * **URI:** `/api/accounts/list_groups/`
@@ -344,7 +350,7 @@ Para enviar uma foto, a requisição deve ser do tipo `multipart/form-data`.
 
 -----
 
-### 2. Endpoints da Aplicação `salas`
+### 2\. Endpoints da Aplicação `salas`
 
 Gerencia as informações sobre as salas e seus registros de limpeza.
 
@@ -361,9 +367,13 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
   * **Headers Necessários:**
       * `Authorization: Token SEU_TOKEN_AQUI` (Para `GET` e `POST`).
       * `Content-Type: application/json` (Apenas para `POST`).
-  * **Parâmetros de Query (`GET` - Opcional):**
-      * `localizacao` (string): Filtra as salas por uma localização exata (ex: `/api/salas/?localizacao=Bloco A`).
-      * `status_limpeza` (string): Filtra as salas pelo status de limpeza. Valores possíveis: `Limpa` ou `Limpeza Pendente` (ex: `/api/salas/?status_limpeza=Limpa`).
+  * **Parâmetros de Query para Buscas Avançadas (`GET` - Opcional):**
+      * `ativa` (boolean): Filtra por salas ativas (`true`) ou inativas (`false`). Ex: `/api/salas/?ativa=false`
+      * `nome_numero` (string): Busca parcial por nome/número da sala. Ex: `/api/salas/?nome_numero=101`
+      * `localizacao` (string): Busca parcial por localização. Ex: `/api/salas/?localizacao=Bloco A`
+      * `capacidade_min` (integer): Filtra por capacidade mínima. Ex: `/api/salas/?capacidade_min=30`
+      * `capacidade_max` (integer): Filtra por capacidade máxima. Ex: `/api/salas/?capacidade_max=50`
+      * `responsavel_username` (string): Busca parcial pelo nome de usuário de um responsável. Ex: `/api/salas/?responsavel_username=zelador`
   * **Body JSON (`POST` - Obrigatório):**
     ```json
     {
@@ -471,8 +481,12 @@ Gerencia as informações sobre as salas e seus registros de limpeza.
   * **Permissões:** Apenas administradores (`is_superuser=True`).
   * **Headers Necessários:**
       * `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`.
-  * **Parâmetros de Query (`GET` - Opcional):**
-      * `sala_id` (integer): Filtra os registros de limpeza por uma sala específica (ex: `/api/limpezas/?sala_id=1`).
+  * **Parâmetros de Query para Buscas Avançadas (`GET` - Opcional):**
+      * `sala` (integer): Filtra por ID exato da sala. Ex: `/api/limpezas/?sala=1`
+      * `sala_nome` (string): Busca parcial por nome/número da sala. Ex: `/api/limpezas/?sala_nome=101`
+      * `funcionario_username` (string): Busca parcial por nome de usuário do funcionário. Ex: `/api/limpezas/?funcionario_username=zelador`
+      * `data_hora_limpeza_after` (datetime): Filtra registros a partir de uma data/hora. Ex: `/api/limpezas/?data_hora_limpeza_after=2025-09-10`
+      * `data_hora_limpeza_before` (datetime): Filtra registros até uma data/hora. Ex: `/api/limpezas/?data_hora_limpeza_before=2025-09-11`
   * **Exemplo de Resposta de Sucesso (`GET` - Status 200 OK):**
     ```json
     [
@@ -568,5 +582,3 @@ export default SalaCard;
 ## Próximos Passos e Melhorias Futuras
 
 Este projeto é uma base para um Sistema de Mapeamento da Limpeza de Salas. Ele ainda será aprimorado e novos recursos serão adicionados para otimizar ainda mais o gerenciamento da zeladoria e a experiência do usuário.
-
-```

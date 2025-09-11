@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from .models import Sala, LimpezaRegistro
+from .filters import SalaFilter, LimpezaRegistroFilter
 from .serializers import SalaSerializer, LimpezaRegistroSerializer
 from core.permissions import IsAdminUser, IsZeladorUser, IsCorpoDocenteUser
 
@@ -29,6 +30,8 @@ class SalaViewSet(viewsets.ModelViewSet):
     serializer_class = SalaSerializer
     # A linha 'permission_classes = [IsAuthenticated]' foi removida daqui,
     # pois as permissões agora são definidas dinamicamente no método get_permissions.
+
+    filterset_class = SalaFilter
 
     lookup_field = 'qr_code_id'
     lookup_value_regex = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -68,39 +71,49 @@ class SalaViewSet(viewsets.ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
+    # def get_queryset(self):
+    #     """
+    #     Sobrescreve o queryset base para permitir filtragem de salas.
+    #     Permite filtrar as salas por localização exata e por status de limpeza.
+    #     """
+    #     queryset = super().get_queryset()
+    #     localizacao = self.request.query_params.get('localizacao')
+    #     status_limpeza_filter = self.request.query_params.get('status_limpeza')
+    #
+    #     if localizacao:
+    #         queryset = queryset.filter(localizacao__iexact=localizacao)
+    #
+    #     # --- Bloco de código corrigido ---
+    #     if status_limpeza_filter:
+    #         salas_filtradas = []
+    #         # Itera sobre as salas para calcular o status de cada uma
+    #         for sala in queryset:
+    #             # Lógica replicada do SalaSerializer para calcular o status
+    #             ultimo_registro = sala.registros_limpeza.first()
+    #             status_atual = "Limpeza Pendente"  # Define o padrão
+    #             if ultimo_registro:
+    #                 validade_em_segundos = sala.validade_limpeza_horas * 3600
+    #                 tempo_decorrido = (timezone.now() - ultimo_registro.data_hora_limpeza).total_seconds()
+    #                 if tempo_decorrido < validade_em_segundos:
+    #                     status_atual = "Limpa"
+    #
+    #             # Compara o status calculado com o filtro da URL
+    #             if status_limpeza_filter.lower() == status_atual.lower():
+    #                 salas_filtradas.append(sala)
+    #
+    #         return salas_filtradas
+    #
+    #     return queryset
+
     def get_queryset(self):
         """
-        Sobrescreve o queryset base para permitir filtragem de salas.
-        Permite filtrar as salas por localização exata e por status de limpeza.
+        Sobrescreve o queryset base para otimizar consultas.
+        A lógica de filtro agora é tratada pelo django-filter.
         """
-        queryset = super().get_queryset()
-        localizacao = self.request.query_params.get('localizacao')
-        status_limpeza_filter = self.request.query_params.get('status_limpeza')
 
-        if localizacao:
-            queryset = queryset.filter(localizacao__iexact=localizacao)
-
-        # --- Bloco de código corrigido ---
-        if status_limpeza_filter:
-            salas_filtradas = []
-            # Itera sobre as salas para calcular o status de cada uma
-            for sala in queryset:
-                # Lógica replicada do SalaSerializer para calcular o status
-                ultimo_registro = sala.registros_limpeza.first()
-                status_atual = "Limpeza Pendente"  # Define o padrão
-                if ultimo_registro:
-                    validade_em_segundos = sala.validade_limpeza_horas * 3600
-                    tempo_decorrido = (timezone.now() - ultimo_registro.data_hora_limpeza).total_seconds()
-                    if tempo_decorrido < validade_em_segundos:
-                        status_atual = "Limpa"
-
-                # Compara o status calculado com o filtro da URL
-                if status_limpeza_filter.lower() == status_atual.lower():
-                    salas_filtradas.append(sala)
-
-            return salas_filtradas
-
-        return queryset
+        # Otimização: pré-carrega os registros de limpeza e os responsáveis
+        # para evitar múltiplas queries no banco de dados (problema N+1).
+        return Sala.objects.prefetch_related('registros_limpeza__funcionario_responsavel', 'responsaveis').all()
 
     # A linha 'permission_classes=[IsAuthenticated]' foi removida do decorador @action,
     # pois a permissão agora é gerenciada centralmente em get_permissions.
@@ -171,23 +184,33 @@ class LimpezaRegistroViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LimpezaRegistro.objects.all()
     serializer_class = LimpezaRegistroSerializer
     permission_classes = [IsAdminUser] # Apenas administradores podem ver registros de limpeza
+    ilterset_class = LimpezaRegistroFilter
+
+    # def get_queryset(self):
+    #     """
+    #     Sobrescreve o queryset base para permitir filtragem de registros de limpeza por sala.
+    #
+    #     Permite buscar registros de limpeza associados a uma sala específica através
+    #     de um parâmetro de query.
+    #
+    #     :param self: A instância do ViewSet.
+    #     :type self: :class:`LimpezaRegistroViewSet`
+    #     :query_param sala_id: Opcional. O ID da sala para filtrar os registros de limpeza.
+    #     :type sala_id: int
+    #     :returns: Um QuerySet de objetos :class:`~salas.models.LimpezaRegistro` filtrados.
+    #     :rtype: :class:`~django.db.models.QuerySet`
+    #     """
+    #     queryset = super().get_queryset()
+    #     sala_id = self.request.query_params.get('sala_id')
+    #     if sala_id:
+    #         queryset = queryset.filter(sala__id=sala_id)
+    #     return queryset
 
     def get_queryset(self):
         """
-        Sobrescreve o queryset base para permitir filtragem de registros de limpeza por sala.
-
-        Permite buscar registros de limpeza associados a uma sala específica através
-        de um parâmetro de query.
-
-        :param self: A instância do ViewSet.
-        :type self: :class:`LimpezaRegistroViewSet`
-        :query_param sala_id: Opcional. O ID da sala para filtrar os registros de limpeza.
-        :type sala_id: int
-        :returns: Um QuerySet de objetos :class:`~salas.models.LimpezaRegistro` filtrados.
-        :rtype: :class:`~django.db.models.QuerySet`
+        Sobrescreve o queryset base para otimizar consultas.
+        A lógica de filtro agora é tratada pelo django-filter.
         """
-        queryset = super().get_queryset()
-        sala_id = self.request.query_params.get('sala_id')
-        if sala_id:
-            queryset = queryset.filter(sala__id=sala_id)
-        return queryset
+
+        # Otimização: pré-carrega os dados da sala e do funcionário.
+        return LimpezaRegistro.objects.select_related('sala', 'funcionario_responsavel').all()
