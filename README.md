@@ -143,6 +143,7 @@ Endpoints para autenticação e gerenciamento de usuários.
             "groups": [
                 1
             ],
+            "nome": "Nome Completo do Usuário",
             "profile": {
                 "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
             }
@@ -167,7 +168,9 @@ Endpoints para autenticação e gerenciamento de usuários.
         "groups": [
             1
         ],
+        "nome": "Nome Completo do Usuário",
         "profile": {
+            "nome": "Nome Completo do Usuário",
             "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
         }
     }
@@ -192,7 +195,9 @@ Endpoints para autenticação e gerenciamento de usuários.
             "email": "admin@example.com",
             "is_superuser": true,
             "groups": [],
+            "nome": "Administrador do Sistema",
             "profile": {
+                "nome": "Administrador do Sistema",
                 "profile_picture": null
             }
         },
@@ -204,7 +209,9 @@ Endpoints para autenticação e gerenciamento de usuários.
             "groups": [
                 1
             ],
+            "nome": "Zelador Alfa",
             "profile": {
+                "nome": "Zelador Alfa",
                 "profile_picture": "http://127.0.0.1:8000/media/profile_pics/2.jpg"
             }
         }
@@ -231,6 +238,7 @@ Endpoints para autenticação e gerenciamento de usuários.
       * **Estrutura Opcional:**
         ```json
         {
+            "nome": "Nome Completo do Usuário",
             "email": "email_novo@example.com",
             "is_superuser": false,
             "groups": [1]
@@ -248,7 +256,9 @@ Endpoints para autenticação e gerenciamento de usuários.
             "groups": [
                 1
             ],
+            "nome": "Nome Completo do Usuário",
             "profile": {
+                "nome": "Nome Completo do Usuário",
                 "profile_picture": null
             }
         },
@@ -319,7 +329,7 @@ Endpoints para autenticação e gerenciamento de usuários.
 
 #### 1.7. Gerenciar Perfil do Usuário
 
-Permite que um usuário autenticado visualize e atualize seu próprio perfil, incluindo a foto.
+Permite que um usuário autenticado visualize e atualize seu próprio perfil, incluindo nome e foto.
 
   * **URI:** `/api/accounts/profile/`
       * **Verbos HTTP:** `GET`, `PUT`, `PATCH`
@@ -330,23 +340,31 @@ Permite que um usuário autenticado visualize e atualize seu próprio perfil, in
   * **Exemplo de Resposta de Sucesso (Status 200 OK):**
     ```json
     {
+        "nome": "Nome Completo do Usuário",
         "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
     }
     ```
 
 ##### Atualizar Perfil (PUT, PATCH)
 
-Para enviar uma foto, a requisição deve ser do tipo `multipart/form-data`.
-
-  * **Corpo da Requisição (Form-data):**
-    \* **Chave:** `profile_picture`
-    \* **Valor:** O arquivo da imagem (ex: `minha_foto.png`)
-      * **Exemplo de Resposta de Sucesso (Status 200 OK):**
-        ```json
-        {
-            "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
-        }
-        ```
+  * **Para atualizar apenas o nome (JSON):**
+    ```json
+    {
+        "nome": "Novo Nome Completo"
+    }
+    ```
+  * **Para atualizar a foto ou ambos (Multipart Form-data):**
+      * **Chave 1 (texto):** `nome`
+      * **Valor 1:** `Outro Nome Completo`
+      * **Chave 2 (arquivo):** `profile_picture`
+      * **Valor 2:** O arquivo da imagem (ex: `minha_foto.png`)
+          * **Exemplo de Resposta de Sucesso (Status 200 OK):**
+            ```json
+            {
+                "nome": "Outro Nome Completo",
+                "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
+            }
+            ```
 
 -----
 

@@ -8,15 +8,33 @@ e mudança de senha) são serializados e deserializados para/de representações
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from rest_framework.authtoken.models import Token
-from .models import Profile # Importe o novo modelo Profile
+from .models import Profile
 
 class ProfileSerializer(serializers.ModelSerializer):
     """
     Serializer para o modelo Profile.
     """
+
+    nome = serializers.CharField(source='user.first_name', required=False, allow_blank=True)
+
     class Meta:
         model = Profile
-        fields = ['profile_picture']
+        fields = ['nome', 'profile_picture']
+
+    def update(self, instance, validated_data):
+        """
+        Sobrescreve o método de atualização para lidar com o campo 'nome'
+        que pertence ao modelo User relacionado.
+        """
+
+        user_data = validated_data.pop('user', {})
+        nome = user_data.get('first_name')
+
+        if nome is not None:
+            instance.user.first_name = nome
+            instance.user.save()
+
+        return super().update(instance, validated_data)
 
 class UserSerializer(serializers.ModelSerializer):
     """
@@ -31,6 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
     :ivar is_superuser: :class:`bool` Indica se o usuário possui todas as permissões sem ser explicitamente atribuídas.
     """
 
+    nome = serializers.CharField(source='first_name', read_only=True)
     profile = ProfileSerializer(read_only=True)
 
     class Meta:
@@ -38,7 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
         Metadados para o UserSerializer.
         """
         model = User
-        fields = ['id', 'username', 'email', 'is_superuser', 'groups', 'profile']
+        fields = ['id', 'username', 'email', 'is_superuser', 'groups', 'nome', 'profile']
 
 class LoginSerializer(serializers.Serializer):
     """
@@ -86,17 +105,11 @@ class LoginSerializer(serializers.Serializer):
 class UserCreateSerializer(serializers.ModelSerializer):
     """
     Serializer para a criação de novos usuários por um administrador.
-
     Requer confirmação de senha e permite definir privilégios de staff/superuser.
-
-    :ivar password: :class:`str` Senha do novo usuário (apenas escrita).
-    :ivar confirm_password: :class:`str` Confirmação da senha (apenas escrita).
-    :ivar username: :class:`str` Nome de usuário do novo usuário.
-    :ivar email: :class:`str` Endereço de e-mail do novo usuário.
-    :ivar is_superuser: :class:`bool` Indica se o novo usuário terá permissões de superusuário.
     """
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     confirm_password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    nome = serializers.CharField(source='first_name', required=False, allow_blank=True)
     groups = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Group.objects.all(),
@@ -105,11 +118,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        """
-        Metadados para o UserCreateSerializer.
-        """
         model = User
-        fields = ['username', 'email', 'password', 'confirm_password', 'is_superuser', 'groups']
+        fields = ['username', 'email', 'password', 'confirm_password', 'is_superuser', 'groups', 'nome']
         extra_kwargs = {
             'is_superuser': {'required': False, 'default': False},
             'email': {'required': False, 'allow_blank': True}
@@ -118,11 +128,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def validate(self, data: dict) -> dict:
         """
         Valida se os campos 'password' e 'confirm_password' coincidem.
-
-        :param data: :class:`dict` Dicionário contendo os dados do usuário a ser criado.
-        :raises rest_framework.serializers.ValidationError: Se as senhas não coincidirem.
-        :returns: Os dados validados.
-        :rtype: dict
         """
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({"password": "As senhas não coincidem."})
@@ -131,28 +136,19 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data: dict) -> User:
         """
         Cria uma nova instância do modelo User com os dados validados.
-
-        Define a senha de forma segura, atribui o usuário aos grupos especificados
-        e cria um token de autenticação para o novo usuário.
-
-        :param validated_data: :class:`dict` Dicionário com os dados validados para criar o usuário.
-        :returns: A nova instância de usuário criada.
-        :rtype: :class:`~django.contrib.auth.models.User`
         """
         groups_data = validated_data.pop('groups', None)
         validated_data.pop('confirm_password')
         password = validated_data.pop('password')
 
-        user = User(**validated_data)
-        user.set_password(password)
-        user.save()
+        user = User.objects.create_user(**validated_data)
 
         if groups_data:
             user.groups.set(groups_data)
 
         Token.objects.get_or_create(user=user)
-
         return user
+
 
 class PasswordChangeSerializer(serializers.Serializer):
     """
