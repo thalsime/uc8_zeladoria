@@ -1,28 +1,28 @@
-"""
-Módulo de Modelos para a aplicação Salas.
-
-Define as estruturas de dados para salas e registros de limpeza,
-interagindo com o banco de dados.
-"""
-
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
 class Sala(models.Model):
-    """
-    Representa uma sala física no sistema.
+    """Representa uma sala física ou local gerenciável no sistema.
 
-    Gerencia informações como nome, capacidade e localização, e
-    mantém um histórico de registros de limpeza associados.
+    Armazena informações como identificação, capacidade, localização e as
+    regras de limpeza associadas, além de manter um registro de quem são os
+    responsáveis por ela.
 
-    :ivar nome_numero: :class:`str` Nome ou número único que identifica a sala (Ex: 'Sala 101', 'Auditório Principal').
-    :ivar capacidade: :class:`int` Número máximo de pessoas que a sala pode acomodar.
-    :ivar descricao: :class:`str` Uma descrição opcional e detalhada sobre a sala.
-    :ivar localizacao: :class:`str` Onde a sala está situada fisicamente (Ex: 'Bloco A', 'Campus Central').
-    :ivar registros_limpeza: :class:`~django.db.models.fields.related.ReverseManyToOneDescriptor` Relação reversa com os
-                             registros de limpeza (:class:`~salas.models.LimpezaRegistro`) associados a esta sala.
+    Attributes:
+        nome_numero (CharField): Identificador textual único da sala.
+        capacidade (IntegerField): Número máximo de ocupantes.
+        descricao (TextField): Descrição opcional da sala.
+        instrucoes (TextField): Instruções específicas para a limpeza da sala.
+        localizacao (CharField): Localização física da sala.
+        qr_code_id (UUIDField): Identificador único para a geração de QR Codes.
+        ativa (BooleanField): Indica se a sala está em uso no sistema.
+        responsaveis (ManyToManyField): Usuários do grupo 'Zeladoria'
+            responsáveis pela sala.
+        validade_limpeza_horas (IntegerField): Período em horas que uma
+            limpeza é considerada válida.
     """
     nome_numero = models.CharField(max_length=100, unique=True, verbose_name="Nome/Número")
     capacidade = models.IntegerField(
@@ -40,7 +40,6 @@ class Sala(models.Model):
         editable=False,
         unique=True,
         db_index=True,
-        # null=True,
         verbose_name="ID para QR Code"
     )
     ativa = models.BooleanField(default=True, verbose_name="Ativa")
@@ -60,38 +59,32 @@ class Sala(models.Model):
     )
 
     class Meta:
-        """
-        Metadados para o modelo Sala.
+        """Define metadados para o modelo Sala.
 
-        Define o nome legível no plural e singular e a ordem padrão
-        dos objetos :class:`Sala` nas consultas.
+        Configura os nomes de exibição no admin do Django e a ordenação
+        padrão das consultas pelo campo `nome_numero`.
         """
         verbose_name = "Sala"
         verbose_name_plural = "Salas"
         ordering = ['nome_numero']
 
     def __str__(self):
-        """
-        Retorna a representação em string do objeto Sala.
-
-        :returns: O nome/número da sala.
-        :rtype: str
-        """
+        """Retorna a representação textual do modelo Sala."""
         return self.nome_numero
 
+
 class LimpezaRegistro(models.Model):
-    """
-    Representa um registro de uma ação de limpeza em uma sala.
+    """Registra a ocorrência de uma limpeza em uma determinada sala.
 
-    Armazena detalhes sobre quando uma sala foi limpa, por qual funcionário,
-    e quaisquer observações relevantes.
+    Armazena a qual sala o registro pertence, o funcionário que realizou a
+    limpeza e o momento exato em que ela foi registrada.
 
-    :ivar sala: :class:`~django.db.models.ForeignKey` A sala à qual este registro de limpeza está associado.
-    :ivar data_hora_limpeza: :class:`~django.db.models.DateTimeField` O timestamp exato em que a limpeza foi registrada.
-                             É preenchido automaticamente na criação do registro.
-    :ivar funcionario_responsavel: :class:`~django.db.models.ForeignKey` O usuário (:class:`~django.contrib.auth.models.User`)
-                                   que registrou a limpeza. Pode ser nulo se o funcionário for removido.
-    :ivar observacoes: :class:`str` Quaisquer notas ou detalhes adicionais sobre a limpeza realizada.
+    Attributes:
+        sala (ForeignKey): A sala que foi limpa.
+        data_hora_limpeza (DateTimeField): Data e hora em que o registro foi
+            criado automaticamente.
+        funcionario_responsavel (ForeignKey): O usuário que registrou a limpeza.
+        observacoes (TextField): Notas adicionais sobre a limpeza.
     """
     sala = models.ForeignKey(Sala, on_delete=models.CASCADE, related_name='registros_limpeza', verbose_name="Sala")
     data_hora_limpeza = models.DateTimeField(auto_now_add=True, verbose_name="Data e Hora da Limpeza")
@@ -99,21 +92,15 @@ class LimpezaRegistro(models.Model):
     observacoes = models.TextField(blank=True, null=True, verbose_name="Observações")
 
     class Meta:
-        """
-        Metadados para o modelo LimpezaRegistro.
+        """Define metadados para o modelo LimpezaRegistro.
 
-        Define o nome legível no plural e singular e a ordem padrão
-        dos registros de limpeza nas consultas (do mais recente para o mais antigo).
+        Configura os nomes de exibição e a ordenação padrão das consultas,
+        mostrando os registros mais recentes primeiro.
         """
         verbose_name = "Registro de Limpeza"
         verbose_name_plural = "Registros de Limpeza"
-        ordering = ['-data_hora_limpeza'] # Ordena pelos mais recentes primeiro
+        ordering = ['-data_hora_limpeza']
 
     def __str__(self):
-        """
-        Retorna a representação em string do objeto LimpezaRegistro.
-
-        :returns: Uma string formatada contendo o nome/número da sala e a data/hora da limpeza.
-        :rtype: str
-        """
+        """Retorna a representação textual do registro de limpeza."""
         return f"Limpeza da {self.sala.nome_numero} em {self.data_hora_limpeza.strftime('%Y-%m-%d %H:%M:%S')}"

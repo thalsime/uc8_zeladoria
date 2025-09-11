@@ -7,25 +7,31 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 
 def user_profile_picture_path(instance, filename):
+    """Define o caminho de upload para a foto de perfil do usuário.
+
+    Gera um caminho padronizado no formato 'profile_pics/{user_id}.jpg',
+    garantindo que cada usuário tenha um nome de arquivo único e estável para
+    sua foto, que será substituída a cada novo upload. A extensão é
+    fixada em '.jpg' devido ao processamento da imagem antes de salvar.
+
+    Args:
+        instance (Profile): A instância do modelo de Profile sendo salva.
+        filename (str): O nome original do arquivo enviado.
+
+    Returns:
+        str: O caminho completo onde o arquivo será salvo.
     """
-    Gera um caminho padronizado para a foto de perfil do usuário.
-    O arquivo será salvo como 'profile_pics/{user_id}.jpg'.
-    Isso garante que cada usuário tenha apenas uma foto, que será substituída
-    a cada novo upload.
-    """
-    # Usa o ID do usuário para criar um nome de arquivo único e estável.
-    # Força a extensão para .jpg, pois converteremos todas as imagens.
     return f'profile_pics/{instance.user.id}.jpg'
 
 class Profile(models.Model):
-    """
-    Modelo de Perfil do Usuário.
+    """Modela o perfil de um usuário, estendendo o modelo padrão do Django.
 
-    Armazena informações adicionais relacionadas a um usuário, como a foto de perfil.
-    Este modelo tem uma relação um-para-um com o modelo User padrão do Django.
+    Este modelo possui uma relação um-para-um com o modelo `User` e armazena
+    informações adicionais, como a foto de perfil.
 
-    :ivar user: :class:`~django.db.models.OneToOneField` A relação com o usuário.
-    :ivar profile_picture: :class:`~django.db.models.ImageField` A foto de perfil do usuário.
+    Attributes:
+        user (User): A instância do usuário associada a este perfil.
+        profile_picture (ImageField): O campo para upload da foto de perfil.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.ImageField(
@@ -36,54 +42,62 @@ class Profile(models.Model):
     )
 
     def __str__(self):
+        """Retorna a representação textual do perfil."""
         return f'Perfil de {self.user.username}'
 
     def save(self, *args, **kwargs):
+        """Sobrescreve o método save para processar a foto de perfil antes de salvar.
 
+        Se uma nova imagem de perfil for enviada, este método realiza as
+        seguintes operações:
+        1.  Realiza um corte quadrado central na imagem.
+        2.  Redimensiona a imagem para 300x300 pixels para padronização.
+        3.  Converte a imagem para o formato RGB, removendo canais de transparência.
+        4.  Salva a imagem processada em formato JPEG com qualidade otimizada.
+
+        Após o processamento, a imagem original é substituída pela versão
+        tratada antes de chamar o método `save` da superclasse para
+        persistir os dados no banco de dados.
+        """
         if self.profile_picture:
-            # Abre a imagem em memória usando Pillow
             img = Image.open(self.profile_picture)
 
-            # Corte Quadrado Central
             width, height = img.size
             if width != height:
-                # Encontra o menor lado para definir o tamanho do quadrado
                 min_dim = min(width, height)
-
-                # Calcula as coordenadas para o corte central
                 left = (width - min_dim) / 2
                 top = (height - min_dim) / 2
                 right = (width + min_dim) / 2
                 bottom = (height + min_dim) / 2
-
-                # Realiza o corte
                 img = img.crop((left, top, right, bottom))
 
-            # Redimensiona a imagem para 300x300 pixels
             img = img.resize((300, 300), Image.Resampling.LANCZOS)
 
-            # Converte para RGB caso seja uma imagem com canal de transparência (PNG)
             if img.mode != 'RGB':
                 img = img.convert('RGB')
 
-            # Cria um buffer de bytes em memória para salvar a nova imagem
             buffer = BytesIO()
-            # Salva a imagem no buffer no formato JPEG com 70% de qualidade
             img.save(buffer, format='JPEG', quality=70)
 
-            # O nome do arquivo é pego do próprio campo, que já usou a função
-            # user_profile_picture_path para definir o nome correto.
             file_name = self.profile_picture.name
-
-            # Substitui a imagem original pela imagem processada em memória
             self.profile_picture.save(file_name, ContentFile(buffer.getvalue()), save=False)
 
         super().save(*args, **kwargs)
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
-    """
-    Cria um perfil para um novo usuário ou apenas salva o perfil se o usuário for atualizado.
+    """Cria ou atualiza o perfil de um usuário ao salvar o modelo User.
+
+    Esta função é um receptor de sinal que é acionado sempre que uma instância
+    do modelo `User` é salva. Se o usuário foi recém-criado (`created` is True),
+    um novo perfil é criado e associado a ele. Em todas as chamadas,
+    o perfil associado é salvo para garantir a consistência.
+
+    Args:
+        sender (User): A classe do modelo que enviou o sinal.
+        instance (User): A instância do usuário que foi salva.
+        created (bool): Um booleano que indica se a instância foi criada.
+        **kwargs: Argumentos adicionais de palavra-chave.
     """
     if created:
         Profile.objects.create(user=instance)

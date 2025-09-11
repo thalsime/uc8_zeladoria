@@ -1,53 +1,37 @@
-"""
-Módulo de Views para a aplicação Accounts.
-
-Define o ViewSet para operações de autenticação e gerenciamento de usuários.
-"""
-
 from rest_framework import viewsets, status, permissions, generics, parsers
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.viewsets import ReadOnlyModelViewSet
-from rest_framework import generics # Importe os generics do DRF
+from rest_framework import generics
 from django.contrib.auth.models import Group, User
 from .models import Profile
 from .serializers import (UserSerializer, LoginSerializer, UserCreateSerializer,
                           PasswordChangeSerializer, GroupSerializer, ProfileSerializer)
-from .filters import UserFilter # Importe o novo filtro de usuário
+from .filters import UserFilter
 
 
 class AuthViewSet(viewsets.ViewSet):
-    """
-    ViewSet para operações de autenticação e gerenciamento de usuários.
+    """Agrupa endpoints relacionados à autenticação e gerenciamento de contas.
 
-    Este ViewSet oferece funcionalidades para login, obtenção de dados do usuário
-    autenticado, criação de novos usuários por administradores e mudança de senhas,
-    assim como a redefinição de senha para outros usuários por parte de administradores.
-
-    :ivar permission_classes: :class:`list` Lista de classes de permissão que controlam o acesso
-                              padrão para as ações do ViewSet. Por padrão, exige autenticação.
-                              As permissões podem ser sobrescritas por ação usando `@action`.
+    Fornece ações para login, consulta de dados do usuário logado, listagem,
+    criação de usuários e gerenciamento de senhas e perfis.
     """
     permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def login(self, request):
-        """
-        Endpoint para login de usuário e obtenção de token de autenticação.
+        """Realiza a autenticação de um usuário com base em username e password.
 
-        Aceita credenciais de usuário (username e password) e, se válidas,
-        retorna um token de autenticação e os dados básicos do usuário.
+        Se as credenciais forem válidas, retorna os dados do usuário e um
+        token de acesso à API.
 
-        :param request: O objeto da requisição HTTP, contendo as credenciais de login.
-        :type request: :class:`~rest_framework.request.Request`
-        :raises rest_framework.serializers.ValidationError: Se as credenciais forem inválidas ou incompletas.
-        :returns: Uma resposta HTTP 200 OK contendo o token do usuário e seus dados.
-        :rtype: :class:`~rest_framework.response.Response`
-        :payload { "username": "string", "password": "string" }: Corpo da requisição com o nome de usuário e senha.
-        :payloadtype username: str
-        :payloadtype password: str
+        Args:
+            request (Request): O objeto da requisição HTTP contendo os dados.
+
+        Returns:
+            Response: Uma resposta com os dados do usuário e o token de acesso.
         """
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -55,71 +39,50 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def current_user(self, request):
-        """
-        Endpoint para obter os dados do usuário atualmente autenticado.
+        """Retorna os dados serializados do usuário atualmente autenticado.
 
-        Retorna os detalhes do usuário logado, como ID, nome de usuário, e-mail e status.
+        Acessível apenas por usuários que já possuem um token de acesso válido.
 
-        :param request: O objeto da requisição HTTP, contendo o usuário autenticado.
-        :type request: :class:`~rest_framework.request.Request`
-        :returns: Uma resposta HTTP 200 OK contendo os dados do usuário autenticado.
-        :rtype: :class:`~rest_framework.response.Response`
+        Args:
+            request (Request): O objeto da requisição HTTP.
+
+        Returns:
+            Response: Uma resposta com os dados do usuário autenticado.
         """
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-    # @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
-    # def list_users(self, request):
-    #     """
-    #     Endpoint para listar todos os usuários do sistema.
-    #
-    #     Acesso restrito apenas a usuários com permissões de administrador.
-    #     Retorna os dados de todos os usuários, utilizando o UserSerializer
-    #     para evitar exposição de informações sensíveis como senhas e tokens.
-    #
-    #     :param request: O objeto da requisição HTTP.
-    #     :type request: :class:`~rest_framework.request.Request`
-    #     :returns: Uma resposta HTTP 200 OK com a lista de todos os usuários.
-    #     :rtype: :class:`~rest_framework.response.Response`
-    #     """
-    #     users = User.objects.all()
-    #     serializer = UserSerializer(users, many=True)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
     @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
     def list_users(self, request):
+        """Lista todos os usuários do sistema com suporte a filtros.
+
+        Permite a consulta da lista de usuários aplicando filtros dinâmicos,
+        como `username`, `email`, etc. Acesso restrito a administradores.
+
+        Args:
+            request (Request): O objeto da requisição HTTP.
+
+        Returns:
+            Response: Uma resposta com a lista de usuários filtrados.
         """
-        Endpoint para listar todos os usuários do sistema com filtros avançados.
-        """
-        # Aplica o filtro na queryset
         queryset = User.objects.all().order_by('username')
         filterset = UserFilter(request.query_params, queryset=queryset)
-
-        # O serializer agora usa a queryset filtrada (filterset.qs)
         serializer = UserSerializer(filterset.qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def create_user(self, request):
-        """
-        Endpoint para um administrador criar novos usuários no sistema.
+        """Cria uma nova conta de usuário no sistema.
 
-        Permite que administradores criem novas contas de usuário, definindo
-        nome de usuário, e-mail, senha e status de staff/superuser.
+        Recebe os dados do novo usuário, valida-os e, se forem válidos,
+        cria o usuário e retorna seus dados e um token de acesso. Acesso
+        restrito a administradores.
 
-        :param request: O objeto da requisição HTTP, contendo os dados para criação do usuário.
-        :type request: :class:`~rest_framework.request.Request`
-        :raises rest_framework.serializers.ValidationError: Se os dados de criação forem inválidos (ex: senhas não coincidem, campos obrigatórios ausentes).
-        :returns: Uma resposta HTTP 201 CREATED contendo uma mensagem de sucesso,
-                  os dados do novo usuário e seu token de autenticação.
-        :rtype: :class:`~rest_framework.response.Response`
-        :payload { "username": "string", "email": "string", "password": "string", "confirm_password": "string", "is_staff": boolean, "is_superuser": boolean }: Corpo da requisição com os dados do novo usuário.
-        :payloadtype username: str
-        :payloadtype email: str
-        :payloadtype password: str
-        :payloadtype confirm_password: str
-        :payloadtype is_staff: bool
-        :payloadtype is_superuser: bool
+        Args:
+            request (Request): O objeto da requisição HTTP.
+
+        Returns:
+            Response: Uma resposta com os dados do novo usuário e seu token.
         """
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -133,21 +96,16 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def change_password(self, request):
-        """
-        Endpoint para um usuário autenticado mudar sua própria senha.
+        """Permite que o usuário autenticado altere sua própria senha.
 
-        Requer que o usuário forneça sua senha antiga para validação,
-        e então define uma nova senha com confirmação.
+        Requer a senha antiga para verificação. Após a alteração, o token
+        de autenticação antigo é invalidado e um novo é gerado.
 
-        :param request: O objeto da requisição HTTP, contendo as senhas para alteração.
-        :type request: :class:`~rest_framework.request.Request`
-        :raises rest_framework.serializers.ValidationError: Se as senhas não coincidirem ou a senha antiga estiver incorreta.
-        :returns: Uma resposta HTTP 200 OK com uma mensagem de sucesso.
-        :rtype: :class:`~rest_framework.response.Response`
-        :payload { "old_password": "string", "new_password": "string", "confirm_new_password": "string" }: Corpo da requisição com as senhas.
-        :payloadtype old_password: str
-        :payloadtype new_password: str
-        :payloadtype confirm_new_password: str
+        Args:
+            request (Request): O objeto da requisição HTTP.
+
+        Returns:
+            Response: Uma resposta com uma mensagem de sucesso.
         """
         serializer = PasswordChangeSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
@@ -156,25 +114,23 @@ class AuthViewSet(viewsets.ViewSet):
         user.set_password(serializer.validated_data['new_password'])
         user.save()
 
-        # Opcional: Reautenticar o usuário ou revogar o token antigo para maior segurança.
-        Token.objects.filter(user=user).delete() # Isso invalidaria o token atual
-        token, created = Token.objects.get_or_create(user=user) # Cria um novo token
+        Token.objects.filter(user=user).delete()
+        token, created = Token.objects.get_or_create(user=user)
 
         return Response({'message': 'Senha alterada com sucesso.'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def list_groups(self, request):
-        """
-        Endpoint para listar todos os grupos de usuários disponíveis.
+        """Lista todos os grupos de permissão (roles) disponíveis no sistema.
 
-        Este endpoint é acessível a qualquer usuário autenticado e serve para
-        que as aplicações cliente possam obter uma lista de papéis (grupos)
-        disponíveis no sistema.
+        Útil para que aplicações cliente possam exibir opções de grupos ao
+        criar ou editar usuários.
 
-        :param request: O objeto da requisição HTTP.
-        :type request: :class:`~rest_framework.request.Request`
-        :returns: Uma resposta HTTP 200 OK com a lista de todos os grupos.
-        :rtype: :class:`~rest_framework.response.Response`
+        Args:
+            request (Request): O objeto da requisição HTTP.
+
+        Returns:
+            Response: Uma resposta com a lista de grupos disponíveis.
         """
         groups = Group.objects.all().order_by('name')
         serializer = GroupSerializer(groups, many=True)
@@ -182,19 +138,17 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get', 'put', 'patch'], permission_classes=[IsAuthenticated], parser_classes=[parsers.MultiPartParser, parsers.JSONParser])
     def profile(self, request):
-        """
-        Endpoint para um usuário visualizar e atualizar seu próprio perfil.
+        """Gerencia o perfil do usuário autenticado.
 
-        - GET: Retorna os dados do perfil do usuário autenticado.
-        - PUT/PATCH: Atualiza os dados do perfil do usuário autenticado.
-          Para upload de fotos, use o método PUT ou PATCH com Content-Type: multipart/form-data.
+        Permite a recuperação (GET) e a atualização (PUT/PATCH) dos dados
+        do perfil, incluindo o upload da foto de perfil via `multipart/form-data`.
 
-        :param request: O objeto da requisição HTTP.
-        :type request: :class:`~rest_framework.request.Request`
-        :returns: Uma resposta HTTP 200 OK com os dados do perfil.
-        :rtype: :class:`~rest_framework.response.Response`
+        Args:
+            request (Request): O objeto da requisição HTTP.
+
+        Returns:
+            Response: Uma resposta com os dados do perfil.
         """
-        # O objeto do perfil é sempre o do usuário que faz a requisição.
         profile = request.user.profile
 
         if request.method == 'GET':
@@ -202,48 +156,8 @@ class AuthViewSet(viewsets.ViewSet):
             return Response(serializer.data)
 
         elif request.method in ['PUT', 'PATCH']:
-            # A flag 'partial' é True para PATCH, permitindo atualizações parciais.
             partial = (request.method == 'PATCH')
             serializer = ProfileSerializer(profile, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
-
-    # TODO: Refatorar set_user_password().
-    # Há falhas relacionadas a esse endpoint que precisa ser revisadas.
-
-    # @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
-    # def set_user_password(self, request, pk=None):
-    #     """
-    #     Endpoint para um administrador mudar a senha de um usuário específico.
-    #
-    #     Permite que um administrador defina uma nova senha para qualquer usuário
-    #     no sistema, sem a necessidade da senha antiga do usuário alvo.
-    #
-    #     :param request: O objeto da requisição HTTP, contendo a nova senha e sua confirmação.
-    #     :type request: :class:`~rest_framework.request.Request`
-    #     :param pk: O ID da chave primária do usuário cuja senha será alterada.
-    #     :type pk: int
-    #     :raises django.contrib.auth.models.User.DoesNotExist: Se o usuário com o `pk` fornecido não for encontrado.
-    #     :raises rest_framework.serializers.ValidationError: Se as novas senhas não coincidirem.
-    #     :returns: Uma resposta HTTP 200 OK com uma mensagem de sucesso, ou 404 NOT FOUND se o usuário não existir.
-    #     :rtype: :class:`~rest_framework.response.Response`
-    #     :payload { "new_password": "string", "confirm_new_password": "string" }: Corpo da requisição com as novas senhas.
-    #     :payloadtype new_password: str
-    #     :payloadtype confirm_new_password: str
-    #     """
-    #     try:
-    #         user = User.objects.get(pk=pk)
-    #     except User.DoesNotExist:
-    #         return Response({'detail': 'Usuário não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
-    #
-    #     serializer = AdminPasswordChangeSerializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #
-    #     user.set_password(serializer.validated_data['new_password'])
-    #     user.save()
-    #
-    #     # Opcional: Revogar tokens existentes do usuário alvo para forçar reautenticação
-    #     # Token.objects.filter(user=user).delete()
-    #
-    #     return Response({'message': f'Senha do usuário {user.username} alterada com sucesso.'}, status=status.HTTP_200_OK)

@@ -1,9 +1,3 @@
-"""
-Módulo de Views para a aplicação Salas.
-
-Define os ViewSets que lidam com as operações da API para salas e registros de limpeza.
-"""
-
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -14,138 +8,74 @@ from .filters import SalaFilter, LimpezaRegistroFilter
 from .serializers import SalaSerializer, LimpezaRegistroSerializer
 from core.permissions import IsAdminUser, IsZeladorUser, IsCorpoDocenteUser
 
+
 class SalaViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para a API de Salas.
+    """Gerencia as operações CRUD para o modelo Sala.
 
-    Fornece operações CRUD (Criar, Ler, Atualizar, Deletar) para salas,
-    além de ações personalizadas como marcar uma sala como limpa.
-
-    :ivar queryset: :class:`~django.db.models.QuerySet` O conjunto de objetos :class:`~salas.models.Sala`
-                    a serem utilizados pelo ViewSet, ordenados por nome/número.
-    :ivar serializer_class: :class:`~rest_framework.serializers.Serializer` O serializer padrão
-                            para o ViewSet (:class:`~salas.serializers.SalaSerializer`).
+    Fornece endpoints para criar, ler, atualizar e deletar salas, com
+    permissões de acesso granulares e uma ação customizada para registrar
+    a limpeza.
     """
     queryset = Sala.objects.all().order_by('nome_numero')
     serializer_class = SalaSerializer
-    # A linha 'permission_classes = [IsAuthenticated]' foi removida daqui,
-    # pois as permissões agora são definidas dinamicamente no método get_permissions.
-
     filterset_class = SalaFilter
-
     lookup_field = 'qr_code_id'
     lookup_value_regex = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 
     def get_permissions(self):
-        """
-        Define as permissões de acesso para cada ação do ViewSet de forma granular
-        baseado em grupos de usuários.
+        """Define as permissões de acesso dinamicamente por ação.
 
-        Permissões:
-            - Apenas administradores (`IsAdminUser`) podem criar (`create`), atualizar
-              (`update`, `partial_update`) ou deletar (`destroy`) salas.
-            - Apenas usuários do grupo Zeladoria (`IsZeladorUser`) podem marcar uma
-              sala como limpa (`marcar_como_limpa`).
-            - Qualquer usuário autenticado (`IsAuthenticated`) pode listar (`list`) e
-              recuperar detalhes (`retrieve`) de salas.
+        Restringe as operações de escrita (`create`, `update`, `destroy`) a
+        administradores, a ação de `marcar_como_limpa` ao grupo 'Zeladoria',
+        e permite a leitura (`list`, `retrieve`) a qualquer usuário autenticado.
 
-        :returns: Uma lista de instâncias de classes de permissão.
-        :rtype: list
+        Returns:
+            list: Uma lista de instâncias de classes de permissão.
         """
-        # Ações de escrita e gerenciamento de salas são restritas a Admins.
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [IsAdminUser]
-
-        # A ação principal da equipe de limpeza.
         elif self.action == 'marcar_como_limpa':
             permission_classes = [IsZeladorUser]
-
-        # Ações de leitura são permitidas para qualquer usuário logado.
         elif self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
-
-        # Como padrão, para qualquer outra ação futura, exigimos permissão de Admin.
-        # Isso garante que novos endpoints não fiquem abertos acidentalmente.
         else:
             permission_classes = [IsAdminUser]
-
         return [permission() for permission in permission_classes]
 
-    # def get_queryset(self):
-    #     """
-    #     Sobrescreve o queryset base para permitir filtragem de salas.
-    #     Permite filtrar as salas por localização exata e por status de limpeza.
-    #     """
-    #     queryset = super().get_queryset()
-    #     localizacao = self.request.query_params.get('localizacao')
-    #     status_limpeza_filter = self.request.query_params.get('status_limpeza')
-    #
-    #     if localizacao:
-    #         queryset = queryset.filter(localizacao__iexact=localizacao)
-    #
-    #     # --- Bloco de código corrigido ---
-    #     if status_limpeza_filter:
-    #         salas_filtradas = []
-    #         # Itera sobre as salas para calcular o status de cada uma
-    #         for sala in queryset:
-    #             # Lógica replicada do SalaSerializer para calcular o status
-    #             ultimo_registro = sala.registros_limpeza.first()
-    #             status_atual = "Limpeza Pendente"  # Define o padrão
-    #             if ultimo_registro:
-    #                 validade_em_segundos = sala.validade_limpeza_horas * 3600
-    #                 tempo_decorrido = (timezone.now() - ultimo_registro.data_hora_limpeza).total_seconds()
-    #                 if tempo_decorrido < validade_em_segundos:
-    #                     status_atual = "Limpa"
-    #
-    #             # Compara o status calculado com o filtro da URL
-    #             if status_limpeza_filter.lower() == status_atual.lower():
-    #                 salas_filtradas.append(sala)
-    #
-    #         return salas_filtradas
-    #
-    #     return queryset
-
     def get_queryset(self):
-        """
-        Sobrescreve o queryset base para otimizar consultas.
-        A lógica de filtro agora é tratada pelo django-filter.
-        """
+        """Otimiza a consulta principal do ViewSet para evitar o problema N+1.
 
-        # Otimização: pré-carrega os registros de limpeza e os responsáveis
-        # para evitar múltiplas queries no banco de dados (problema N+1).
+        Pré-carrega os dados relacionados dos registros de limpeza e dos
+        responsáveis para reduzir o número de acessos ao banco de dados ao
+        listar as salas.
+
+        Returns:
+            QuerySet: O conjunto de dados otimizado para o ViewSet.
+        """
         return Sala.objects.prefetch_related('registros_limpeza__funcionario_responsavel', 'responsaveis').all()
 
-    # A linha 'permission_classes=[IsAuthenticated]' foi removida do decorador @action,
-    # pois a permissão agora é gerenciada centralmente em get_permissions.
     @action(detail=True, methods=['post'])
     def marcar_como_limpa(self, request, qr_code_id=None):
-        """
-        Marca uma sala específica como limpa, criando um novo registro de limpeza.
+        """Cria um novo registro de limpeza para uma sala específica.
 
-        O registro associa a limpeza à sala e ao usuário autenticado que a realizou,
-        com a opção de adicionar observações.
+        Esta ação é acionada via POST e está disponível apenas para o grupo
+        'Zeladoria'. A sala deve estar ativa para que a limpeza seja registrada.
 
-        :param request: O objeto da requisição HTTP, contendo dados como o usuário autenticado e observações.
-        :type request: :class:`~rest_framework.request.Request`
-        :param pk: A chave primária (ID) da sala a ser marcada como limpa.
-        :type pk: int
-        :returns: Uma resposta HTTP contendo os dados do novo registro de limpeza e um status 201 Created.
-        :rtype: :class:`~rest_framework.response.Response`
-        :raises Http404: Se a sala com o `pk` fornecido não for encontrada.
-        :payload { "observacoes": "string" }: Corpo da requisição opcional contendo observações sobre a limpeza.
-        :payloadtype observacoes: str
+        Args:
+            request (Request): O objeto da requisição HTTP.
+            qr_code_id (str): O UUID da sala a ser marcada como limpa.
+
+        Returns:
+            Response: Uma resposta com os dados do novo registro de limpeza
+                ou uma mensagem de erro.
         """
         sala = self.get_object()
-
         if not sala.ativa:
             return Response(
                 {'detail': 'Esta sala não está ativa e não pode ser marcada como limpa.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         observacoes = request.data.get('observacoes', '')
-
-        # O `data_hora_limpeza` é definido automaticamente pelo modelo (auto_now_add=True)
         registro_limpeza = LimpezaRegistro.objects.create(
             sala=sala,
             funcionario_responsavel=request.user,
@@ -154,11 +84,12 @@ class SalaViewSet(viewsets.ModelViewSet):
         serializer = LimpezaRegistroSerializer(registro_limpeza)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
-
     def destroy(self, request, *args, **kwargs):
-        """
-        Impede a exclusão de salas que não estão ativas.
+        """Sobrescreve o método de exclusão para adicionar uma regra de negócio.
+
+        Impede a exclusão de uma sala se ela estiver marcada como inativa,
+        retornando um erro 400. A sala deve ser reativada antes de poder
+        ser excluída.
         """
         sala = self.get_object()
         if not sala.ativa:
@@ -168,49 +99,25 @@ class SalaViewSet(viewsets.ModelViewSet):
             )
         return super().destroy(request, *args, **kwargs)
 
+
 class LimpezaRegistroViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet para a API de Registros de Limpeza.
+    """Fornece endpoints de apenas leitura para os registros de limpeza.
 
-    Fornece operações de leitura (Listar, Recuperar) para registros históricos de limpeza.
-    O acesso a este ViewSet é restrito apenas a usuários administradores.
-
-    :ivar queryset: :class:`~django.db.models.QuerySet` O conjunto de objetos :class:`~salas.models.LimpezaRegistro`
-                    a serem utilizados pelo ViewSet.
-    :ivar serializer_class: :class:`~rest_framework.serializers.Serializer` O serializer padrão
-                            para o ViewSet (:class:`~salas.serializers.LimpezaRegistroSerializer`).
-    :ivar permission_classes: :class:`list` Lista de classes de permissão que controlam o acesso (apenas :class:`~rest_framework.permissions.IsAdminUser`).
+    Permite que administradores consultem o histórico de limpezas de todas
+    as salas, com suporte a filtros.
     """
     queryset = LimpezaRegistro.objects.all()
     serializer_class = LimpezaRegistroSerializer
-    permission_classes = [IsAdminUser] # Apenas administradores podem ver registros de limpeza
-    ilterset_class = LimpezaRegistroFilter
-
-    # def get_queryset(self):
-    #     """
-    #     Sobrescreve o queryset base para permitir filtragem de registros de limpeza por sala.
-    #
-    #     Permite buscar registros de limpeza associados a uma sala específica através
-    #     de um parâmetro de query.
-    #
-    #     :param self: A instância do ViewSet.
-    #     :type self: :class:`LimpezaRegistroViewSet`
-    #     :query_param sala_id: Opcional. O ID da sala para filtrar os registros de limpeza.
-    #     :type sala_id: int
-    #     :returns: Um QuerySet de objetos :class:`~salas.models.LimpezaRegistro` filtrados.
-    #     :rtype: :class:`~django.db.models.QuerySet`
-    #     """
-    #     queryset = super().get_queryset()
-    #     sala_id = self.request.query_params.get('sala_id')
-    #     if sala_id:
-    #         queryset = queryset.filter(sala__id=sala_id)
-    #     return queryset
+    permission_classes = [IsAdminUser]
+    filterset_class = LimpezaRegistroFilter
 
     def get_queryset(self):
-        """
-        Sobrescreve o queryset base para otimizar consultas.
-        A lógica de filtro agora é tratada pelo django-filter.
-        """
+        """Otimiza a consulta principal para evitar o problema N+1.
 
-        # Otimização: pré-carrega os dados da sala e do funcionário.
+        Pré-carrega os dados da sala e do funcionário responsável associados
+        a cada registro para tornar a listagem mais eficiente.
+
+        Returns:
+            QuerySet: O conjunto de dados otimizado para o ViewSet.
+        """
         return LimpezaRegistro.objects.select_related('sala', 'funcionario_responsavel').all()

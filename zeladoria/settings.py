@@ -1,48 +1,33 @@
-"""
-Configurações do projeto Django 'zeladoria'.
-
-Este arquivo define todas as configurações globais para a aplicação,
-incluindo configurações de segurança, aplicações instaladas, middleware,
-banco de dados, validação de senha, configurações do Django REST Framework,
-internacionalização e arquivos estáticos.
-
-Muitas configurações são carregadas a partir de variáveis de ambiente
-usando a biblioteca `decouple` para maior flexibilidade e segurança em diferentes ambientes.
-"""
-
-from decouple import config
+from decouple import config, Csv
 from pathlib import Path
 
-# Diretório base do projeto.
-# :ivar BASE_DIR: :class:`~pathlib.Path` Representa o caminho absoluto para o diretório raiz do projeto Django.
+
+"""Configuração central do projeto Django 'zeladoria'.
+
+Este arquivo define as configurações globais da aplicação, carregando valores
+sensíveis ou específicos de ambiente a partir de variáveis de ambiente para
+maior segurança e flexibilidade.
+"""
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Configurações de desenvolvimento rápido - inadequadas para produção.
-# Consulte https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/ para mais informações.
+"""Configurações de segurança.
 
-# Configurações de segurança.
-# Estas configurações são cruciais para a segurança da aplicação.
-
-# AVISO DE SEGURANÇA: mantenha a chave secreta usada em produção em segredo!
-# :ivar SECRET_KEY: :class:`str` Uma chave secreta usada para fins criptográficos e de segurança,
-#                  como hash de senhas e tokens de sessão. Carregada de variáveis de ambiente.
+SECRET_KEY é a chave criptográfica do projeto.
+DEBUG ativa ou desativa o modo de depuração com mensagens de erro detalhadas.
+ALLOWED_HOSTS e CSRF_TRUSTED_ORIGINS são listas de domínios permitidos.
+"""
 SECRET_KEY = config("SECRET_KEY")
-
-# AVISO DE SEGURANÇA: não execute com o modo de depuração ativado em produção!
-# :ivar DEBUG: :class:`bool` Flag de modo de depuração. `True` em desenvolvimento, `False` em produção.
-#             Controla a exibição de erros detalhados e o recarregamento automático do código.
 DEBUG = config("DEBUG", default=False, cast=bool)
-
-# :ivar ALLOWED_HOSTS: :class:`list` Lista de strings que definem os hosts/domínios que podem servir a aplicação.
-#                     É uma medida de segurança para evitar ataques de cabeçalho HTTP Host.
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv())
 
 
-# Definição das aplicações.
-# Lista de todas as aplicações Django (incluindo as built-in, de terceiros e customizadas)
-# que estão ativas neste projeto.
-# :ivar INSTALLED_APPS: :class:`list` Lista de strings, cada uma representando uma aplicação instalada.
+"""Lista de todas as aplicações Django ativas neste projeto.
+
+A ordem é relevante для templates, estáticos e comandos de gerenciamento.
+"""
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -58,10 +43,11 @@ INSTALLED_APPS = [
     "core",
 ]
 
-# Classes de middleware.
-# :ivar MIDDLEWARE: :class:`list` Uma lista de strings que especificam as classes de middleware a serem usadas.
-#                  Componentes que processam requisições e respostas HTTP, executando tarefas como
-#                  segurança, autenticação e gerenciamento de sessões.
+
+"""Define os middlewares que processam as requisições e respostas.
+
+Executados em ordem, aplicam lógicas de segurança, sessão, autenticação, etc.
+"""
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -72,18 +58,17 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# Configuração de URL principal do projeto.
-# :ivar ROOT_URLCONF: :class:`str` O caminho completo do módulo de URL principal do projeto.
+
+"""Aponta para o módulo Python que contém a configuração de URLs principal."""
 ROOT_URLCONF = "zeladoria.urls"
 
-# Configurações de templates.
-# Define como o Django encontrará e renderizará os templates.
-# :ivar TEMPLATES: :class:`list` Uma lista de dicionários, cada um configurando um motor de templates.
+
+"""Configura o sistema de templates do Django."""
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
-        "APP_DIRS": True, # Permite que o Django procure templates dentro dos diretórios 'templates' de cada app.
+        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
@@ -94,26 +79,21 @@ TEMPLATES = [
     },
 ]
 
-# Aplicação WSGI.
-# :ivar WSGI_APPLICATION: :class:`str` O ponto de entrada para servidores web compatíveis com WSGI.
+
+"""Define o caminho para a aplicação WSGI, utilizada por servidores web."""
 WSGI_APPLICATION = "zeladoria.wsgi.application"
 
 
-# Configurações de banco de dados.
-# Consulte https://docs.djangoproject.com/en/5.2/ref/settings/#databases para mais informações.
-# Define os detalhes da conexão com o banco de dados.
-# :ivar DATABASES: :class:`dict` Um dicionário que define as configurações de conexão para cada banco de dados.
+"""Configura a conexão com o banco de dados."""
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3", # Caminho para o arquivo do banco de dados SQLite.
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
 
-# Validadores de senha.
-# Consulte https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators para mais informações.
-# :ivar AUTH_PASSWORD_VALIDATORS: :class:`list` Lista de dicionários, cada um especificando um validador de senha.
+"""Lista de validadores para verificar a força das senhas dos usuários."""
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -129,60 +109,49 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Configurações do Django REST Framework (DRF).
-# :ivar REST_FRAMEWORK: :class:`dict` Dicionário que define comportamentos padrão para
-#                      renderizadores, parsers, permissões e autenticação da API.
+
+"""Configurações globais para o Django REST Framework.
+
+Define os comportamentos padrão para autenticação, permissões, renderização
+e filtros da API.
+"""
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer", # Renderiza a saída da API como JSON.
+        "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_PARSER_CLASSES": [
-        "rest_framework.parsers.JSONParser", # Analisa a entrada da API como JSON.
+        "rest_framework.parsers.JSONParser",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated", # Permissão padrão: apenas usuários autenticados.
+        "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication", # Autenticação baseada em token.
+        "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
 }
 
-# Configurações de internacionalização (i18n) e localização.
-# Consulte https://docs.djangoproject.com/en/5.2/topics/i18n/ para mais informações.
 
-# :ivar LANGUAGE_CODE: :class:`str` O código de idioma padrão para esta instalação do Django.
-#                     Carregado de variáveis de ambiente.
+"""Configurações de internacionalização e localização."""
 LANGUAGE_CODE = config("LANGUAGE_CODE")
-
-# :ivar TIME_ZONE: :class:`str` O fuso horário padrão para esta instalação do Django.
-#                 Carregado de variáveis de ambiente.
 TIME_ZONE = config("TIME_ZONE")
-
-# :ivar USE_I18N: :class:`bool` Um booleano que especifica se o sistema de tradução do Django deve ser habilitado.
-#                Carregado de variáveis de ambiente.
 USE_I18N =  config("USE_I18N", default=True, cast=bool)
-
-# :ivar USE_TZ: :class:`bool` Um booleano que especifica se datetimes serão timezone-aware por padrão.
-#              Carregado de variáveis de ambiente.
 USE_TZ = config("USE_TZ", default=True, cast=bool)
 
 
-# Arquivos estáticos (CSS, JavaScript, Imagens).
-# Consulte https://docs.djangoproject.com/en/5.2/howto/static-files/ para mais informações.
-# :ivar STATIC_URL: :class:`str` URL para servir arquivos estáticos.
+"""URL base para servir arquivos estáticos (CSS, JavaScript, imagens)."""
 STATIC_URL = "static/"
 
-# Configurações de Arquivos de Mídia (Uploads de Usuários)
-# URL base para servir os arquivos de mídia enviados pelos usuários.
-MEDIA_URL = '/media/'
 
-# Caminho absoluto no sistema de arquivos onde os arquivos de mídia serão armazenados.
+"""Configurações para o armazenamento e acesso a arquivos de mídia.
+
+MEDIA_URL é a URL pública, e MEDIA_ROOT é o diretório no sistema de arquivos.
+"""
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Tipo de campo de chave primária padrão.
-# Consulte https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field para mais informações.
-# :ivar DEFAULT_AUTO_FIELD: :class:`str` Define o tipo de campo automático para chaves primárias em novos modelos.
+
+"""Define o tipo de campo padrão para chaves primárias automáticas."""
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -4,19 +4,21 @@ from .models import Sala, LimpezaRegistro
 
 
 class SalaFilter(django_filters.FilterSet):
+    """Filtro para a consulta de objetos do modelo Sala.
+
+    Permite filtrar salas por nome, localização, faixa de capacidade,
+    status de ativação e pelo nome de usuário de um dos seus responsáveis.
+
+    Filtros disponíveis:
+        ativa (bool): Filtra por salas ativas ou inativas.
+        nome_numero (str): Busca textual por parte do nome/número da sala.
+        localizacao (str): Busca textual por parte da localização da sala.
+        capacidade (Range): Filtra por faixa de capacidade (ex: capacidade_min=10).
+        responsavel_username (str): Busca por nome de usuário do responsável.
     """
-    Filtro para buscas avançadas no modelo Sala.
-    """
-    # Filtro para buscar por parte do nome/número (case-insensitive)
     nome_numero = django_filters.CharFilter(field_name='nome_numero', lookup_expr='icontains')
-
-    # Filtro para buscar por parte da localização (case-insensitive)
     localizacao = django_filters.CharFilter(field_name='localizacao', lookup_expr='icontains')
-
-    # Filtro por faixa de capacidade
     capacidade = django_filters.RangeFilter()
-
-    # Filtro pelo username do responsável (relacionamento ManyToMany)
     responsavel_username = django_filters.CharFilter(
         field_name='responsaveis__username', lookup_expr='icontains'
     )
@@ -27,18 +29,22 @@ class SalaFilter(django_filters.FilterSet):
 
 
 class LimpezaRegistroFilter(django_filters.FilterSet):
-    """
-    Filtro para buscas avançadas nos registros de limpeza.
-    """
-    # Filtro para buscar por data/hora (antes, depois ou no dia)
-    data_hora_limpeza = django_filters.DateFromToRangeFilter()
+    """Filtro para a consulta de objetos do modelo LimpezaRegistro.
 
-    # Filtro pelo nome da sala (relacionamento ForeignKey)
+    Permite filtrar registros de limpeza por sala (ID ou nome), por nome
+    de usuário do funcionário responsável e por um intervalo de datas.
+
+    Filtros disponíveis:
+        sala (int): Filtra pelo ID exato da sala.
+        sala_nome (str): Busca textual pelo nome da sala associada.
+        data_hora_limpeza (Date Range): Filtra por intervalo de datas
+            (ex: data_hora_limpeza_after=2025-09-10).
+        funcionario_username (str): Busca por nome de usuário do funcionário.
+    """
+    data_hora_limpeza = django_filters.DateFromToRangeFilter()
     sala_nome = django_filters.CharFilter(
         field_name='sala__nome_numero', lookup_expr='icontains'
     )
-
-    # Filtro pelo username do funcionário (relacionamento ForeignKey)
     funcionario_username = django_filters.CharFilter(
         field_name='funcionario_responsavel__username', lookup_expr='icontains'
     )

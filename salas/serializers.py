@@ -1,41 +1,26 @@
-"""
-Módulo de Serializers para a aplicação de gerenciamento de salas.
-
-Define os serializadores que convertem objetos Python (modelos) em formatos de dados
-(JSON, XML, etc.) e vice-versa para a API RESTful. Inclui serializadores para
-usuários básicos, salas e registros de limpeza, com campos calculados e aninhados.
-"""
-
 from rest_framework import serializers
 from .models import Sala, LimpezaRegistro
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+
 class BasicUserSerializer(serializers.ModelSerializer):
-    """
-    Serializer simplificado para o modelo User.
+    """Serializa informações básicas de um usuário.
 
-    Utilizado para representar informações básicas de um usuário, como ID e username,
-    em outros serializadores, evitando a exposição de dados sensíveis ou desnecessários.
-
-    :ivar id: ID único do usuário.
-    :ivar username: Nome de usuário do usuário.
+    É utilizado como um campo aninhado em outros serializers para representar
+    um usuário de forma concisa, expondo apenas seu ID e nome de usuário.
     """
     class Meta:
         model = User
         fields = ['id', 'username']
 
+
 class SalaSerializer(serializers.ModelSerializer):
-    """
-    Serializer para o modelo Sala.
+    """Serializa os dados do modelo Sala para a API.
 
-    Converte instâncias do modelo Sala em representações JSON e permite a criação/atualização.
-    Inclui campos personalizados para status de limpeza, data/hora da última limpeza
-    e o funcionário responsável pela última limpeza, que são calculados dinamicamente.
-
-    :ivar status_limpeza: Estado atual da limpeza da sala ("Limpa" ou "Limpeza Pendente").
-    :ivar ultima_limpeza_data_hora: Data e hora do último registro de limpeza.
-    :ivar ultima_limpeza_funcionario: Nome de usuário do funcionário que realizou a última limpeza.
+    Além dos campos do modelo, inclui campos calculados em tempo real, como
+    o status da limpeza, a data do último registro e o funcionário responsável,
+    e customiza a representação dos responsáveis.
     """
     status_limpeza = serializers.SerializerMethodField()
     ultima_limpeza_data_hora = serializers.SerializerMethodField()
@@ -43,7 +28,7 @@ class SalaSerializer(serializers.ModelSerializer):
     responsaveis = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.filter(groups__name='Zeladoria'),
-        required=False  # Torna o campo não obrigatório
+        required=False
     )
 
     class Meta:
@@ -54,81 +39,78 @@ class SalaSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'qr_code_id']
 
     def to_representation(self, instance):
-        """
-        Customiza a representação da Sala para exibir os detalhes dos
-        usuários responsáveis, em vez de apenas seus IDs.
-        """
-        # Pega a representação padrão (que terá os IDs dos responsáveis)
-        representation = super().to_representation(instance)
+        """Customiza a representação de saída da sala.
 
-        # Substitui os IDs dos responsáveis pelos dados do BasicUserSerializer
+        Este método sobrescreve o comportamento padrão para substituir a lista
+        de IDs de responsáveis por uma lista de objetos de usuário serializados
+        com `BasicUserSerializer`.
+
+        Args:
+            instance (Sala): A instância de Sala a ser representada.
+
+        Returns:
+            dict: A representação customizada do objeto Sala.
+        """
+        representation = super().to_representation(instance)
         representation['responsaveis'] = BasicUserSerializer(instance.responsaveis.all(), many=True).data
         return representation
 
     def get_status_limpeza(self, obj):
-        """
-        Calcula e retorna o status de limpeza de uma sala.
-        A lógica agora usa o campo 'validade_limpeza_horas' da própria sala
-        para determinar se ela está "Limpa" ou com "Limpeza Pendente".
+        """Calcula o status de limpeza da sala com base no último registro.
+
+        Compara o tempo decorrido desde a última limpeza com o campo
+        `validade_limpeza_horas` da própria sala para determinar seu estado.
+
+        Args:
+            obj (Sala): A instância de Sala a ser avaliada.
+
+        Returns:
+            str: "Limpa" ou "Limpeza Pendente".
         """
         ultimo_registro = obj.registros_limpeza.first()
         if ultimo_registro:
-            # --- Lógica atualizada ---
-            # Converte a validade da limpeza de horas para segundos
             validade_em_segundos = obj.validade_limpeza_horas * 3600
-
-            # Compara o tempo decorrido com a validade configurada para a sala
             tempo_decorrido = (timezone.now() - ultimo_registro.data_hora_limpeza).total_seconds()
-
             if tempo_decorrido < validade_em_segundos:
                 return "Limpa"
         return "Limpeza Pendente"
 
     def get_ultima_limpeza_data_hora(self, obj):
-        """
-        Retorna a data e hora do último registro de limpeza da sala.
+        """Obtém a data e hora do último registro de limpeza da sala.
 
-        A data e hora são retornadas no formato ISO 8601 com o sufixo 'Z' para indicar UTC.
+        Args:
+            obj (Sala): A instância de Sala a ser avaliada.
 
-        :param obj: A instância :class:`Sala` da qual obter a data/hora da última limpeza.
-        :type obj: :class:`~salas.models.Sala`
-        :returns: Data e hora da última limpeza como string ISO 8601 (UTC), ou :obj:`None` se não houver registros.
-        :rtype: str or None
+        Returns:
+            str or None: A data como uma string no formato ISO 8601 (UTC) ou
+            `None` se não houver registros.
         """
         ultimo_registro = obj.registros_limpeza.first()
         if ultimo_registro:
-            # Apenas retorna o objeto datetime, DRF o serializará para ISO 8601 (UTC) por padrão.
-            # Não precisa de strftime aqui se você quer o formato ISO 8601 padrão do DRF.
-            # Se quiser manter o strftime para um formato específico, use:
-            return ultimo_registro.data_hora_limpeza.isoformat() + 'Z' # Para garantir 'Z' para UTC
-            # Ou o formato anterior, mas ciente de que será o horário UTC:
-            #return ultimo_registro.data_hora_limpeza.strftime('%Y-%m-%d %H:%M:%S')  # <-- Este será o horário UTC
+            return ultimo_registro.data_hora_limpeza.isoformat() + 'Z'
         return None
 
     def get_ultima_limpeza_funcionario(self, obj):
-        """
-        Retorna o nome de usuário do funcionário responsável pela última limpeza da sala.
+        """Obtém o nome de usuário do funcionário do último registro de limpeza.
 
-        :param obj: A instância :class:`Sala` da qual obter o funcionário da última limpeza.
-        :type obj: :class:`~salas.models.Sala`
-        :returns: Nome de usuário do funcionário, ou :obj:`None` se não houver registro ou funcionário associado.
-        :rtype: str or None
+        Args:
+            obj (Sala): A instância de Sala a ser avaliada.
+
+        Returns:
+            str or None: O `username` do funcionário ou `None` se não houver
+            registro ou funcionário associado.
         """
         ultimo_registro = obj.registros_limpeza.first()
         if ultimo_registro and ultimo_registro.funcionario_responsavel:
             return ultimo_registro.funcionario_responsavel.username
         return None
 
+
 class LimpezaRegistroSerializer(serializers.ModelSerializer):
-    """
-    Serializer para o modelo LimpezaRegistro.
+    """Serializa os dados do modelo LimpezaRegistro para a API.
 
-    Converte instâncias do modelo LimpezaRegistro em representações JSON.
-    Inclui campos aninhados para o funcionário responsável e um campo derivado
-    para o nome da sala, facilitando a leitura dos registros.
-
-    :ivar funcionario_responsavel: Serializer aninhado para o funcionário que realizou a limpeza.
-    :ivar sala_nome: Nome e número da sala associada ao registro de limpeza.
+    Facilita a leitura dos dados ao incluir representações aninhadas para
+    o funcionário responsável e o nome da sala associada ao registro.
     """
     funcionario_responsavel = BasicUserSerializer(read_only=True)
     sala_nome = serializers.CharField(source='sala.nome_numero', read_only=True)
@@ -137,11 +119,3 @@ class LimpezaRegistroSerializer(serializers.ModelSerializer):
         model = LimpezaRegistro
         fields = ['id', 'sala', 'sala_nome', 'data_hora_limpeza', 'funcionario_responsavel', 'observacoes']
         read_only_fields = ['data_hora_limpeza', 'funcionario_responsavel']
-
-    # def to_representation(self, instance):
-    #     representation = super().to_representation(instance)
-    #     # Converte para o fuso horário local antes de formatar, se for timezone-aware
-    #     if instance.data_hora_limpeza and timezone.is_aware(instance.data_hora_limpeza):
-    #         local_time = timezone.localtime(instance.data_hora_limpeza)
-    #         representation['data_hora_limpeza'] = local_time.strftime('%Y-%m-%d %H:%M:%S')
-    #     return representation

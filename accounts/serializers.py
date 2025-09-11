@@ -1,20 +1,15 @@
-"""
-Módulo de Serializers para a aplicação Accounts.
-
-Define como os dados relacionados a usuários (login, criação de usuário,
-e mudança de senha) são serializados e deserializados para/de representações JSON.
-"""
-
 from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from rest_framework.authtoken.models import Token
 from .models import Profile
 
-class ProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer para o modelo Profile.
-    """
 
+class ProfileSerializer(serializers.ModelSerializer):
+    """Serializa dados do modelo Profile de um usuário.
+
+    Inclui um campo customizado `nome` que mapeia para o campo `first_name`
+    do modelo User associado, permitindo sua leitura e atualização.
+    """
     nome = serializers.CharField(source='user.first_name', required=False, allow_blank=True)
 
     class Meta:
@@ -22,11 +17,18 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['nome', 'profile_picture']
 
     def update(self, instance, validated_data):
-        """
-        Sobrescreve o método de atualização para lidar com o campo 'nome'
-        que pertence ao modelo User relacionado.
-        """
+        """Atualiza a instância do perfil e o nome do usuário associado.
 
+        Extrai o `first_name` dos dados validados, atualiza o objeto `User`
+        relacionado e, em seguida, prossegue com a atualização padrão do Profile.
+
+        Args:
+            instance (Profile): A instância do Profile a ser atualizada.
+            validated_data (dict): Os dados validados para a atualização.
+
+        Returns:
+            Profile: A instância do Profile atualizada.
+        """
         user_data = validated_data.pop('user', {})
         nome = user_data.get('first_name')
 
@@ -36,56 +38,46 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
+
 class UserSerializer(serializers.ModelSerializer):
+    """Serializa os dados essenciais do modelo User para exibição.
+
+    Projetado para ser de apenas leitura, expondo informações seguras do
+    usuário, como ID, nome, e-mail e perfil, sem incluir a senha.
     """
-    Serializer para exibir detalhes básicos do modelo User do Django.
-
-    Utilizado para retornar informações do usuário logado ou recém-criado,
-    evitando exposição de senhas.
-
-    :ivar id: :class:`int` ID único do usuário.
-    :ivar username: :class:`str` Nome de usuário.
-    :ivar email: :class:`str` Endereço de e-mail do usuário.
-    :ivar is_superuser: :class:`bool` Indica se o usuário possui todas as permissões sem ser explicitamente atribuídas.
-    """
-
     nome = serializers.CharField(source='first_name', read_only=True)
     profile = ProfileSerializer(read_only=True)
 
     class Meta:
-        """
-        Metadados para o UserSerializer.
-        """
         model = User
         fields = ['id', 'username', 'email', 'is_superuser', 'groups', 'nome', 'profile']
 
+
 class LoginSerializer(serializers.Serializer):
-    """
-    Serializer para o endpoint de login.
+    """Valida as credenciais de um usuário e gera um token de autenticação.
 
-    Processa as credenciais de login e retorna o token de autenticação
-    junto com os dados básicos do usuário autenticado.
-
-    :ivar username: :class:`str` Nome de usuário para login.
-    :ivar password: :class:`str` Senha do usuário (apenas escrita, não retornada).
-    :ivar token: :class:`str` Token de autenticação do usuário (apenas leitura).
-    :ivar user_data: :class:`~accounts.serializers.UserSerializer` Dados básicos do usuário autenticado (apenas leitura).
+    Recebe `username` e `password` e, se a autenticação for bem-sucedida,
+    retorna os dados do usuário e seu token de acesso para a API.
     """
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
     token = serializers.CharField(read_only=True)
     user_data = UserSerializer(read_only=True)
 
-    def validate(self, data: dict) -> dict:
-        """
-        Valida as credenciais de login fornecidas.
+    def validate(self, data):
+        """Verifica se as credenciais de usuário são válidas.
 
-        Gera um token de autenticação para o usuário se as credenciais forem válidas.
+        Se o nome de usuário e a senha corresponderem a um usuário ativo, um
+        token de autenticação é obtido ou criado.
 
-        :param data: :class:`dict` Dicionário contendo 'username' e 'password'.
-        :raises rest_framework.serializers.ValidationError: Se as credenciais forem inválidas ou campos obrigatórios estiverem ausentes.
-        :returns: Os dados validados, incluindo o token e os dados do usuário.
-        :rtype: dict
+        Args:
+            data (dict): Dicionário contendo `username` e `password`.
+
+        Raises:
+            serializers.ValidationError: Se as credenciais forem inválidas.
+
+        Returns:
+            dict: Os dados validados, incluindo `token` e `user_data`.
         """
         username = data.get('username')
         password = data.get('password')
@@ -102,10 +94,12 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Usuário e senha são obrigatórios.")
         return data
 
+
 class UserCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer para a criação de novos usuários por um administrador.
-    Requer confirmação de senha e permite definir privilégios de staff/superuser.
+    """Serializa os dados para a criação de um novo usuário.
+
+    Inclui validação para confirmação de senha e permite a atribuição de
+    grupos e status de superusuário no momento da criação.
     """
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     confirm_password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
@@ -125,21 +119,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'email': {'required': False, 'allow_blank': True}
         }
 
-    def validate(self, data: dict) -> dict:
-        """
-        Valida se os campos 'password' e 'confirm_password' coincidem.
-        """
+    def validate(self, data):
+        """Valida se a senha e a confirmação de senha são idênticas."""
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({"password": "As senhas não coincidem."})
         return data
 
-    def create(self, validated_data: dict) -> User:
-        """
-        Cria uma nova instância do modelo User com os dados validados.
+    def create(self, validated_data):
+        """Cria e retorna uma nova instância de User com os dados validados.
+
+        Define a senha corretamente usando `create_user`, associa os grupos
+        selecionados e cria um token de autenticação para o novo usuário.
         """
         groups_data = validated_data.pop('groups', None)
         validated_data.pop('confirm_password')
-        password = validated_data.pop('password')
 
         user = User.objects.create_user(**validated_data)
 
@@ -151,72 +144,56 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class PasswordChangeSerializer(serializers.Serializer):
-    """
-    Serializer para mudança de senha de um usuário autenticado.
+    """Serializa os dados para a alteração de senha de um usuário autenticado.
 
-    Requer a senha antiga para validação e a nova senha com confirmação.
-
-    :ivar old_password: :class:`str` A senha atual do usuário.
-    :ivar new_password: :class:`str` A nova senha desejada.
-    :ivar confirm_new_password: :class:`str` Confirmação da nova senha.
+    Requer a senha antiga para verificação e a nova senha com sua confirmação
+    para realizar a atualização de forma segura.
     """
     old_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
     new_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
     confirm_new_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
 
-    def validate(self, data: dict) -> dict:
-        """
-        Valida as senhas fornecidas e a senha antiga do usuário.
+    def validate(self, data):
+        """Valida a senha antiga do usuário e a confirmação da nova senha.
 
-        :param data: :class:`dict` Dicionário contendo 'old_password', 'new_password' e 'confirm_new_password'.
-        :raises rest_framework.serializers.ValidationError: Se as senhas não coincidirem ou a senha antiga estiver incorreta.
-        :returns: Os dados validados.
-        :rtype: dict
+        O usuário é obtido a partir do contexto da requisição.
+
+        Raises:
+            serializers.ValidationError: Se a senha antiga estiver incorreta
+                ou se a nova senha e sua confirmação não coincidirem.
         """
         if data['new_password'] != data['confirm_new_password']:
             raise serializers.ValidationError({"new_password": "As novas senhas não coincidem."})
 
-        # A instância do usuário (self.instance) será definida na view
-        # quando o serializer for instanciado com `serializer = PasswordChangeSerializer(data=request.data, instance=request.user)`
         user = self.context['request'].user
         if not user.check_password(data['old_password']):
             raise serializers.ValidationError({"old_password": "A senha antiga está incorreta."})
 
         return data
 
+
 class AdminPasswordChangeSerializer(serializers.Serializer):
-    """
-    Serializer para administradores alterarem a senha de qualquer usuário.
+    """Serializa dados para que um administrador altere a senha de um usuário.
 
-    Não requer a senha antiga, apenas a nova senha com confirmação.
-
-    :ivar new_password: :class:`str` A nova senha desejada para o usuário.
-    :ivar confirm_new_password: :class:`str` Confirmação da nova senha.
+    Diferente do `PasswordChangeSerializer`, este não requer a senha antiga,
+    apenas a nova senha e sua confirmação.
     """
     new_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
     confirm_new_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
 
-    def validate(self, data: dict) -> dict:
-        """
-        Valida se as novas senhas fornecidas coincidem.
-
-        :param data: :class:`dict` Dicionário contendo 'new_password' e 'confirm_new_password'.
-        :raises rest_framework.serializers.ValidationError: Se as novas senhas não coincidem.
-        :returns: Os dados validados.
-        :rtype: dict
-        """
+    def validate(self, data):
+        """Valida se a nova senha e a confirmação de senha são idênticas."""
         if data['new_password'] != data['confirm_new_password']:
             raise serializers.ValidationError({"new_password": "As novas senhas não coincidem."})
         return data
 
+
 class GroupSerializer(serializers.ModelSerializer):
-    """
-    Serializer para o modelo Group.
+    """Serializa os dados do modelo Group do Django.
 
-    Expõe os campos essenciais de um grupo para listagem na API,
-    permitindo que aplicações cliente saibam quais grupos estão disponíveis.
+    Utilizado para listar os grupos disponíveis no sistema, expondo apenas
+    seu ID e nome para consumo pela API.
     """
-
     class Meta:
         model = Group
         fields = ['id', 'name']

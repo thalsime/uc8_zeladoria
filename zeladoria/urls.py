@@ -1,48 +1,48 @@
-"""
-Configurações de URLS para a aplicação principal Zeladoria.
-
-Define os padrões de URL para o projeto, incluindo a interface administrativa do Django,
-e os endpoints da API RESTful gerenciados pelo Django REST Framework.
-Utiliza um roteador padrão para organizar as URLs dos ViewSets.
-"""
-
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from rest_framework.routers import DefaultRouter # Importe DefaultRouter aqui
+from rest_framework.routers import DefaultRouter
 from decouple import config
-
-# Importe todos os seus ViewSets diretamente aqui
 from accounts.views import AuthViewSet
 from salas.views import SalaViewSet, LimpezaRegistroViewSet
 
-# Instanciação do roteador padrão do Django REST Framework.
-# Este roteador é responsável por gerar automaticamente os padrões de URL
-# para os ViewSets registrados, simplificando a configuração das rotas da API.
-router = DefaultRouter()
 
-# Registro dos ViewSets com o roteador.
-# Cada chamada a :func:`router.register` associa um ViewSet a um prefixo de URL,
-# a partir do qual as rotas para as operações CRUD e ações personalizadas são geradas.
-#
-# :param prefix: O segmento inicial da URL para este ViewSet (ex: 'accounts', 'salas').
-# :param viewset: A classe do ViewSet (ex: :class:`~accounts.views.AuthViewSet`).
-# :param basename: Opcional. Usado para nomear as rotas geradas (ex: 'accounts-list').
-#                  Necessário se o ViewSet não tiver um `queryset` definido ou `model` no `serializer_class`.
+"""Configuração de URLs para o projeto 'zeladoria'.
+
+Este arquivo é o ponto de entrada para o roteamento de todas as requisições
+HTTP, mapeando os padrões de URL para as views correspondentes, incluindo a
+interface de administração e os endpoints da API.
+"""
+
+
+"""Instancia o roteador padrão do Django REST Framework.
+
+O roteador gera automaticamente as rotas da API para os ViewSets registrados,
+simplificando a configuração dos endpoints CRUD.
+"""
+router = DefaultRouter()
 router.register(r'accounts', AuthViewSet, basename='accounts')
 router.register(r'salas', SalaViewSet)
 router.register(r'limpezas', LimpezaRegistroViewSet)
 
-# Padrões de URL raiz do projeto.
-# Esta lista contém todas as URLs da aplicação, incluindo a interface administrativa
-# e os endpoints da API RESTful.
+
+"""Define a lista principal de padrões de URL para o projeto.
+
+Inclui o caminho para a interface de administração, carregado de forma segura
+a partir de variáveis de ambiente, e todas as rotas da API geradas pelo
+roteador sob o prefixo 'api/'.
+"""
 urlpatterns = [
     path(config('URI_ADMIN'), admin.site.urls),
-    # Inclui as URLs geradas automaticamente pelo roteador, todas sob o prefixo 'api/'.
     path('api/', include(router.urls)),
 ]
 
-# Isto serve os arquivos de mídia apenas durante o desenvolvimento (DEBUG=True)
+
+"""Adiciona as URLs para servir arquivos de mídia durante o desenvolvimento.
+
+Esta configuração não é adequada para produção e deve ser substituída por
+uma estratégia de serviço de arquivos estáticos/mídia mais robusta.
+"""
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,22 +1,17 @@
-"""
-Módulo de Permissões Personalizadas para o DRF.
-
-Define um conjunto de classes de permissão reutilizáveis para controlar o acesso
-a diferentes partes da API com base nos papéis e grupos dos usuários.
-"""
-
 from rest_framework import permissions
 
-def _is_in_group(user, group_name):
-    """
-    Verifica se um usuário pertence a um grupo específico.
 
-    :param user: A instância do usuário a ser verificada.
-    :type user: :class:`~django.contrib.auth.models.User`
-    :param group_name: O nome do grupo a ser verificado.
-    :type group_name: str
-    :returns: True se o usuário pertencer ao grupo, False caso contrário.
-    :rtype: bool
+def _is_in_group(user, group_name):
+    """Verifica se um usuário pertence a um grupo com o nome especificado.
+
+    É uma função auxiliar para as classes de permissão baseadas em grupo.
+
+    Args:
+        user (User): A instância de usuário a ser verificada.
+        group_name (str): O nome do grupo a ser verificado.
+
+    Returns:
+        bool: True se o usuário pertencer ao grupo, False caso contrário.
     """
     if not user.is_authenticated:
         return False
@@ -24,26 +19,24 @@ def _is_in_group(user, group_name):
 
 
 class IsAdminUser(permissions.BasePermission):
-    """
-    Permissão personalizada para permitir acesso apenas a usuários administradores.
+    """Permite o acesso apenas a usuários com privilégios de superusuário.
 
-    Um administrador é definido como um usuário que tem o atributo `is_staff` como True.
+    Esta permissão verifica se o atributo `is_superuser` do usuário é `True`.
     """
     def has_permission(self, request, view):
+        """Verifica se o usuário da requisição é um superusuário autenticado."""
         return request.user and request.user.is_superuser
 
 
 class IsZeladorUser(permissions.BasePermission):
-    """
-    Permissão personalizada para permitir acesso apenas a usuários do grupo 'Zeladoria'.
-    """
+    """Permite o acesso apenas a usuários que pertencem ao grupo 'Zeladoria'."""
     def has_permission(self, request, view):
+        """Verifica se o usuário da requisição pertence ao grupo 'Zeladoria'."""
         return _is_in_group(request.user, 'Zeladoria')
 
 
 class IsCorpoDocenteUser(permissions.BasePermission):
-    """
-    Permissão personalizada para permitir acesso apenas a usuários do grupo 'Corpo Docente'.
-    """
+    """Permite o acesso apenas a usuários que pertencem ao grupo 'Corpo Docente'."""
     def has_permission(self, request, view):
+        """Verifica se o usuário da requisição pertence ao grupo 'Corpo Docente'."""
         return _is_in_group(request.user, 'Corpo Docente')
