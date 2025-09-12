@@ -38,6 +38,16 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
+class NestedProfileSerializer(serializers.ModelSerializer):
+    """Serializador simplificado do perfil para uso aninhado.
+
+    É projetado para ser usado dentro de outros serializadores, como o
+    `UserSerializer`, para evitar a duplicação de campos que já existem
+    no serializador pai (ex: 'nome').
+    """
+    class Meta:
+        model = Profile
+        fields = ['profile_picture']
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializa os dados essenciais do modelo User para exibição.
@@ -46,7 +56,7 @@ class UserSerializer(serializers.ModelSerializer):
     usuário, como ID, nome, e-mail e perfil, sem incluir a senha.
     """
     nome = serializers.CharField(source='first_name', read_only=True)
-    profile = ProfileSerializer(read_only=True)
+    profile = NestedProfileSerializer(read_only=True)
 
     class Meta:
         model = User
