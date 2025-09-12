@@ -46,19 +46,26 @@ class Profile(models.Model):
         return f'Perfil de {self.user.username}'
 
     def save(self, *args, **kwargs):
-        """Sobrescreve o método save para processar a foto de perfil antes de salvar.
+        """Sobrescreve o método save para gerenciar e processar a foto de perfil.
 
-        Se uma nova imagem de perfil for enviada, este método realiza as
-        seguintes operações:
-        1.  Realiza um corte quadrado central na imagem.
-        2.  Redimensiona a imagem para 300x300 pixels para padronização.
-        3.  Converte a imagem para o formato RGB, removendo canais de transparência.
-        4.  Salva a imagem processada em formato JPEG com qualidade otimizada.
+        Antes de salvar a instância no banco de dados, este método executa duas
+        operações principais. Primeiramente, se uma foto de perfil existente
+        estiver sendo substituída, o arquivo de imagem antigo é deletado do
+        armazenamento para evitar acúmulo de arquivos e garantir a substituição.
 
-        Após o processamento, a imagem original é substituída pela versão
-        tratada antes de chamar o método `save` da superclasse para
-        persistir os dados no banco de dados.
+        Em seguida, se uma nova imagem for enviada, ela é processada para
+        padronização: é cortada em um formato quadrado, redimensionada para
+        300x300 pixels e convertida para o formato JPEG para otimizar seu
+        tamanho antes de ser salva.
         """
+        if self.pk:
+            try:
+                old_instance = Profile.objects.get(pk=self.pk)
+                if old_instance.profile_picture and old_instance.profile_picture != self.profile_picture:
+                    old_instance.profile_picture.delete(save=False)
+            except Profile.DoesNotExist:
+                pass
+
         if self.profile_picture:
             img = Image.open(self.profile_picture)
 
