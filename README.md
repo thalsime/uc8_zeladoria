@@ -170,7 +170,6 @@ Endpoints para autenticação e gerenciamento de usuários.
         ],
         "nome": "Nome Completo do Usuário",
         "profile": {
-            "nome": "Nome Completo do Usuário",
             "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
         }
     }
@@ -197,7 +196,6 @@ Endpoints para autenticação e gerenciamento de usuários.
             "groups": [],
             "nome": "Administrador do Sistema",
             "profile": {
-                "nome": "Administrador do Sistema",
                 "profile_picture": null
             }
         },
@@ -211,7 +209,6 @@ Endpoints para autenticação e gerenciamento de usuários.
             ],
             "nome": "Zelador Alfa",
             "profile": {
-                "nome": "Zelador Alfa",
                 "profile_picture": "http://127.0.0.1:8000/media/profile_pics/2.jpg"
             }
         }
@@ -258,7 +255,6 @@ Endpoints para autenticação e gerenciamento de usuários.
             ],
             "nome": "Nome Completo do Usuário",
             "profile": {
-                "nome": "Nome Completo do Usuário",
                 "profile_picture": null
             }
         },
