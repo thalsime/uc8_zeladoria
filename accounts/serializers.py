@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from rest_framework.authtoken.models import Token
 from .models import Profile
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -135,6 +137,14 @@ class UserCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": "As senhas não coincidem."})
         return data
 
+    def validate_password(self, value):
+        """Aplica os validadores de força de senha do Django."""
+        try:
+            validate_password(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
+
     def create(self, validated_data):
         """Cria e retorna uma nova instância de User com os dados validados.
 
@@ -181,6 +191,13 @@ class PasswordChangeSerializer(serializers.Serializer):
 
         return data
 
+    def validate_new_password(self, value):
+        """Aplica os validadores de força de senha do Django à nova senha."""
+        try:
+            validate_password(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
 
 class AdminPasswordChangeSerializer(serializers.Serializer):
     """Serializa dados para que um administrador altere a senha de um usuário.
@@ -197,6 +214,13 @@ class AdminPasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError({"new_password": "As novas senhas não coincidem."})
         return data
 
+    def validate_new_password(self, value):
+        """Aplica os validadores de força de senha do Django à nova senha."""
+        try:
+            validate_password(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
 
 class GroupSerializer(serializers.ModelSerializer):
     """Serializa os dados do modelo Group do Django.
