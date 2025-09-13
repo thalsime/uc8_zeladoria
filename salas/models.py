@@ -3,10 +3,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
-from .pdf_generator import generate_salas_pdf
-
 
 class Sala(models.Model):
     """Representa uma sala física ou local gerenciável no sistema.
@@ -108,17 +104,3 @@ class LimpezaRegistro(models.Model):
     def __str__(self):
         """Retorna a representação textual do registro de limpeza."""
         return f"Limpeza da {self.sala.nome_numero} em {self.data_hora_limpeza.strftime('%Y-%m-%d %H:%M:%S')}"
-
-@receiver(post_save, sender=Sala)
-def sala_post_save_handler(sender, instance, **kwargs):
-    """
-    Gera o PDF de salas sempre que uma instância de Sala é salva.
-    """
-    generate_salas_pdf()
-
-@receiver(post_delete, sender=Sala)
-def sala_post_delete_handler(sender, instance, **kwargs):
-    """
-    Gera o PDF de salas sempre que uma instância de Sala é deletada.
-    """
-    generate_salas_pdf()

@@ -22,14 +22,14 @@ class SalaSerializer(serializers.ModelSerializer):
     o status da limpeza, a data do último registro e o funcionário responsável,
     e customiza a representação dos responsáveis.
     """
-    status_limpeza = serializers.SerializerMethodField()
     responsaveis = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.filter(groups__name='Zeladoria'),
         required=False
     )
-    ultima_limpeza_data_hora = serializers.DateTimeField(source='ultima_limpeza_anotada', read_only=True)
-    ultima_limpeza_funcionario = serializers.CharField(source='funcionario_anotado', read_only=True)
+    status_limpeza = serializers.SerializerMethodField()
+    ultima_limpeza_data_hora = serializers.SerializerMethodField()
+    ultima_limpeza_funcionario = serializers.SerializerMethodField()
 
     class Meta:
         model = Sala
@@ -56,19 +56,16 @@ class SalaSerializer(serializers.ModelSerializer):
         return representation
 
     def get_status_limpeza(self, obj):
-        """Calcula o status de limpeza da sala com base no último registro.
-
-        Compara o tempo decorrido desde a última limpeza com o campo
-        `validade_limpeza_horas` da própria sala para determinar seu estado.
-
-        Args:
-            obj (Sala): A instância de Sala a ser avaliada.
-
-        Returns:
-            str: "Limpa" ou "Limpeza Pendente".
         """
-        # Usamos o valor anotado que já veio na consulta, sem fazer um novo acesso ao banco.
-        ultimo_registro_data = obj.ultima_limpeza_anotada
+        Calcula o status da limpeza, usando o campo anotado se disponível,
+        ou fazendo a query como fallback.
+        """
+        if hasattr(obj, 'ultima_limpeza_anotada'):
+            ultimo_registro_data = obj.ultima_limpeza_anotada
+        else:  # Fallback para create/update/retrieve
+            ultimo_registro = obj.registros_limpeza.first()
+            ultimo_registro_data = ultimo_registro.data_hora_limpeza if ultimo_registro else None
+
         if ultimo_registro_data:
             validade_em_segundos = obj.validade_limpeza_horas * 3600
             tempo_decorrido = (timezone.now() - ultimo_registro_data).total_seconds()
@@ -76,8 +73,35 @@ class SalaSerializer(serializers.ModelSerializer):
                 return "Limpa"
         return "Limpeza Pendente"
 
-    # Os métodos get_ultima_limpeza_data_hora e get_ultima_limpeza_funcionario foram removidos
-    # pois foram substituídos pelos campos diretos no topo do serializer.
+    def get_ultima_limpeza_data_hora(self, obj):
+        """
+        Obtém a data da última limpeza, usando o campo anotado se disponível,
+        ou fazendo a query como fallback.
+        """
+        if hasattr(obj, 'ultima_limpeza_anotada'):
+            dt = obj.ultima_limpeza_anotada
+            return dt.isoformat().replace('+00:00', 'Z') if dt else None
+
+        # Fallback
+        ultimo_registro = obj.registros_limpeza.first()
+        if ultimo_registro:
+            return ultimo_registro.data_hora_limpeza.isoformat() + 'Z'
+        return None
+
+    def get_ultima_limpeza_funcionario(self, obj):
+        """
+        Obtém o funcionário da última limpeza, usando o campo anotado se
+        disponível, ou fazendo a query como fallback.
+        """
+        if hasattr(obj, 'funcionario_anotado'):
+            return obj.funcionario_anotado
+
+        # Fallback
+        ultimo_registro = obj.registros_limpeza.first()
+        if ultimo_registro and ultimo_registro.funcionario_responsavel:
+            return ultimo_registro.funcionario_responsavel.username
+        return None
+
 
 
 class LimpezaRegistroSerializer(serializers.ModelSerializer):
