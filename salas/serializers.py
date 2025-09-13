@@ -23,13 +23,13 @@ class SalaSerializer(serializers.ModelSerializer):
     e customiza a representação dos responsáveis.
     """
     status_limpeza = serializers.SerializerMethodField()
-    ultima_limpeza_data_hora = serializers.SerializerMethodField()
-    ultima_limpeza_funcionario = serializers.SerializerMethodField()
     responsaveis = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.filter(groups__name='Zeladoria'),
         required=False
     )
+    ultima_limpeza_data_hora = serializers.DateTimeField(source='ultima_limpeza_anotada', read_only=True)
+    ultima_limpeza_funcionario = serializers.CharField(source='funcionario_anotado', read_only=True)
 
     class Meta:
         model = Sala
@@ -67,43 +67,17 @@ class SalaSerializer(serializers.ModelSerializer):
         Returns:
             str: "Limpa" ou "Limpeza Pendente".
         """
-        ultimo_registro = obj.registros_limpeza.first()
-        if ultimo_registro:
+        # Usamos o valor anotado que já veio na consulta, sem fazer um novo acesso ao banco.
+        ultimo_registro_data = obj.ultima_limpeza_anotada
+        if ultimo_registro_data:
             validade_em_segundos = obj.validade_limpeza_horas * 3600
-            tempo_decorrido = (timezone.now() - ultimo_registro.data_hora_limpeza).total_seconds()
+            tempo_decorrido = (timezone.now() - ultimo_registro_data).total_seconds()
             if tempo_decorrido < validade_em_segundos:
                 return "Limpa"
         return "Limpeza Pendente"
 
-    def get_ultima_limpeza_data_hora(self, obj):
-        """Obtém a data e hora do último registro de limpeza da sala.
-
-        Args:
-            obj (Sala): A instância de Sala a ser avaliada.
-
-        Returns:
-            str or None: A data como uma string no formato ISO 8601 (UTC) ou
-            `None` se não houver registros.
-        """
-        ultimo_registro = obj.registros_limpeza.first()
-        if ultimo_registro:
-            return ultimo_registro.data_hora_limpeza.isoformat() + 'Z'
-        return None
-
-    def get_ultima_limpeza_funcionario(self, obj):
-        """Obtém o nome de usuário do funcionário do último registro de limpeza.
-
-        Args:
-            obj (Sala): A instância de Sala a ser avaliada.
-
-        Returns:
-            str or None: O `username` do funcionário ou `None` se não houver
-            registro ou funcionário associado.
-        """
-        ultimo_registro = obj.registros_limpeza.first()
-        if ultimo_registro and ultimo_registro.funcionario_responsavel:
-            return ultimo_registro.funcionario_responsavel.username
-        return None
+    # Os métodos get_ultima_limpeza_data_hora e get_ultima_limpeza_funcionario foram removidos
+    # pois foram substituídos pelos campos diretos no topo do serializer.
 
 
 class LimpezaRegistroSerializer(serializers.ModelSerializer):

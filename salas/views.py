@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from django.db.models import OuterRef, Subquery
 from .models import Sala, LimpezaRegistro
 from .filters import SalaFilter, LimpezaRegistroFilter
 from .serializers import SalaSerializer, LimpezaRegistroSerializer
@@ -52,7 +53,19 @@ class SalaViewSet(viewsets.ModelViewSet):
         Returns:
             QuerySet: O conjunto de dados otimizado para o ViewSet.
         """
-        return Sala.objects.prefetch_related('registros_limpeza__funcionario_responsavel', 'responsaveis').all()
+        ultimos_registros = LimpezaRegistro.objects.filter(
+            sala=OuterRef('pk')
+        ).order_by('-data_hora_limpeza')
+
+        queryset = Sala.objects.prefetch_related('responsaveis').annotate(
+            ultima_limpeza_anotada=Subquery(
+                ultimos_registros.values('data_hora_limpeza')[:1]
+            ),
+            funcionario_anotado=Subquery(
+                ultimos_registros.values('funcionario_responsavel__username')[:1]
+            )
+        )
+        return queryset
 
     @action(detail=True, methods=['post'])
     def marcar_como_limpa(self, request, qr_code_id=None):
