@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -7,21 +8,15 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 
 def user_profile_picture_path(instance, filename):
-    """Define o caminho de upload para a foto de perfil do usuário.
-
-    Gera um caminho padronizado no formato 'profile_pics/{user_id}.jpg',
-    garantindo que cada usuário tenha um nome de arquivo único e estável para
-    sua foto, que será substituída a cada novo upload. A extensão é
-    fixada em '.jpg' devido ao processamento da imagem antes de salvar.
-
-    Args:
-        instance (Profile): A instância do modelo de Profile sendo salva.
-        filename (str): O nome original do arquivo enviado.
-
-    Returns:
-        str: O caminho completo onde o arquivo será salvo.
     """
-    return f'profile_pics/{instance.user.id}.jpg'
+    Define o caminho e um nome de arquivo aleatório para a foto de perfil.
+
+    Gera um nome de arquivo único universal (UUID) para evitar problemas de
+    cache. A extensão é fixada em '.jpg' devido ao processamento da
+    imagem no método save().
+    """
+    random_filename = f'{uuid.uuid4()}.jpg'
+    return f'profile_pics/{random_filename}'
 
 class Profile(models.Model):
     """Modela o perfil de um usuário, estendendo o modelo padrão do Django.
@@ -91,21 +86,15 @@ class Profile(models.Model):
 
         super().save(*args, **kwargs)
 
+
+# --- INÍCIO DA CORREÇÃO ---
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
-    """Cria ou atualiza o perfil de um usuário ao salvar o modelo User.
+def create_user_profile(sender, instance, created, **kwargs):
+    """
+    Cria um perfil para um usuário SEMPRE QUE um novo usuário for criado.
 
-    Esta função é um receptor de sinal que é acionado sempre que uma instância
-    do modelo `User` é salva. Se o usuário foi recém-criado (`created` is True),
-    um novo perfil é criado e associado a ele. Em todas as chamadas,
-    o perfil associado é salvo para garantir a consistência.
-
-    Args:
-        sender (User): A classe do modelo que enviou o sinal.
-        instance (User): A instância do usuário que foi salva.
-        created (bool): Um booleano que indica se a instância foi criada.
-        **kwargs: Argumentos adicionais de palavra-chave.
+    Este sinal agora executa apenas na criação do usuário (`created` is True)
+    para evitar chamadas desnecessárias e errôneas ao Profile.save().
     """
     if created:
         Profile.objects.create(user=instance)
-    instance.profile.save()
