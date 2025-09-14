@@ -2,6 +2,37 @@
 
 Este é o backend do Sistema de Mapeamento da Limpeza de Salas, desenvolvido com Django e Django REST Framework. Ele fornece uma API RESTful para gerenciar salas, registrar suas limpezas e autenticar usuários da equipe de zeladoria. O foco do projeto é otimizar o fluxo de trabalho da equipe de limpeza e fornecer informações atualizadas sobre a disponibilidade de salas limpas, solucionando ineficiências no gerenciamento manual da limpeza de salas no SENAC.
 
+## Índice
+
+1.  [Ambiente de Desenvolvimento](#ambiente-de-desenvolvimento)
+    1.  [Pré-requisitos](#pr%C3%A9-requisitos)
+    2.  [Clonar o Repositório](#1-clonar-o-reposit%C3%B3rio)
+    3.  [Configurar o Ambiente Virtual (venv)](#2-configurar-o-ambiente-virtual-venv)
+    4.  [Configurar Variáveis de Ambiente (.env)](#3-configurar-vari%C3%A1veis-de-ambiente-env)
+    5.  [Instalar as Dependências](#4-instalar-as-depend%C3%AAncias)
+    6.  [Configurar o Banco de Dados](#5-configurar-o-banco-de-dados)
+    7.  [Criar um Superusuário](#6-criar-um-superusu%C3%A1rio-opcional-mas-recomendado)
+    8.  [Rodar o Servidor de Desenvolvimento](#7-rodar-o-servidor-de-desenvolvimento)
+2.  [Documentação dos Endpoints da API](#documenta%C3%A7%C3%A3o-dos-endpoints-da-api)
+    1.  [Endpoints da Aplicação `accounts`](#1-endpoints-da-aplica%C3%A7%C3%A3o-accounts)
+        1.  [Login de Usuário](#11-login-de-usu%C3%A1rio)
+        2.  [Obter Dados do Usuário Logado](#12-obter-dados-do-usu%C3%A1rio-logado)
+        3.  [Listar Usuários](#13-listar-usu%C3%A1rios)
+        4.  [Criar Novo Usuário](#14-criar-novo-usu%C3%A1rio-apenas-administradores)
+        5.  [Mudar Senha do Usuário Autenticado](#15-mudar-senha-do-usu%C3%A1rio-autenticado)
+        6.  [Listar Grupos Disponíveis](#16-listar-grupos-dispon%C3%ADveis)
+        7.  [Gerenciar Perfil do Usuário](#17-gerenciar-perfil-do-usu%C3%A1rio)
+    2.  [Endpoints da Aplicação `salas`](#2-endpoints-da-aplica%C3%A7%C3%A3o-salas)
+        1.  [Listar Salas / Criar Nova Sala](#21-listar-salas--criar-nova-sala)
+        2.  [Obter Detalhes / Atualizar / Excluir Sala](#22-obter-detalhes--atualizar--excluir-sala-espec%C3%ADfica)
+        3.  [Iniciar Limpeza de Sala](#23-iniciar-limpeza-de-sala)
+        4.  [Concluir Limpeza de Sala](#24-concluir-limpeza-de-sala)
+    3.  [Endpoints da Aplicação `limpezas`](#3-endpoints-da-aplica%C3%A7%C3%A3o-limpezas)
+        1.  [Listar Registros de Limpeza](#31-listar-registros-de-limpeza)
+3.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
+    1.  [Por que UTC?](#por-que-utc)
+    2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-%C3%A9-necess%C3%A1rio-ficar-atento-no-frontend-react-native--typescript)
+
 ## Ambiente de Desenvolvimento
 
 Siga os passos abaixo para configurar e executar o projeto em seu ambiente local. É altamente recomendado usar um ambiente virtual (`venv`) para isolar as dependências do projeto.
@@ -44,24 +75,25 @@ Este projeto utiliza a biblioteca `python-decouple` para gerenciar variáveis de
 
 1.  **Crie um arquivo `.env`:** Na pasta raiz do projeto (a mesma onde está `manage.py` e `.env.sample`), crie um novo arquivo chamado `.env`.
 2.  **Copie o conteúdo:** Copie todo o conteúdo do arquivo `.env.sample` para o seu novo arquivo `.env`.
-3.  **Ajuste os valores:** Você pode ajustar os valores conforme sua necessidade, por exemplo:
+3.  **Ajuste os valores:** Você deve ajustar os valores para o seu ambiente.
       * `SECRET_KEY`: Uma chave secreta longa e aleatória (essencial para segurança em produção).
       * `DEBUG`: `True` para desenvolvimento, `False` para produção.
-      * `TIME_ZONE`: O fuso horário da sua aplicação (ex: `America/Fortaleza` conforme `.env.sample`).
+      * `ALLOWED_HOSTS`: Lista de domínios permitidos, separados por vírgula. Para desenvolvimento local, `127.0.0.1,localhost` é suficiente.
+      * `CSRF_TRUSTED_ORIGINS`: Lista de domínios confiáveis para requisições CSRF. Para desenvolvimento, `http://127.0.0.1:8000,http://localhost:8000` é o ideal.
 
 Exemplo do conteúdo do `.env`:
 
 ```
 SECRET_KEY=uma_grande_string_de_caracteres_aleatorios
 DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
 URI_ADMIN=admin/
 LANGUAGE_CODE=pt-br
 TIME_ZONE=America/Fortaleza
 USE_I18N=True
 USE_TZ=True
 ```
-
-O `settings.py` utiliza a função `config()` da biblioteca `decouple` para ler esses valores, por exemplo: `SECRET_KEY = config("SECRET_KEY")`.
 
 ### 4\. Instalar as Dependências
 
@@ -121,402 +153,279 @@ Endpoints para autenticação e gerenciamento de usuários.
 
 #### 1.1. Login de Usuário
 
-  * **URI:** `/api/accounts/login/`
-  * **Verbos HTTP:** `POST`
-  * **Proposta:** Autentica um usuário e retorna um token de autenticação junto com os dados do usuário logado.
-  * **Body JSON (Obrigatório):**
-    ```json
-    {
-        "username": "seu_nome_de_usuario",
-        "password": "sua_senha"
-    }
-    ```
-  * **Exemplo de Resposta de Sucesso (Status 200 OK):**
-    ```json
-    {
-        "token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
-        "user_data": {
-            "id": 1,
-            "username": "seu_nome_de_usuario",
-            "email": "email@example.com",
-            "is_superuser": false,
-            "groups": [
-                1
-            ],
-            "nome": "Nome Completo do Usuário",
-            "profile": {
-                "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
+  * **Proposta:** Autenticar um usuário e retorna um token de autenticação junto com os dados do usuário logado.
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/accounts/login/`
+      * **Headers:** `Content-Type: application/json`
+      * **Body:**
+        ```json
+        {
+            "username": "seu_usuario",
+            "password": "sua_senha"
+        }
+        ```
+  * **Respostas:**
+      * **`200 OK` (Sucesso):**
+        ```json
+        {
+            "token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+            "user_data": {
+                "id": 1,
+                "username": "seu_usuario",
+                "email": "email@example.com",
+                "is_superuser": false,
+                "groups": [1],
+                "nome": "Nome Completo do Usuário",
+                "profile": {
+                    "profile_picture": "http://127.0.0.1:8000/media/profile_pics/imagem.jpg"
+                }
             }
         }
-    }
-    ```
+        ```
+      * **`400 Bad Request` (Erro de Validação):**
+        ```json
+        {
+            "non_field_errors": [
+                "Credenciais inválidas."
+            ]
+        }
+        ```
 
 #### 1.2. Obter Dados do Usuário Logado
 
-  * **URI:** `/api/accounts/current_user/`
-  * **Verbos HTTP:** `GET`
   * **Proposta:** Permite que um cliente autenticado recupere suas próprias informações.
-  * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_AQUI`
-  * **Exemplo de Resposta de Sucesso (Status 200 OK):**
-    ```json
-    {
-        "id": 1,
-        "username": "seu_nome_de_usuario",
-        "email": "email@example.com",
-        "is_superuser": false,
-        "groups": [
-            1
-        ],
-        "nome": "Nome Completo do Usuário",
-        "profile": {
-            "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
-        }
-    }
-    ```
+  * **Requisição:**
+      * **Verbo HTTP:** `GET`
+      * **URI:** `/api/accounts/current_user/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
+  * **Respostas:**
+      * **`200 OK` (Sucesso):** Retorna o objeto completo do usuário, similar ao `user_data` do login.
+      * **`401 Unauthorized` (Erro):** Ocorre se o token não for fornecido ou for inválido.
 
 #### 1.3. Listar Usuários
 
-  * **Endpoint:** `GET /api/accounts/list_users/`
-  * **Descrição:** Retorna uma lista de todos os usuários cadastrados no sistema, com suporte a filtros avançados.
+  * **Proposta:** Retorna uma lista de todos os usuários cadastrados no sistema, com suporte a filtros avançados.
   * **Permissões:** Apenas administradores (`is_superuser=True`).
-  * **Parâmetros de Query (`GET` - Opcional):**
-      * `username` (string): Busca parcial por nome de usuário (ex: `/api/accounts/list_users/?username=admin`).
-      * `email` (string): Busca parcial por e-mail (ex: `/api/accounts/list_users/?email=@example.com`).
-      * `is_superuser` (boolean): Filtra por status de superusuário (ex: `/api/accounts/list_users/?is_superuser=true`).
-      * `group` (string): Filtra por nome exato do grupo (não diferencia maiúsculas/minúsculas) (ex: `/api/accounts/list_users/?group=Zeladoria`).
-  * **Exemplo de Resposta (200 OK):**
-    ```json
-    [
-        {
-            "id": 1,
-            "username": "admin",
-            "email": "admin@example.com",
-            "is_superuser": true,
-            "groups": [],
-            "nome": "Administrador do Sistema",
-            "profile": {
-                "profile_picture": null
-            }
-        },
-        {
-            "id": 2,
-            "username": "zelador_a",
-            "email": "zelador.a@example.com",
-            "is_superuser": false,
-            "groups": [
-                1
-            ],
-            "nome": "Zelador Alfa",
-            "profile": {
-                "profile_picture": "http://127.0.0.1:8000/media/profile_pics/2.jpg"
-            }
-        }
-    ]
-    ```
+  * **Requisição:**
+      * **Verbo HTTP:** `GET`
+      * **URI:** `/api/accounts/list_users/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`
+  * **Filtros (Query Parameters):**
+      * **`username`** (string): Busca parcial (case-insensitive) por nome de usuário.
+          * **Exemplo:** `/api/accounts/list_users/?username=admin`
+      * **`email`** (string): Busca parcial (case-insensitive) por e-mail.
+          * **Exemplo:** `/api/accounts/list_users/?email=@example.com`
+      * **`is_superuser`** (boolean): Filtra por status de superusuário (`true` ou `false`).
+          * **Exemplo:** `/api/accounts/list_users/?is_superuser=true`
+      * **`group`** (string): Filtra por nome exato do grupo (case-insensitive).
+          * **Exemplo:** `/api/accounts/list_users/?group=Zeladoria`
+  * **Respostas:**
+      * **`200 OK` (Sucesso):** Retorna um array de objetos de usuário.
+      * **`403 Forbidden` (Erro):** Ocorre se o usuário não for um administrador.
 
 #### 1.4. Criar Novo Usuário (Apenas Administradores)
 
-  * **URI:** `/api/accounts/create_user/`
-  * **Verbos HTTP:** `POST`
-  * **Proposta:** Permite que um usuário com privilégios de administrador (`is_superuser=True`) crie novas contas de usuário no sistema.
-  * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI` (Token de um usuário administrador).
-      * `Content-Type: application/json`
-  * **Body JSON (Obrigatório):**
-      * **Estrutura Obrigatória:**
+  * **Proposta:** Cria uma nova conta de usuário. A senha informada será validada contra as regras de força de senha do Django.
+  * **Permissões:** Apenas administradores.
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/accounts/create_user/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: application/json`
+      * **Body:**
         ```json
         {
-            "username": "novo_nome_de_usuario",
-            "password": "senha_segura",
-            "confirm_password": "senha_segura"
-        }
-        ```
-      * **Estrutura Opcional:**
-        ```json
-        {
-            "nome": "Nome Completo do Usuário",
-            "email": "email_novo@example.com",
-            "is_superuser": false,
+            "username": "novo_usuario",
+            "password": "Senha@Forte123",
+            "confirm_password": "Senha@Forte123",
+            "nome": "Nome Completo",
+            "email": "novo@email.com",
             "groups": [1]
         }
         ```
-  * **Exemplo de Resposta de Sucesso (Status 201 Created):**
-    ```json
-    {
-        "message": "Usuário criado com sucesso.",
-        "user": {
-            "id": 3,
-            "username": "novo_nome_de_usuario",
-            "email": "email_novo@example.com",
-            "is_superuser": false,
-            "groups": [
-                1
-            ],
-            "nome": "Nome Completo do Usuário",
-            "profile": {
-                "profile_picture": null
-            }
-        },
-        "token": "x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0"
-    }
-    ```
+  * **Respostas:**
+      * **`201 Created` (Sucesso):**
+        ```json
+        {
+            "message": "Usuário criado com sucesso.",
+            "user": { "... objeto do novo usuário ..." },
+            "token": "x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0"
+        }
+        ```
+      * **`400 Bad Request` (Erro de Validação):** Ocorre se as senhas não coincidem, a senha é fraca, ou o `username` já existe.
+        ```json
+        {
+            "password": [
+                "As senhas não coincidem."
+            ]
+        }
+        ```
 
 #### 1.5. Mudar Senha do Usuário Autenticado
 
-  * **URI:** `/api/accounts/change_password/`
-  * **Verbos HTTP:** `POST`
-  * **Proposta:** Permite que um usuário autenticado altere sua própria senha, exigindo a senha antiga para validação.
-  * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_AQUI` (Token do usuário que está mudando a senha).
-      * `Content-Type: application/json`
-  * **Body JSON (Obrigatório):**
-    ```json
-    {
-        "old_password": "sua_senha_antiga",
-        "new_password": "sua_nova_senha",
-        "confirm_new_password": "sua_nova_senha"
-    }
-    ```
-  * **Exemplo de Resposta de Sucesso (Status 200 OK):**
-    ```json
-    {
-        "message": "Senha alterada com sucesso."
-    }
-    ```
-  * **Exemplo de Resposta de Erro (Status 400 Bad Request - Ex: senha antiga incorreta):**
-    ```json
-    {
-        "old_password": [
-            "A senha antiga está incorreta."
-        ]
-    }
-    ```
-  * **Exemplo de Resposta de Erro (Status 400 Bad Request - Ex: novas senhas não coincidem):**
-    ```json
-    {
-        "new_password": [
-            "As novas senhas não coincidem."
-        ]
-    }
-    ```
+  * **Proposta:** Permite que o usuário autenticado altere sua própria senha. A nova senha será validada contra as regras de força do Django.
+  * **Permissões:** Qualquer usuário autenticado.
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/accounts/change_password/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`, `Content-Type: application/json`
+      * **Body:**
+        ```json
+        {
+            "old_password": "sua_senha_antiga",
+            "new_password": "Nova@Senha123",
+            "confirm_new_password": "Nova@Senha123"
+        }
+        ```
+  * **Respostas:**
+      * **`200 OK` (Sucesso):** `{"message": "Senha alterada com sucesso."}`
+      * **`400 Bad Request` (Erro):** Ocorre se a senha antiga está incorreta, as novas não coincidem ou a nova senha é fraca.
 
 #### 1.6. Listar Grupos Disponíveis
 
-  * **URI:** `/api/accounts/list_groups/`
-  * **Verbos HTTP:** `GET`
-  * **Proposta:** Retorna uma lista de todos os grupos (papéis) de usuários disponíveis no sistema. Útil para preencher formulários de criação/edição de usuários no front-end.
+  * **Proposta:** Retorna uma lista de todos os grupos (papéis) de usuários disponíveis no sistema.
   * **Permissões:** Qualquer usuário autenticado.
-  * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_AQUI`
-  * **Exemplo de Resposta de Sucesso (Status 200 OK):**
+  * **Requisição:**
+      * **Verbo HTTP:** `GET`
+      * **URI:** `/api/accounts/list_groups/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
+  * **Resposta (`200 OK`):**
     ```json
     [
-        {
-            "id": 2,
-            "name": "Corpo Docente"
-        },
-        {
-            "id": 1,
-            "name": "Zeladoria"
-        }
+        {"id": 2, "name": "Corpo Docente"},
+        {"id": 1, "name": "Zeladoria"}
     ]
     ```
 
 #### 1.7. Gerenciar Perfil do Usuário
 
-Permite que um usuário autenticado visualize e atualize seu próprio perfil, incluindo nome e foto.
-
-  * **URI:** `/api/accounts/profile/`
-      * **Verbos HTTP:** `GET`, `PUT`, `PATCH`
-      * **Permissões:** Apenas o próprio usuário autenticado.
-
-##### Visualizar Perfil (GET)
-
-  * **Exemplo de Resposta de Sucesso (Status 200 OK):**
+  * **Proposta:** Permite visualizar e atualizar o próprio perfil, incluindo nome e foto.
+  * **Permissões:** Apenas o próprio usuário autenticado.
+  * **Requisições:**
+      * **Ver Perfil:** `GET /api/accounts/profile/`
+      * **Atualizar Perfil:** `PUT` ou `PATCH` para `/api/accounts/profile/`
+          * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
+          * **Body (Multipart Form-data):** Para enviar uma imagem, a requisição deve ser do tipo `multipart/form-data`.
+              * Campo `nome` (texto): `Novo Nome Completo`
+              * Campo `profile_picture` (arquivo): Selecionar o arquivo de imagem.
+  * **Resposta (`200 OK`):**
     ```json
     {
-        "nome": "Nome Completo do Usuário",
-        "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
+        "nome": "Nome Atualizado",
+        "profile_picture": "http://127.0.0.1:8000/media/profile_pics/uuid_aleatorio.jpg"
     }
     ```
-
-##### Atualizar Perfil (PUT, PATCH)
-
-  * **Para atualizar apenas o nome (JSON):**
-    ```json
-    {
-        "nome": "Novo Nome Completo"
-    }
-    ```
-  * **Para atualizar a foto ou ambos (Multipart Form-data):**
-      * **Chave 1 (texto):** `nome`
-      * **Valor 1:** `Outro Nome Completo`
-      * **Chave 2 (arquivo):** `profile_picture`
-      * **Valor 2:** O arquivo da imagem (ex: `minha_foto.png`)
-          * **Exemplo de Resposta de Sucesso (Status 200 OK):**
-            ```json
-            {
-                "nome": "Outro Nome Completo",
-                "profile_picture": "http://127.0.0.1:8000/media/profile_pics/1.jpg"
-            }
-            ```
 
 -----
 
 ### 2\. Endpoints da Aplicação `salas`
 
-Gerencia as informações sobre as salas e seus registros de limpeza.
+Gerencia as informações sobre as salas e o processo de limpeza.
 
 #### 2.1. Listar Salas / Criar Nova Sala
 
   * **URI:** `/api/salas/`
   * **Verbos HTTP:** `GET`, `POST`
-  * **Proposta:**
-      * `GET`: Recupera uma lista de todas as salas cadastradas no sistema.
-      * `POST`: Cria um novo registro de sala no banco de dados.
-  * **Permissões:**
-      * `GET`: Qualquer usuário autenticado.
-      * `POST`: Apenas **administradores**.
-  * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_AQUI` (Para `GET` e `POST`).
-      * `Content-Type: application/json` (Apenas para `POST`).
-  * **Parâmetros de Query para Buscas Avançadas (`GET` - Opcional):**
-      * `ativa` (boolean): Filtra por salas ativas (`true`) ou inativas (`false`). Ex: `/api/salas/?ativa=false`
-      * `nome_numero` (string): Busca parcial por nome/número da sala. Ex: `/api/salas/?nome_numero=101`
-      * `localizacao` (string): Busca parcial por localização. Ex: `/api/salas/?localizacao=Bloco A`
-      * `capacidade_min` (integer): Filtra por capacidade mínima. Ex: `/api/salas/?capacidade_min=30`
-      * `capacidade_max` (integer): Filtra por capacidade máxima. Ex: `/api/salas/?capacidade_max=50`
-      * `responsavel_username` (string): Busca parcial pelo nome de usuário de um responsável. Ex: `/api/salas/?responsavel_username=zelador`
-  * **Body JSON (`POST` - Obrigatório):**
-    ```json
-    {
-        "nome_numero": "Sala 101",
-        "capacidade": 30,
-        "validade_limpeza_horas": 4,
-        "localizacao": "Bloco A",
-        "responsaveis": [1, 5]
-    }
-    ```
-      * `nome_numero` (string, obrigatório): Nome ou número único da sala.
-      * `capacidade` (integer, obrigatório): Capacidade máxima de pessoas. Deve ser no mínimo 1.
-      * `validade_limpeza_horas` (integer, opcional): Por quantas horas a limpeza é válida. Padrão: 4.
-      * `descricao` (string, opcional): Descrição geral sobre a sala.
-      * `instrucoes` (string, opcional): Instruções de limpeza para a equipe de zeladoria.
-      * `localizacao` (string, obrigatório): Localização física da sala.
-      * `responsaveis` (array de integers, opcional): Lista de IDs de usuários do grupo "Zeladoria" responsáveis pela sala.
-  * **Exemplo de Resposta de Sucesso (`GET` - Status 200 OK):**
-    ```json
-    [
+  * **Permissões:** `GET` (Qualquer autenticado), `POST` (Apenas administradores).
+  * **Filtros (`GET` - Query Parameters):**
+      * **`ativa`** (boolean): Filtra por salas ativas (`true`) ou inativas (`false`).
+          * **Exemplo:** `/api/salas/?ativa=true`
+      * **`nome_numero`** (string): Busca parcial (case-insensitive) por nome ou número da sala.
+          * **Exemplo:** `/api/salas/?nome_numero=Auditório`
+      * **`localizacao`** (string): Busca parcial (case-insensitive) por localização.
+          * **Exemplo:** `/api/salas/?localizacao=Bloco`
+      * **`capacidade_min`** (integer): Filtra por salas com capacidade maior ou igual ao valor informado.
+          * **Exemplo:** `/api/salas/?capacidade_min=50`
+      * **`capacidade_max`** (integer): Filtra por salas com capacidade menor ou igual ao valor informado.
+          * **Exemplo:** `/api/salas/?capacidade_max=100`
+      * **`responsavel_username`** (string): Busca parcial (case-insensitive) pelo nome de usuário de um dos responsáveis.
+          * **Exemplo:** `/api/salas/?responsavel_username=zelador`
+  * **Requisição (`POST`):**
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: application/json`
+      * **Body:**
+        ```json
         {
-            "id": 1,
-            "qr_code_id": "c1b3f9a0-3b1a-4b6a-9a0a-0a7d4d3e8c0f",
-            "nome_numero": "Sala 101",
-            "capacidade": 30,
-            "validade_limpeza_horas": 4,
-            "descricao": "Sala de aula padrão.",
-            "instrucoes": "Limpar o quadro e organizar as carteiras.",
-            "localizacao": "Bloco A",
+            "nome_numero": "Laboratório de Redes",
+            "capacidade": 25,
+            "validade_limpeza_horas": 8,
+            "localizacao": "Bloco C, Sala 203",
+            "descricao": "Laboratório com equipamentos Cisco.",
+            "instrucoes": "Limpar bancadas e organizar cabos.",
             "ativa": true,
-            "responsaveis": [
-                {
-                    "id": 2,
-                    "username": "zelador_a"
-                }
-            ],
-            "status_limpeza": "Limpa",
-            "ultima_limpeza_data_hora": "2025-09-10T13:00:00Z",
-            "ultima_limpeza_funcionario": "zelador_a"
+            "responsaveis": [2]
         }
-    ]
-    ```
+        ```
+  * **Resposta (`200 OK` para `GET`, `201 Created` para `POST`):** Retorna o objeto (ou lista de objetos) da sala.
 
 #### 2.2. Obter Detalhes / Atualizar / Excluir Sala Específica
 
   * **URI:** `/api/salas/{qr_code_id}/`
   * **Verbos HTTP:** `GET`, `PUT`, `PATCH`, `DELETE`
-  * **Proposta:**
-      * `GET`: Recupera os detalhes de uma sala específica usando seu UUID.
-      * `PUT`: Atualiza *todos* os campos de uma sala existente.
-      * `PATCH`: Atualiza *parcialmente* os campos de uma sala existente.
-      * `DELETE`: Exclui uma sala específica.
-  * **Permissões:**
-      * `GET`: Qualquer usuário autenticado.
-      * `PUT`, `PATCH`, `DELETE`: Apenas administradores.
-  * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_AQUI`.
-      * `Content-Type: application/json` (Apenas para `PUT` e `PATCH`).
-  * **Body JSON (`PUT` / `PATCH`):**
-      * A estrutura é a mesma do `POST /api/salas/`. `PUT` requer todos os campos, `PATCH` apenas os que serão alterados.
-  * **Exemplo (`PATCH` para atualizar os responsáveis):**
-    ```json
-    {
-        "responsaveis": [2, 5]
-    }
-    ```
-  * **Resposta de Sucesso (`DELETE` - Status 204 No Content):**
-      * Nenhum conteúdo no corpo da resposta.
+  * **Permissões:** `GET` (Qualquer autenticado), `PUT/PATCH/DELETE` (Apenas administradores).
 
-#### 2.3. Marcar Sala como Limpa
+#### 2.3. Iniciar Limpeza de Sala
 
-  * **URI:** `/api/salas/{qr_code_id}/marcar_como_limpa/`
-  * **Verbos HTTP:** `POST`
-  * **Proposta:** Registra que uma sala específica foi limpa pelo funcionário autenticado, criando um novo `LimpezaRegistro`.
+  * **Proposta:** Cria um registro para marcar o **início** de uma sessão de limpeza. O status da sala muda para "Em Limpeza".
   * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
-  * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_AQUI`.
-      * `Content-Type: application/json`
-  * **Body JSON (Opcional):**
-    ```json
-    {
-        "observacoes": "Limpeza realizada com atenção aos detalhes."
-    }
-    ```
-  * **Exemplo de Resposta de Sucesso (Status 201 Created):**
-    ```json
-    {
-        "id": 10,
-        "sala": 1,
-        "sala_nome": "Sala 101",
-        "data_hora_limpeza": "2025-09-10T13:15:30.123456Z",
-        "funcionario_responsavel": {
-            "id": 2,
-            "username": "zelador_a"
-        },
-        "observacoes": "Limpeza realizada com atenção aos detalhes."
-    }
-    ```
-
-#### 2.4. Listar Registros de Limpeza
-
-  * **URI:** `/api/limpezas/`
-  * **Verbos HTTP:** `GET`
-  * **Proposta:** Recupera uma lista de todos os registros históricos de limpeza. Este endpoint é de apenas leitura.
-  * **Permissões:** Apenas administradores (`is_superuser=True`).
-  * **Headers Necessários:**
-      * `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`.
-  * **Parâmetros de Query para Buscas Avançadas (`GET` - Opcional):**
-      * `sala` (integer): Filtra por ID exato da sala. Ex: `/api/limpezas/?sala=1`
-      * `sala_nome` (string): Busca parcial por nome/número da sala. Ex: `/api/limpezas/?sala_nome=101`
-      * `funcionario_username` (string): Busca parcial por nome de usuário do funcionário. Ex: `/api/limpezas/?funcionario_username=zelador`
-      * `data_hora_limpeza_after` (datetime): Filtra registros a partir de uma data/hora. Ex: `/api/limpezas/?data_hora_limpeza_after=2025-09-10`
-      * `data_hora_limpeza_before` (datetime): Filtra registros até uma data/hora. Ex: `/api/limpezas/?data_hora_limpeza_before=2025-09-11`
-  * **Exemplo de Resposta de Sucesso (`GET` - Status 200 OK):**
-    ```json
-    [
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/salas/{qr_code_id}/iniciar_limpeza/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ZELADOR_AQUI`
+  * **Respostas:**
+      * **`201 Created` (Sucesso):** Retorna o objeto `LimpezaRegistro` criado.
+      * **`400 Bad Request` (Erro):** Ocorre se a sala está inativa ou se já existe uma limpeza em andamento para ela.
+        ```json
         {
-            "id": 10,
-            "sala": 1,
-            "sala_nome": "Sala 101",
-            "data_hora_limpeza": "2025-09-10T13:15:30.123456Z",
-            "funcionario_responsavel": {
-                "id": 2,
-                "username": "zelador_a"
-            },
-            "observacoes": "Limpeza realizada com atenção aos detalhes."
+            "detail": "Esta sala já está em processo de limpeza."
         }
-    ]
-    ```
+        ```
+
+#### 2.4. Concluir Limpeza de Sala
+
+  * **Proposta:** Encontra a sessão de limpeza em aberto para a sala e registra o **horário de conclusão**. O status da sala muda para "Limpa".
+  * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/salas/{qr_code_id}/concluir-limpeza/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ZELADOR_AQUI`, `Content-Type: application/json`
+      * **Body (Opcional):**
+        ```json
+        {
+            "observacoes": "Limpeza finalizada, tudo em ordem."
+        }
+        ```
+  * **Respostas:**
+      * **`200 OK` (Sucesso):** Retorna o objeto `LimpezaRegistro` atualizado.
+      * **`400 Bad Request` (Erro):** Ocorre se a sala está inativa ou se nenhuma limpeza foi iniciada.
+
+-----
+
+### 3\. Endpoints da Aplicação `limpezas`
+
+Endpoints de apenas leitura para consultar o histórico de limpezas.
+
+#### 3.1. Listar Registros de Limpeza
+
+  * **Proposta:** Recupera uma lista de todos os registros históricos de limpeza, com filtros avançados.
+  * **Permissões:** Apenas administradores (`is_superuser=True`).
+  * **Requisição:**
+      * **Verbo HTTP:** `GET`
+      * **URI:** `/api/limpezas/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`
+  * **Filtros (Query Parameters):**
+      * **`sala`** (integer): Filtra os registros pelo ID exato da sala.
+          * **Exemplo:** `/api/limpezas/?sala=5`
+      * **`sala_nome`** (string): Busca textual parcial (case-insensitive) pelo nome da sala.
+          * **Exemplo:** `/api/limpezas/?sala_nome=Teórica`
+      * **`funcionario_username`** (string): Busca textual parcial (case-insensitive) pelo nome de usuário do funcionário.
+          * **Exemplo:** `/api/limpezas/?funcionario_username=zelador`
+      * **`data_hora_limpeza_after`** (date): Filtra registros a partir da data informada (formato `YYYY-MM-DD`).
+          * **Exemplo:** `/api/limpezas/?data_hora_limpeza_after=2025-09-10`
+      * **`data_hora_limpeza_before`** (date): Filtra registros até a data informada (formato `YYYY-MM-DD`).
+          * **Exemplo:** `/api/limpezas/?data_hora_limpeza_after=2025-09-01&data_hora_limpeza_before=2025-09-15`
+  * **Respostas:**
+      * **`200 OK` (Sucesso):** Retorna um array de objetos `LimpezaRegistro`.
+      * **`403 Forbidden` (Erro):** Ocorre se o usuário não for um administrador.
 
 -----
 
@@ -526,7 +435,7 @@ Um ponto crucial para o consumo desta API, especialmente em aplicações front-e
 
 ### Por que UTC?
 
-A API retorna todos os timestamps no formato **UTC (Coordinated Universal Time)** e como strings **ISO 8601** (ex: `"2025-07-09T12:00:00Z"`).
+A API retorna todos os timestamps no formato **UTC (Coordinated Universal Time)** e como strings **ISO 8101** (ex: `"2025-07-09T12:00:00Z"`).
 
   * **Universalidade:** UTC é um padrão global de tempo, independente de qualquer fuso horário local.
   * **Precisão:** Evita ambiguidades e erros comuns de fuso horário.
@@ -590,9 +499,3 @@ const SalaCard: React.FC<SalaCardProps> = ({ sala }) => {
 // ... (styles) ...
 export default SalaCard;
 ```
-
------
-
-## Próximos Passos e Melhorias Futuras
-
-Este projeto é uma base para um Sistema de Mapeamento da Limpeza de Salas. Ele ainda será aprimorado e novos recursos serão adicionados para otimizar ainda mais o gerenciamento da zeladoria e a experiência do usuário.
