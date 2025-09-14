@@ -29,7 +29,7 @@ class SalaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sala
         fields = ['id', 'qr_code_id', 'nome_numero', 'capacidade', 'validade_limpeza_horas', 'descricao', 'instrucoes',
-                  'localizacao', 'ativa',
+                  'localizacao', 'ativa', 'imagem',
                   'responsaveis', 'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
         read_only_fields = ['id', 'qr_code_id']
 

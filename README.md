@@ -30,7 +30,9 @@ Este é o backend do Sistema de Mapeamento da Limpeza de Salas, desenvolvido com
         5.  [Marcar Sala como Suja](#25-marcar-sala-como-suja)
     3.  [Endpoints da Aplicação `limpezas`](#3-endpoints-da-aplica%C3%A7%C3%A3o-limpezas)
         1.  [Listar Registros de Limpeza](#31-listar-registros-de-limpeza)
-3.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
+3.  [Recursos Adicionais](#recursos-adicionais)
+    1.  [PDF de QR Codes das Salas](#pdf-de-qr-codes-das-salas)
+4.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
     1.  [Por que UTC?](#por-que-utc)
     2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-%C3%A9-necess%C3%A1rio-ficar-atento-no-frontend-react-native--typescript)
 
@@ -72,7 +74,7 @@ venv\Scripts\Activate.ps1
 
 ### 3\. Configurar Variáveis de Ambiente (`.env`)
 
-Este projeto utiliza a biblioteca `python-decouple` para gerenciar variáveis de ambiente, mantendo configurações sensíveis (como `SECRET_KEY`) e variáveis de ambiente (como `DEBUG`, `TIME_ZONE`) fora do código-fonte e do controle de versão.
+Este projeto utiliza a biblioteca `python-decouple` para gerenciar variáveis de ambiente, mantendo configurações sensíveis e específicas de ambiente fora do código-fonte.
 
 1.  **Crie um arquivo `.env`:** Na pasta raiz do projeto (a mesma onde está `manage.py` e `.env.sample`), crie um novo arquivo chamado `.env`.
 2.  **Copie o conteúdo:** Copie todo o conteúdo do arquivo `.env.sample` para o seu novo arquivo `.env`.
@@ -106,21 +108,18 @@ pip install -r requirements.txt
 
 ### 5\. Configurar o Banco de Dados
 
-O projeto utiliza SQLite por padrão, o que não requer configurações adicionais de banco de dados no `settings.py` além do padrão do Django.
+O projeto utiliza SQLite por padrão, o que não requer configurações adicionais de banco de dados.
 
 Aplique as migrações para criar as tabelas no banco de dados:
 
 ```bash
 python manage.py makemigrations
-# Eventaulmente pode ser necessário forcar indicar as aplicações manualmente: 
-# python manage.py makemigrations accounts salas
-
 python manage.py migrate
 ```
 
 ### 6\. Criar um Superusuário (Opcional, mas Recomendado)
 
-Um superusuário é necessário para acessar o painel de administração do Django e criar outros usuários administrativos ou funcionários.
+Um superusuário é necessário para acessar o painel de administração do Django e criar outros usuários.
 
 ```bash
 python manage.py createsuperuser
@@ -342,21 +341,32 @@ Gerencia as informações sobre as salas e o processo de limpeza.
       * **`responsavel_username`** (string): Busca parcial (case-insensitive) pelo nome de usuário de um dos responsáveis.
           * **Exemplo:** `/api/salas/?responsavel_username=zelador`
   * **Requisição (`POST`):**
-      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: application/json`
-      * **Body:**
-        ```json
-        {
-            "nome_numero": "Laboratório de Redes",
-            "capacidade": 25,
-            "validade_limpeza_horas": 8,
-            "localizacao": "Bloco C, Sala 203",
-            "descricao": "Laboratório com equipamentos Cisco.",
-            "instrucoes": "Limpar bancadas e organizar cabos.",
-            "ativa": true,
-            "responsaveis": [2]
-        }
-        ```
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: multipart/form-data`
+      * **Body (Multipart Form-data):**
+          * Campo `nome_numero` (texto): `Laboratório de Redes`
+          * Campo `capacidade` (texto): `25`
+          * Campo `validade_limpeza_horas` (texto): `8`
+          * Campo `localizacao` (texto): `Bloco C, Sala 203`
+          * Campo `imagem` (arquivo): Selecionar o arquivo de imagem.
   * **Resposta (`200 OK` para `GET`, `201 Created` para `POST`):** Retorna o objeto (ou lista de objetos) da sala.
+    ```json
+    {
+        "id": 1,
+        "qr_code_id": "uuid-da-sala",
+        "nome_numero": "Laboratório de Redes",
+        "imagem": "http://127.0.0.1:8000/media/sala_pics/uuid_aleatorio.jpg",
+        "capacidade": 25,
+        "validade_limpeza_horas": 8,
+        "descricao": null,
+        "instrucoes": null,
+        "localizacao": "Bloco C, Sala 203",
+        "ativa": true,
+        "responsaveis": [],
+        "status_limpeza": "Limpeza Pendente",
+        "ultima_limpeza_data_hora": null,
+        "ultima_limpeza_funcionario": null
+    }
+    ```
 
 #### 2.2. Obter Detalhes / Atualizar / Excluir Sala Específica
 
@@ -452,6 +462,17 @@ Endpoints de apenas leitura para consultar o histórico de limpezas.
   * **Respostas:**
       * **`200 OK` (Sucesso):** Retorna um array de objetos `LimpezaRegistro`.
       * **`403 Forbidden` (Erro):** Ocorre se o usuário não for um administrador.
+
+-----
+
+## Recursos Adicionais
+
+### PDF de QR Codes das Salas
+
+O sistema gera automaticamente um arquivo PDF contendo uma página para cada sala ativa, com seus detalhes e um QR Code para identificação. Este arquivo é atualizado sempre que uma sala é criada ou deletada.
+
+  * **URL de Acesso:** O arquivo está publicamente acessível através do diretório de mídias.
+  * **Exemplo:** `http://127.0.0.1:8000/media/salas_qr_codes.pdf`
 
 -----
 

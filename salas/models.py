@@ -2,6 +2,12 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from core.image_utils import get_random_image_path, process_and_save_image
+
+
+def sala_image_path(instance, filename):
+    """Gera o caminho para a imagem da sala, usando a função genérica."""
+    return get_random_image_path(instance, filename, 'sala_pics')
 
 
 class Sala(models.Model):
@@ -57,6 +63,13 @@ class Sala(models.Model):
             MinValueValidator(1, message="A validade da limpeza deve ser de no mínimo 1 hora.")
         ]
     )
+    imagem = models.ImageField(
+        upload_to=sala_image_path,
+        null=True,
+        blank=True,
+        verbose_name="Imagem da Sala"
+    )
+
 
     class Meta:
         """Define metadados para o modelo Sala.
@@ -71,6 +84,22 @@ class Sala(models.Model):
     def __str__(self):
         """Retorna a representação textual do modelo Sala."""
         return self.nome_numero
+
+    def save(self, *args, **kwargs):
+        """Sobrescreve o método save para gerenciar a imagem da sala."""
+        # Lógica de deleção do arquivo antigo
+        if self.pk:
+            try:
+                old_instance = Sala.objects.get(pk=self.pk)
+                if old_instance.imagem and old_instance.imagem != self.imagem:
+                    old_instance.imagem.delete(save=False)
+            except Sala.DoesNotExist:
+                pass
+
+        # Lógica de processamento da nova imagem
+        process_and_save_image(self.imagem, size=(300, 300), quality=70)
+
+        super().save(*args, **kwargs)
 
 
 class LimpezaRegistro(models.Model):
