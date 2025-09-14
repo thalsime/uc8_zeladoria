@@ -30,9 +30,15 @@ Este é o backend do Sistema de Mapeamento da Limpeza de Salas, desenvolvido com
         5.  [Marcar Sala como Suja](#25-marcar-sala-como-suja)
     3.  [Endpoints da Aplicação `limpezas`](#3-endpoints-da-aplica%C3%A7%C3%A3o-limpezas)
         1.  [Listar Registros de Limpeza](#31-listar-registros-de-limpeza)
-3.  [Recursos Adicionais](#recursos-adicionais)
+    4.  [Endpoints da Aplicação `notificacoes`](#4-endpoints-da-aplica%C3%A7%C3%A3o-notificacoes)
+        1.  [Listar Notificações](#41-listar-notifica%C3%A7%C3%B5es)
+        2.  [Marcar Notificação Específica como Lida](#42-marcar-notifica%C3%A7%C3%A3o-espec%C3%ADfica-como-lida)
+        3.  [Marcar Todas as Notificações como Lidas](#43-marcar-todas-as-notifica%C3%A7%C3%B5es-como-lidas)
+3.  [Tarefas Agendadas (Cron Job)](#tarefas-agendadas-cron-job)
+    1.  [Notificações de Limpeza Pendente](#notifica%C3%A7%C3%B5es-de-limpeza-pendente)
+4.  [Recursos Adicionais](#recursos-adicionais)
     1.  [PDF de QR Codes das Salas](#pdf-de-qr-codes-das-salas)
-4.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
+5.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
     1.  [Por que UTC?](#por-que-utc)
     2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-%C3%A9-necess%C3%A1rio-ficar-atento-no-frontend-react-native--typescript)
 
@@ -427,8 +433,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
       * **`201 Created` (Sucesso):**
         ```json
         {
-            "status": "Relatório de sala suja enviado com sucesso.",
-            "id_relatorio": 1
+            "status": "Relatório de sala suja enviado com sucesso."
         }
         ```
       * **`400 Bad Request` (Erro):** Ocorre se a sala reportada estiver inativa.
@@ -462,6 +467,76 @@ Endpoints de apenas leitura para consultar o histórico de limpezas.
   * **Respostas:**
       * **`200 OK` (Sucesso):** Retorna um array de objetos `LimpezaRegistro`.
       * **`403 Forbidden` (Erro):** Ocorre se o usuário não for um administrador.
+
+-----
+
+### 4\. Endpoints da Aplicação `notificacoes`
+
+Endpoints para o usuário logado consultar e gerenciar suas notificações.
+
+#### 4.1. Listar Notificações
+
+  * **Proposta:** Retorna a lista de todas as notificações do usuário autenticado.
+  * **Permissões:** Qualquer usuário autenticado.
+  * **Requisição:**
+      * **Verbo HTTP:** `GET`
+      * **URI:** `/api/notificacoes/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
+  * **Resposta (`200 OK`):**
+    ```json
+    [
+        {
+            "id": 1,
+            "mensagem": "A sala 'Laboratório de Redes' foi reportada como suja.",
+            "link": "/salas/uuid-da-sala/",
+            "data_criacao": "2025-09-14T18:00:00Z",
+            "lida": false
+        }
+    ]
+    ```
+
+#### 4.2. Marcar Notificação Específica como Lida
+
+  * **Proposta:** Marca uma única notificação como lida.
+  * **Permissões:** Apenas o destinatário da notificação.
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/notificacoes/{id}/marcar_como_lida/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
+  * **Respostas:**
+      * **`204 No Content` (Sucesso):** A notificação foi marcada como lida com sucesso.
+      * **`404 Not Found` (Erro):** Ocorre se a notificação não existir ou não pertencer ao usuário.
+
+#### 4.3. Marcar Todas as Notificações como Lidas
+
+  * **Proposta:** Marca todas as notificações não lidas do usuário como lidas.
+  * **Permissões:** Qualquer usuário autenticado.
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/notificacoes/marcar_todas_como_lidas/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
+  * **Resposta (`204 No Content`):** Todas as notificações foram marcadas como lidas com sucesso.
+
+-----
+
+## Tarefas Agendadas (Cron Job)
+
+Para garantir que a equipe de Zeladoria seja notificada sobre salas cuja limpeza expirou por tempo, o sistema utiliza uma tarefa agendada.
+
+### Notificações de Limpeza Pendente
+
+O projeto inclui um comando de gerenciamento (`verificar_limpezas_pendentes`) que deve ser executado periodicamente no servidor. Este comando verifica todas as salas ativas e, para aquelas cujo prazo de validade da limpeza expirou, cria notificações para os zeladores responsáveis.
+
+  * **Configuração no Servidor:**
+    Para executar esta verificação a cada 15 minutos, adicione a seguinte linha ao `crontab` do seu servidor. Certifique-se de substituir os caminhos para os do seu ambiente.
+
+    ```bash
+    */15 * * * * /caminho/para/seu/projeto/venv/bin/python /caminho/para/seu/projeto/manage.py verificar_limpezas_pendentes >> /caminho/para/seu/projeto/logs/cron.log 2>&1
+    ```
+
+      * **`*/15 * * * *`**: Define a execução a cada 15 minutos.
+      * **`/caminho/para/seu/projeto/venv/bin/python`**: Caminho absoluto para o interpretador Python do seu ambiente virtual.
+      * **`>> /caminho/para/seu/projeto/logs/cron.log 2>&1`**: (Recomendado) Redireciona a saída do comando para um arquivo de log para facilitar a depuração.
 
 -----
 

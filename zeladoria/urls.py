@@ -6,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 from decouple import config
 from accounts.views import AuthViewSet
 from salas.views import SalaViewSet, LimpezaRegistroViewSet
+from core.views import NotificacaoViewSet
 
 
 """Configuração de URLs para o projeto 'zeladoria'.
@@ -25,6 +26,7 @@ router = DefaultRouter()
 router.register(r'accounts', AuthViewSet, basename='accounts')
 router.register(r'salas', SalaViewSet)
 router.register(r'limpezas', LimpezaRegistroViewSet)
+router.register(r'notificacoes', NotificacaoViewSet, basename='notificacoes')
 
 
 """Define a lista principal de padrões de URL para o projeto.
