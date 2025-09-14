@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Sala, LimpezaRegistro
+from .models import Sala, LimpezaRegistro, RelatorioSalaSuja
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -50,24 +50,42 @@ class SalaSerializer(serializers.ModelSerializer):
         representation['responsaveis'] = BasicUserSerializer(instance.responsaveis.all(), many=True).data
         return representation
 
+    # --- LÓGICA DE STATUS COMPLETAMENTE ATUALIZADA ---
     def get_status_limpeza(self, obj):
-        """Calcula o status da limpeza com base no último registro."""
+        """
+        Calcula o status da limpeza com base na ordem dos eventos.
+        A lógica de status segue a seguinte prioridade:
+        1. Se um relatório de "suja" é o evento mais recente, o status é "Suja".
+        2. Se uma limpeza está em andamento, o status é "Em Limpeza".
+        3. Se a última limpeza concluída ainda é válida, o status é "Limpa".
+        4. Caso contrário, o status é "Limpeza Pendente".
+        """
+        # Usa os valores pré-calculados (anotados) da view se disponíveis
         if hasattr(obj, 'limpeza_em_andamento'):
-            if obj.limpeza_em_andamento:
-                return "Em Limpeza"
-
+            limpeza_em_andamento = obj.limpeza_em_andamento
             ultimo_fim_limpeza = obj.ultima_limpeza_fim
-        else:  # Fallback
+            ultimo_relatorio_suja = obj.ultimo_relatorio_suja_data
+        else:  # Fallback para create/update/retrieve (menos performático)
             ultimo_registro = obj.registros_limpeza.first()
-            if ultimo_registro and not ultimo_registro.data_hora_fim:
-                return "Em Limpeza"
+            limpeza_em_andamento = ultimo_registro and not ultimo_registro.data_hora_fim
             ultimo_fim_limpeza = ultimo_registro.data_hora_fim if ultimo_registro else None
+            ultimo_relatorio_obj = obj.relatorios_suja.first()
+            ultimo_relatorio_suja = ultimo_relatorio_obj.data_hora if ultimo_relatorio_obj else None
+
+        # Lógica de prioridade
+        if limpeza_em_andamento:
+            return "Em Limpeza"
+
+        # Compara a data do último relatório sujo com a da última limpeza concluída
+        if ultimo_relatorio_suja and (not ultimo_fim_limpeza or ultimo_relatorio_suja > ultimo_fim_limpeza):
+            return "Suja"
 
         if ultimo_fim_limpeza:
             validade_em_segundos = obj.validade_limpeza_horas * 3600
             tempo_decorrido = (timezone.now() - ultimo_fim_limpeza).total_seconds()
             if tempo_decorrido < validade_em_segundos:
                 return "Limpa"
+
         return "Limpeza Pendente"
 
     def get_ultima_limpeza_data_hora(self, obj):

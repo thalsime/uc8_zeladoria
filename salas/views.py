@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import OuterRef, Subquery, Exists
-from .models import Sala, LimpezaRegistro
+from .models import Sala, LimpezaRegistro, RelatorioSalaSuja
 from .filters import SalaFilter, LimpezaRegistroFilter
 from .serializers import SalaSerializer, LimpezaRegistroSerializer
 from core.permissions import IsAdminUser, IsZeladorUser, IsCorpoDocenteUser
@@ -38,6 +38,8 @@ class SalaViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAdminUser]
         elif self.action in ['iniciar_limpeza', 'concluir_limpeza']:
             permission_classes = [IsZeladorUser]
+        elif self.action == 'marcar_como_suja':
+            permission_classes = [IsCorpoDocenteUser]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
         else:
@@ -50,6 +52,10 @@ class SalaViewSet(viewsets.ModelViewSet):
             sala=OuterRef('pk')
         ).order_by('-data_hora_inicio')
 
+        ultimos_relatorios_suja = RelatorioSalaSuja.objects.filter(
+            sala=OuterRef('pk')
+        ).order_by('-data_hora')
+
         queryset = Sala.objects.prefetch_related('responsaveis').annotate(
             ultima_limpeza_fim=Subquery(
                 ultimos_registros.values('data_hora_fim')[:1]
@@ -59,6 +65,9 @@ class SalaViewSet(viewsets.ModelViewSet):
             ),
             limpeza_em_andamento=Exists(
                 LimpezaRegistro.objects.filter(sala=OuterRef('pk'), data_hora_fim__isnull=True)
+            ),
+            ultimo_relatorio_suja_data = Subquery(
+                ultimos_relatorios_suja.values('data_hora')[:1]
             )
         )
         return queryset
@@ -108,6 +117,26 @@ class SalaViewSet(viewsets.ModelViewSet):
 
         serializer = LimpezaRegistroSerializer(registro_aberto)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsCorpoDocenteUser])
+    def marcar_como_suja(self, request, qr_code_id=None):
+        """Cria um relatório de sala suja para uma sala específica."""
+        sala = self.get_object()
+        if not sala.ativa:
+            return Response(
+                {'detail': 'Não é possível reportar uma sala inativa.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        relatorio = RelatorioSalaSuja.objects.create(
+            sala=sala,
+            reportado_por=request.user,
+            observacoes=request.data.get('observacoes', '')
+        )
+        return Response(
+            {'status': 'Relatório de sala suja enviado com sucesso.'},
+            status=status.HTTP_201_CREATED
+        )
 
     def destroy(self, request, *args, **kwargs):
         """Sobrescreve o método de exclusão para adicionar uma regra de negócio.

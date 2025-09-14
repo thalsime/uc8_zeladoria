@@ -108,3 +108,18 @@ class LimpezaRegistro(models.Model):
     def __str__(self):
         status = "Concluída" if self.data_hora_fim else "Iniciada"
         return f"Limpeza da {self.sala.nome_numero} ({status}) em {self.data_hora_inicio.strftime('%d/%m/%Y %H:%M')}"
+
+class RelatorioSalaSuja(models.Model):
+    """Registra um relatório de sala suja feito por um usuário."""
+    sala = models.ForeignKey(Sala, on_delete=models.CASCADE, related_name='relatorios_suja', verbose_name="Sala Reportada")
+    data_hora = models.DateTimeField(auto_now_add=True, verbose_name="Data e Hora do Relatório")
+    reportado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Reportado por")
+    observacoes = models.TextField(blank=True, null=True, verbose_name="Observações")
+
+    class Meta:
+        verbose_name = "Relatório de Sala Suja"
+        verbose_name_plural = "Relatórios de Sala Suja"
+        ordering = ['-data_hora']
+
+    def __str__(self):
+        return f"Relatório para {self.sala.nome_numero} em {self.data_hora.strftime('%d/%m/%Y %H:%M')}"
