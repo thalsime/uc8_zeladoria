@@ -8,7 +8,7 @@ from django.db.models import OuterRef, Subquery, Exists
 from .models import Sala, LimpezaRegistro, RelatorioSalaSuja
 from .filters import SalaFilter, LimpezaRegistroFilter
 from .serializers import SalaSerializer, LimpezaRegistroSerializer
-from core.permissions import IsAdminUser, IsZeladorUser, IsCorpoDocenteUser
+from core.permissions import IsAdminUser, IsZeladorUser, IsSolicitanteServicosUser
 
 
 class SalaViewSet(viewsets.ModelViewSet):
@@ -39,7 +39,7 @@ class SalaViewSet(viewsets.ModelViewSet):
         elif self.action in ['iniciar_limpeza', 'concluir_limpeza']:
             permission_classes = [IsZeladorUser]
         elif self.action == 'marcar_como_suja':
-            permission_classes = [IsCorpoDocenteUser]
+            permission_classes = [IsSolicitanteServicosUser]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
         else:
@@ -118,7 +118,7 @@ class SalaViewSet(viewsets.ModelViewSet):
         serializer = LimpezaRegistroSerializer(registro_aberto)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsCorpoDocenteUser])
+    @action(detail=True, methods=['post'], permission_classes=[IsSolicitanteServicosUser])
     def marcar_como_suja(self, request, qr_code_id=None):
         """Cria um relatório de sala suja para uma sala específica."""
         sala = self.get_object()

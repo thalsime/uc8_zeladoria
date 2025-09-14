@@ -35,8 +35,10 @@ class IsZeladorUser(permissions.BasePermission):
         return _is_in_group(request.user, 'Zeladoria')
 
 
-class IsCorpoDocenteUser(permissions.BasePermission):
-    """Permite o acesso apenas a usuários que pertencem ao grupo 'Corpo Docente'."""
+class IsSolicitanteServicosUser(permissions.BasePermission):
+    """
+    Permite o acesso apenas a usuários que pertencem ao grupo 'Solicitante de Serviços'.
+    """
     def has_permission(self, request, view):
-        """Verifica se o usuário da requisição pertence ao grupo 'Corpo Docente'."""
-        return _is_in_group(request.user, 'Corpo Docente')
+        """Verifica se o usuário da requisição pertence ao grupo 'Solicitante de Serviços'."""
+        return _is_in_group(request.user, 'Solicitante de Serviços')

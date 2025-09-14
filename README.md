@@ -27,6 +27,7 @@ Este é o backend do Sistema de Mapeamento da Limpeza de Salas, desenvolvido com
         2.  [Obter Detalhes / Atualizar / Excluir Sala](#22-obter-detalhes--atualizar--excluir-sala-espec%C3%ADfica)
         3.  [Iniciar Limpeza de Sala](#23-iniciar-limpeza-de-sala)
         4.  [Concluir Limpeza de Sala](#24-concluir-limpeza-de-sala)
+        5.  [Marcar Sala como Suja](#25-marcar-sala-como-suja)
     3.  [Endpoints da Aplicação `limpezas`](#3-endpoints-da-aplica%C3%A7%C3%A3o-limpezas)
         1.  [Listar Registros de Limpeza](#31-listar-registros-de-limpeza)
 3.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
@@ -292,7 +293,7 @@ Endpoints para autenticação e gerenciamento de usuários.
   * **Resposta (`200 OK`):**
     ```json
     [
-        {"id": 2, "name": "Corpo Docente"},
+        {"id": 2, "name": "Solicitante de Serviços"},
         {"id": 1, "name": "Zeladoria"}
     ]
     ```
@@ -398,6 +399,31 @@ Gerencia as informações sobre as salas e o processo de limpeza.
       * **`200 OK` (Sucesso):** Retorna o objeto `LimpezaRegistro` atualizado.
       * **`400 Bad Request` (Erro):** Ocorre se a sala está inativa ou se nenhuma limpeza foi iniciada.
 
+#### 2.5. Marcar Sala como Suja
+
+  * **Proposta:** Cria um relatório de que uma sala está suja, alterando seu status para "Suja" e sobrepondo o status de "Limpa".
+  * **Permissões:** Apenas usuários do grupo ***Solicitante de Serviços***.
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/salas/{qr_code_id}/marcar_como_suja/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_SOLICITANTE_AQUI`, `Content-Type: application/json`
+      * **Body (Opcional):**
+        ```json
+        {
+            "observacoes": "Material derramado no chão."
+        }
+        ```
+  * **Respostas:**
+      * **`201 Created` (Sucesso):**
+        ```json
+        {
+            "status": "Relatório de sala suja enviado com sucesso.",
+            "id_relatorio": 1
+        }
+        ```
+      * **`400 Bad Request` (Erro):** Ocorre se a sala reportada estiver inativa.
+      * **`403 Forbidden` (Erro):** Ocorre se o usuário não pertencer ao grupo `Solicitante de Serviços`.
+
 -----
 
 ### 3\. Endpoints da Aplicação `limpezas`
@@ -435,7 +461,7 @@ Um ponto crucial para o consumo desta API, especialmente em aplicações front-e
 
 ### Por que UTC?
 
-A API retorna todos os timestamps no formato **UTC (Coordinated Universal Time)** e como strings **ISO 8101** (ex: `"2025-07-09T12:00:00Z"`).
+A API retorna todos os timestamps no formato **UTC (Coordinated Universal Time)** e como strings **ISO 8601** (ex: `"2025-07-09T12:00:00Z"`).
 
   * **Universalidade:** UTC é um padrão global de tempo, independente de qualquer fuso horário local.
   * **Precisão:** Evita ambiguidades e erros comuns de fuso horário.
