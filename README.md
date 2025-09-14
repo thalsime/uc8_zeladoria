@@ -386,7 +386,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
   * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
   * **Requisição:**
       * **Verbo HTTP:** `POST`
-      * **URI:** `/api/salas/{qr_code_id}/concluir-limpeza/`
+      * **URI:** `/api/salas/{qr_code_id}/concluir_limpeza/`
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ZELADOR_AQUI`, `Content-Type: application/json`
       * **Body (Opcional):**
         ```json

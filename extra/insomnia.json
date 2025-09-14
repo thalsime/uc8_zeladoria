@@ -1,0 +1,395 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-09-14T12:55:00.000Z",
+  "__export_source": "br.net.tsr.zeladoria",
+  "resources": [
+    {
+      "_id": "wrk_zeladoria_v2",
+      "parentId": null,
+      "modified": 1726328100000,
+      "created": 1726328100000,
+      "name": "Zeladoria API (Completo)",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_base_v2",
+      "parentId": "wrk_zeladoria_v2",
+      "modified": 1726328100000,
+      "created": 1726328100000,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://127.0.0.1:8000",
+        "auth_token": "",
+        "sala_uuid": "COPIE_UM_QR_CODE_ID_AQUI",
+        "limpeza_id": "1"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "auth_token",
+          "sala_uuid",
+          "limpeza_id"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1726328100000,
+      "_type": "environment"
+    },
+    {
+      "_id": "fld_accounts_v2",
+      "parentId": "wrk_zeladoria_v2",
+      "name": "Accounts",
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_salas_v2",
+      "parentId": "wrk_zeladoria_v2",
+      "name": "Salas",
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_limpezas_v2",
+      "parentId": "wrk_zeladoria_v2",
+      "name": "Limpezas",
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_accounts_filters_v2",
+      "parentId": "fld_accounts_v2",
+      "name": "Users (Filtros)",
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_salas_filters_v2",
+      "parentId": "fld_salas_v2",
+      "name": "Salas (Filtros)",
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_limpezas_filters_v2",
+      "parentId": "fld_limpezas_v2",
+      "name": "Limpezas (Filtros)",
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_login_v2",
+      "parentId": "fld_accounts_v2",
+      "name": "POST Login",
+      "url": "{{ _.base_url }}/api/accounts/login/",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"username\": \"admin\",\n\t\"password\": \"admin\"\n}"
+      },
+      "headers": [{"name": "Content-Type", "value": "application/json"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_current_user_v2",
+      "parentId": "fld_accounts_v2",
+      "name": "GET Current User",
+      "url": "{{ _.base_url }}/api/accounts/current_user/",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_create_user_v2",
+      "parentId": "fld_accounts_v2",
+      "name": "POST Create User (Admin)",
+      "url": "{{ _.base_url }}/api/accounts/create_user/",
+      "method": "POST",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"username\": \"novo_zelador\",\n\t\"password\": \"Senha@Forte123\",\n\t\"confirm_password\": \"Senha@Forte123\",\n\t\"nome\": \"Novo Zelador Silva\",\n\t\"email\": \"novo@zelador.com\",\n\t\"groups\": [1]\n}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_change_password_v2",
+      "parentId": "fld_accounts_v2",
+      "name": "POST Change Password",
+      "url": "{{ _.base_url }}/api/accounts/change_password/",
+      "method": "POST",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"old_password\": \"senha_antiga\",\n\t\"new_password\": \"Nova@Senha123\",\n\t\"confirm_new_password\": \"Nova@Senha123\"\n}"
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_groups_v2",
+      "parentId": "fld_accounts_v2",
+      "name": "GET List Groups",
+      "url": "{{ _.base_url }}/api/accounts/list_groups/",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_profile_v2",
+      "parentId": "fld_accounts_v2",
+      "name": "GET Profile",
+      "url": "{{ _.base_url }}/api/accounts/profile/",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_update_profile_v2",
+      "parentId": "fld_accounts_v2",
+      "name": "PATCH Update Profile",
+      "url": "{{ _.base_url }}/api/accounts/profile/",
+      "method": "PATCH",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [{"name": "nome", "value": "Meu Nome Atualizado"}, {"name": "profile_picture", "type": "file", "fileName": ""}]
+      },
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_users_all_v2",
+      "parentId": "fld_accounts_filters_v2",
+      "name": "GET List All Users",
+      "url": "{{ _.base_url }}/api/accounts/list_users/",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_users_username_v2",
+      "parentId": "fld_accounts_filters_v2",
+      "name": "GET by Username",
+      "url": "{{ _.base_url }}/api/accounts/list_users/?username=admin",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_users_email_v2",
+      "parentId": "fld_accounts_filters_v2",
+      "name": "GET by Email",
+      "url": "{{ _.base_url }}/api/accounts/list_users/?email=@example.com",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_users_superuser_v2",
+      "parentId": "fld_accounts_filters_v2",
+      "name": "GET by is_superuser",
+      "url": "{{ _.base_url }}/api/accounts/list_users/?is_superuser=true",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_users_group_v2",
+      "parentId": "fld_accounts_filters_v2",
+      "name": "GET by Group",
+      "url": "{{ _.base_url }}/api/accounts/list_users/?group=Zeladoria",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_create_sala_v2",
+      "parentId": "fld_salas_v2",
+      "name": "POST Create Sala (Admin)",
+      "url": "{{ _.base_url }}/api/salas/",
+      "method": "POST",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
+      "body": {"mimeType": "application/json", "text": "{\n\t\"nome_numero\": \"Sala Nova 101\",\n\t\"capacidade\": 40,\n\t\"localizacao\": \"Bloco C\",\n\t\"responsaveis\": []\n}"},
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_sala_v2",
+      "parentId": "fld_salas_v2",
+      "name": "GET Sala Details",
+      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_update_sala_v2",
+      "parentId": "fld_salas_v2",
+      "name": "PUT Update Sala (Admin)",
+      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/",
+      "method": "PUT",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
+      "body": {"mimeType": "application/json", "text": "{\n\t\"nome_numero\": \"Sala Editada 101\",\n\t\"capacidade\": 42,\n\t\"localizacao\": \"Bloco C Editado\",\n\t\"ativa\": true,\n\t\"responsaveis\": []\n}"},
+      "_type": "request"
+    },
+    {
+      "_id": "req_delete_sala_v2",
+      "parentId": "fld_salas_v2",
+      "name": "DELETE Sala (Admin)",
+      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/",
+      "method": "DELETE",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_iniciar_limpeza_v2",
+      "parentId": "fld_salas_v2",
+      "name": "POST Iniciar Limpeza (Zeladoria)",
+      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/iniciar_limpeza/",
+      "method": "POST",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_concluir_limpeza_v2",
+      "parentId": "fld_salas_v2",
+      "name": "POST Concluir Limpeza (Zeladoria)",
+      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/concluir_limpeza/",
+      "method": "POST",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
+      "body": {"mimeType": "application/json", "text": "{\n\t\"observacoes\": \"Limpeza concluída.\"\n}"},
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_salas_all_v2",
+      "parentId": "fld_salas_filters_v2",
+      "name": "GET List All Salas",
+      "url": "{{ _.base_url }}/api/salas/",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_salas_ativa_v2",
+      "parentId": "fld_salas_filters_v2",
+      "name": "GET Filter Ativa=true",
+      "url": "{{ _.base_url }}/api/salas/?ativa=true",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_salas_nome_v2",
+      "parentId": "fld_salas_filters_v2",
+      "name": "GET Filter by Nome",
+      "url": "{{ _.base_url }}/api/salas/?nome_numero=auditório",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_salas_local_v2",
+      "parentId": "fld_salas_filters_v2",
+      "name": "GET Filter by Localizacao",
+      "url": "{{ _.base_url }}/api/salas/?localizacao=bloco a",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_salas_cap_min_v2",
+      "parentId": "fld_salas_filters_v2",
+      "name": "GET Filter by Capacidade Min",
+      "url": "{{ _.base_url }}/api/salas/?capacidade_min=50",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_salas_cap_max_v2",
+      "parentId": "fld_salas_filters_v2",
+      "name": "GET Filter by Capacidade Max",
+      "url": "{{ _.base_url }}/api/salas/?capacidade_max=100",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_salas_resp_v2",
+      "parentId": "fld_salas_filters_v2",
+      "name": "GET Filter by Responsavel",
+      "url": "{{ _.base_url }}/api/salas/?responsavel_username=zelador",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_limpeza_details_v2",
+      "parentId": "fld_limpezas_v2",
+      "name": "GET Limpeza Details",
+      "url": "{{ _.base_url }}/api/limpezas/{{ _.limpeza_id }}/",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_limpezas_all_v2",
+      "parentId": "fld_limpezas_filters_v2",
+      "name": "GET List All Limpezas",
+      "url": "{{ _.base_url }}/api/limpezas/",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_limpezas_sala_id_v2",
+      "parentId": "fld_limpezas_filters_v2",
+      "name": "GET by Sala ID",
+      "url": "{{ _.base_url }}/api/limpezas/?sala=1",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_limpezas_sala_nome_v2",
+      "parentId": "fld_limpezas_filters_v2",
+      "name": "GET by Sala Nome",
+      "url": "{{ _.base_url }}/api/limpezas/?sala_nome=auditório",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_limpezas_func_v2",
+      "parentId": "fld_limpezas_filters_v2",
+      "name": "GET by Funcionario",
+      "url": "{{ _.base_url }}/api/limpezas/?funcionario_username=zelador",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_limpezas_after_v2",
+      "parentId": "fld_limpezas_filters_v2",
+      "name": "GET by Date After",
+      "url": "{{ _.base_url }}/api/limpezas/?data_hora_limpeza_after=2025-09-01",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_limpezas_before_v2",
+      "parentId": "fld_limpezas_filters_v2",
+      "name": "GET by Date Before",
+      "url": "{{ _.base_url }}/api/limpezas/?data_hora_limpeza_before=2025-09-15",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_limpezas_range_v2",
+      "parentId": "fld_limpezas_filters_v2",
+      "name": "GET by Date Range",
+      "url": "{{ _.base_url }}/api/limpezas/?data_hora_limpeza_after=2025-09-01&data_hora_limpeza_before=2025-09-15",
+      "method": "GET",
+      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "_type": "request"
+    }
+  ]
+}

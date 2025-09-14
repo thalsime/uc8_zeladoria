@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from django.db import transaction
 from django.db.models import OuterRef, Subquery, Exists
 from .models import Sala, LimpezaRegistro
 from .filters import SalaFilter, LimpezaRegistroFilter
@@ -65,22 +66,23 @@ class SalaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsZeladorUser])
     def iniciar_limpeza(self, request, qr_code_id=None):
         """Cria um novo registro para marcar o início de uma limpeza."""
-        sala = self.get_object()
+        with transaction.atomic():  # Garante a atomicidade da operação
+            sala = Sala.objects.select_for_update().get(qr_code_id=qr_code_id)
 
-        if not sala.ativa:
-            return Response(
-                {'detail': 'Salas inativas não podem ter a limpeza iniciada.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            if not sala.ativa:
+                return Response(
+                    {'detail': 'Salas inativas não podem ter a limpeza iniciada.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        if LimpezaRegistro.objects.filter(sala=sala, data_hora_fim__isnull=True).exists():
-            return Response({'detail': 'Esta sala já está em processo de limpeza.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            if LimpezaRegistro.objects.filter(sala=sala, data_hora_fim__isnull=True).exists():
+                return Response({'detail': 'Esta sala já está em processo de limpeza.'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        registro = LimpezaRegistro.objects.create(sala=sala, funcionario_responsavel=request.user,
-                                                  data_hora_inicio=timezone.now())
-        serializer = LimpezaRegistroSerializer(registro)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            registro = LimpezaRegistro.objects.create(sala=sala, funcionario_responsavel=request.user,
+                                                      data_hora_inicio=timezone.now())
+            serializer = LimpezaRegistroSerializer(registro)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'], permission_classes=[IsZeladorUser])
     def concluir_limpeza(self, request, qr_code_id=None):
