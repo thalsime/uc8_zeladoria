@@ -16,20 +16,15 @@ class BasicUserSerializer(serializers.ModelSerializer):
 
 
 class SalaSerializer(serializers.ModelSerializer):
-    """Serializa os dados do modelo Sala para a API.
-
-    Além dos campos do modelo, inclui campos calculados em tempo real, como
-    o status da limpeza, a data do último registro e o funcionário responsável,
-    e customiza a representação dos responsáveis.
-    """
+    """Serializa os dados do modelo Sala para a API."""
     responsaveis = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.filter(groups__name='Zeladoria'),
         required=False
     )
     status_limpeza = serializers.SerializerMethodField()
-    ultima_limpeza_data_hora = serializers.SerializerMethodField()
-    ultima_limpeza_funcionario = serializers.SerializerMethodField()
+    ultima_limpeza_data_hora = serializers.DateTimeField(source='ultima_limpeza_fim', read_only=True)
+    ultima_limpeza_funcionario = serializers.CharField(source='ultimo_funcionario', read_only=True)
 
     class Meta:
         model = Sala
@@ -56,19 +51,21 @@ class SalaSerializer(serializers.ModelSerializer):
         return representation
 
     def get_status_limpeza(self, obj):
-        """
-        Calcula o status da limpeza, usando o campo anotado se disponível,
-        ou fazendo a query como fallback.
-        """
-        if hasattr(obj, 'ultima_limpeza_anotada'):
-            ultimo_registro_data = obj.ultima_limpeza_anotada
-        else:  # Fallback para create/update/retrieve
-            ultimo_registro = obj.registros_limpeza.first()
-            ultimo_registro_data = ultimo_registro.data_hora_limpeza if ultimo_registro else None
+        """Calcula o status da limpeza com base no último registro."""
+        if hasattr(obj, 'limpeza_em_andamento'):
+            if obj.limpeza_em_andamento:
+                return "Em Limpeza"
 
-        if ultimo_registro_data:
+            ultimo_fim_limpeza = obj.ultima_limpeza_fim
+        else:  # Fallback
+            ultimo_registro = obj.registros_limpeza.first()
+            if ultimo_registro and not ultimo_registro.data_hora_fim:
+                return "Em Limpeza"
+            ultimo_fim_limpeza = ultimo_registro.data_hora_fim if ultimo_registro else None
+
+        if ultimo_fim_limpeza:
             validade_em_segundos = obj.validade_limpeza_horas * 3600
-            tempo_decorrido = (timezone.now() - ultimo_registro_data).total_seconds()
+            tempo_decorrido = (timezone.now() - ultimo_fim_limpeza).total_seconds()
             if tempo_decorrido < validade_em_segundos:
                 return "Limpa"
         return "Limpeza Pendente"
@@ -115,5 +112,7 @@ class LimpezaRegistroSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LimpezaRegistro
-        fields = ['id', 'sala', 'sala_nome', 'data_hora_limpeza', 'funcionario_responsavel', 'observacoes']
-        read_only_fields = ['data_hora_limpeza', 'funcionario_responsavel']
+        # --- Campos atualizados para refletir o modelo ---
+        fields = ['id', 'sala', 'sala_nome', 'data_hora_inicio', 'data_hora_fim', 'funcionario_responsavel',
+                  'observacoes']
+        # read_only_fields = ['data_hora_limpeza', 'funcionario_responsavel']

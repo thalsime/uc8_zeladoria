@@ -87,9 +87,13 @@ class LimpezaRegistro(models.Model):
         observacoes (TextField): Notas adicionais sobre a limpeza.
     """
     sala = models.ForeignKey(Sala, on_delete=models.CASCADE, related_name='registros_limpeza', verbose_name="Sala")
-    data_hora_limpeza = models.DateTimeField(auto_now_add=True, verbose_name="Data e Hora da Limpeza")
     funcionario_responsavel = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Funcionário Responsável")
     observacoes = models.TextField(blank=True, null=True, verbose_name="Observações")
+
+    # data_hora_limpeza = models.DateTimeField(auto_now_add=True, verbose_name="Data e Hora da Limpeza")
+
+    data_hora_inicio = models.DateTimeField(verbose_name="Início da Limpeza")
+    data_hora_fim = models.DateTimeField(null=True, blank=True, verbose_name="Fim da Limpeza")
 
     class Meta:
         """Define metadados para o modelo LimpezaRegistro.
@@ -99,8 +103,8 @@ class LimpezaRegistro(models.Model):
         """
         verbose_name = "Registro de Limpeza"
         verbose_name_plural = "Registros de Limpeza"
-        ordering = ['-data_hora_limpeza']
+        ordering = ['-data_hora_inicio']
 
     def __str__(self):
-        """Retorna a representação textual do registro de limpeza."""
-        return f"Limpeza da {self.sala.nome_numero} em {self.data_hora_limpeza.strftime('%Y-%m-%d %H:%M:%S')}"
+        status = "Concluída" if self.data_hora_fim else "Iniciada"
+        return f"Limpeza da {self.sala.nome_numero} ({status}) em {self.data_hora_inicio.strftime('%d/%m/%Y %H:%M')}"

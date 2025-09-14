@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Exists
 from .models import Sala, LimpezaRegistro
 from .filters import SalaFilter, LimpezaRegistroFilter
 from .serializers import SalaSerializer, LimpezaRegistroSerializer
@@ -35,7 +35,7 @@ class SalaViewSet(viewsets.ModelViewSet):
         """
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [IsAdminUser]
-        elif self.action == 'marcar_como_limpa':
+        elif self.action in ['iniciar_limpeza', 'concluir_limpeza']:
             permission_classes = [IsZeladorUser]
         elif self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
@@ -44,58 +44,68 @@ class SalaViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        """Otimiza a consulta principal do ViewSet para evitar o problema N+1.
-
-        Pré-carrega os dados relacionados dos registros de limpeza e dos
-        responsáveis para reduzir o número de acessos ao banco de dados ao
-        listar as salas.
-
-        Returns:
-            QuerySet: O conjunto de dados otimizado para o ViewSet.
-        """
+        """Otimiza a consulta principal do ViewSet para evitar o problema N+1."""
         ultimos_registros = LimpezaRegistro.objects.filter(
             sala=OuterRef('pk')
-        ).order_by('-data_hora_limpeza')
+        ).order_by('-data_hora_inicio')
 
         queryset = Sala.objects.prefetch_related('responsaveis').annotate(
-            ultima_limpeza_anotada=Subquery(
-                ultimos_registros.values('data_hora_limpeza')[:1]
+            ultima_limpeza_fim=Subquery(
+                ultimos_registros.values('data_hora_fim')[:1]
             ),
-            funcionario_anotado=Subquery(
+            ultimo_funcionario=Subquery(
                 ultimos_registros.values('funcionario_responsavel__username')[:1]
+            ),
+            limpeza_em_andamento=Exists(
+                LimpezaRegistro.objects.filter(sala=OuterRef('pk'), data_hora_fim__isnull=True)
             )
         )
         return queryset
 
-    @action(detail=True, methods=['post'])
-    def marcar_como_limpa(self, request, qr_code_id=None):
-        """Cria um novo registro de limpeza para uma sala específica.
-
-        Esta ação é acionada via POST e está disponível apenas para o grupo
-        'Zeladoria'. A sala deve estar ativa para que a limpeza seja registrada.
-
-        Args:
-            request (Request): O objeto da requisição HTTP.
-            qr_code_id (str): O UUID da sala a ser marcada como limpa.
-
-        Returns:
-            Response: Uma resposta com os dados do novo registro de limpeza
-                ou uma mensagem de erro.
-        """
+    @action(detail=True, methods=['post'], permission_classes=[IsZeladorUser])
+    def iniciar_limpeza(self, request, qr_code_id=None):
+        """Cria um novo registro para marcar o início de uma limpeza."""
         sala = self.get_object()
+
         if not sala.ativa:
             return Response(
-                {'detail': 'Esta sala não está ativa e não pode ser marcada como limpa.'},
+                {'detail': 'Salas inativas não podem ter a limpeza iniciada.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        observacoes = request.data.get('observacoes', '')
-        registro_limpeza = LimpezaRegistro.objects.create(
-            sala=sala,
-            funcionario_responsavel=request.user,
-            observacoes=observacoes
-        )
-        serializer = LimpezaRegistroSerializer(registro_limpeza)
+
+        if LimpezaRegistro.objects.filter(sala=sala, data_hora_fim__isnull=True).exists():
+            return Response({'detail': 'Esta sala já está em processo de limpeza.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        registro = LimpezaRegistro.objects.create(sala=sala, funcionario_responsavel=request.user,
+                                                  data_hora_inicio=timezone.now())
+        serializer = LimpezaRegistroSerializer(registro)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsZeladorUser])
+    def concluir_limpeza(self, request, qr_code_id=None):
+        """Atualiza um registro de limpeza existente, marcando sua conclusão."""
+        sala = self.get_object()
+
+        if not sala.ativa:
+            return Response(
+                {'detail': 'Salas inativas não podem ter a limpeza concluída.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        registro_aberto = LimpezaRegistro.objects.filter(sala=sala, data_hora_fim__isnull=True).order_by(
+            '-data_hora_inicio').first()
+
+        if not registro_aberto:
+            return Response({'detail': 'Nenhuma limpeza foi iniciada para esta sala.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        registro_aberto.data_hora_fim = timezone.now()
+        registro_aberto.observacoes = request.data.get('observacoes', registro_aberto.observacoes)
+        registro_aberto.save()
+
+        serializer = LimpezaRegistroSerializer(registro_aberto)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         """Sobrescreve o método de exclusão para adicionar uma regra de negócio.
