@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from decouple import config
 from accounts.views import AuthViewSet
-from salas.views import SalaViewSet, LimpezaRegistroViewSet
+from salas.views import SalaViewSet, LimpezaRegistroViewSet, FotoLimpezaViewSet
 from core.views import NotificacaoViewSet
 
 
@@ -27,6 +27,7 @@ router.register(r'accounts', AuthViewSet, basename='accounts')
 router.register(r'salas', SalaViewSet)
 router.register(r'limpezas', LimpezaRegistroViewSet)
 router.register(r'notificacoes', NotificacaoViewSet, basename='notificacoes')
+router.register(r'fotos_limpeza', FotoLimpezaViewSet, basename='fotos_limpeza')
 
 
 """Define a lista principal de padrões de URL para o projeto.

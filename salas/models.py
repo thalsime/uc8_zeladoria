@@ -87,7 +87,6 @@ class Sala(models.Model):
 
     def save(self, *args, **kwargs):
         """Sobrescreve o método save para gerenciar a imagem da sala."""
-        # Lógica de deleção do arquivo antigo
         if self.pk:
             try:
                 old_instance = Sala.objects.get(pk=self.pk)
@@ -96,8 +95,8 @@ class Sala(models.Model):
             except Sala.DoesNotExist:
                 pass
 
-        # Lógica de processamento da nova imagem
-        process_and_save_image(self.imagem, size=(300, 300), quality=70)
+        if self.imagem:
+            process_and_save_image(self.imagem, size=(300, 300), quality=70)
 
         super().save(*args, **kwargs)
 
@@ -152,3 +151,26 @@ class RelatorioSalaSuja(models.Model):
 
     def __str__(self):
         return f"Relatório para {self.sala.nome_numero} em {self.data_hora.strftime('%d/%m/%Y %H:%M')}"
+
+
+def foto_limpeza_path(instance, filename):
+    """Gera o caminho para a foto de comprovação de limpeza."""
+    return get_random_image_path(instance, filename, 'fotos_limpeza')
+
+
+class FotoLimpeza(models.Model):
+    """Armazena uma imagem de evidência para um registro de limpeza."""
+    registro_limpeza = models.ForeignKey(LimpezaRegistro, on_delete=models.CASCADE, related_name='fotos')
+    imagem = models.ImageField(upload_to=foto_limpeza_path)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Foto de Limpeza"
+        verbose_name_plural = "Fotos de Limpeza"
+        ordering = ['timestamp']
+
+    def save(self, *args, **kwargs):
+        """Sobrescreve o save para processar a imagem."""
+        # Chama a função genérica, mas com crop_to_square=False para manter a proporção
+        process_and_save_image(self.imagem, size=(1280, 1280), crop_to_square=False, quality=80)
+        super().save(*args, **kwargs)

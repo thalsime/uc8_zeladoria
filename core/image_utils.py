@@ -18,13 +18,16 @@ def get_random_image_path(instance, filename, upload_to_dir):
     random_filename = f'{uuid.uuid4()}.jpg'
     return f'{upload_to_dir}/{random_filename}'
 
-def process_and_save_image(image_field, size=(300, 300), quality=70):
+
+def process_and_save_image(image_field, size=(300, 300), crop_to_square=True, quality=70):
     """
-    Processa uma imagem (corta, redimensiona, converte) e a salva no campo.
+    Processa uma imagem e a salva de volta no campo.
 
     Args:
-        image_field: O campo ImageField da instância do modelo (ex: self.profile_picture).
-        size (tuple): A dimensão final da imagem (largura, altura).
+        image_field: O campo ImageField da instância do modelo.
+        size (tuple): A dimensão máxima (largura, altura) da imagem.
+        crop_to_square (bool): Se True, corta a imagem em um quadrado antes de redimensionar.
+                               Se False, redimensiona mantendo a proporção original.
         quality (int): A qualidade do JPEG a ser salvo (0-100).
     """
     if not image_field:
@@ -32,27 +35,28 @@ def process_and_save_image(image_field, size=(300, 300), quality=70):
 
     img = Image.open(image_field)
 
-    # Corta a imagem para ficar quadrada (crop central)
-    width, height = img.size
-    if width != height:
-        min_dim = min(width, height)
-        left = (width - min_dim) / 2
-        top = (height - min_dim) / 2
-        right = (width + min_dim) / 2
-        bottom = (height + min_dim) / 2
-        img = img.crop((left, top, right, bottom))
-
-    # Redimensiona para o tamanho padrão
-    img = img.resize(size, Image.Resampling.LANCZOS)
-
-    # Converte para RGB para garantir compatibilidade
+    # Converte para RGB para garantir compatibilidade e remover transparência
     if img.mode != 'RGB':
         img = img.convert('RGB')
 
-    # Salva a imagem processada em um buffer em memória
+    if crop_to_square:
+        # Lógica de corte central para avatares e imagens de sala
+        width, height = img.size
+        if width != height:
+            min_dim = min(width, height)
+            left = (width - min_dim) / 2
+            top = (height - min_dim) / 2
+            right = (width + min_dim) / 2
+            bottom = (height + min_dim) / 2
+            img = img.crop((left, top, right, bottom))
+
+        img = img.resize(size, Image.Resampling.LANCZOS)
+    else:
+        # Lógica de redimensionamento proporcional para fotos de limpeza
+        img.thumbnail(size, Image.Resampling.LANCZOS)
+
     buffer = BytesIO()
     img.save(buffer, format='JPEG', quality=quality)
 
-    # Salva o conteúdo do buffer de volta no campo da imagem, sem salvar o modelo ainda
     file_name = image_field.name
     image_field.save(file_name, ContentFile(buffer.getvalue()), save=False)

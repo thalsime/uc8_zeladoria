@@ -16,13 +16,13 @@ class NotificacaoViewSet(viewsets.ReadOnlyModelViewSet):
         """Retorna apenas as notificações do usuário autenticado."""
         return self.request.user.notificacoes.all()
 
-    @action(detail=False, methods=['post'], url_path='marcar-todas-como-lidas')
+    @action(detail=False, methods=['post'])
     def marcar_todas_como_lidas(self, request):
         """Marca todas as notificações não lidas do usuário como lidas."""
         self.get_queryset().filter(lida=False).update(lida=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post'], url_path='marcar-como-lida')
+    @action(detail=True, methods=['post'])
     def marcar_como_lida(self, request, pk=None):
         """Marca uma notificação específica como lida."""
         notificacao = self.get_object()
