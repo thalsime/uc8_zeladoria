@@ -34,10 +34,13 @@ Este é o backend do Sistema de Mapeamento da Limpeza de Salas, desenvolvido com
         1.  [Listar Notificações](#41-listar-notifica%C3%A7%C3%B5es)
         2.  [Marcar Notificação Específica como Lida](#42-marcar-notifica%C3%A7%C3%A3o-espec%C3%ADfica-como-lida)
         3.  [Marcar Todas as Notificações como Lidas](#43-marcar-todas-as-notifica%C3%A7%C3%B5es-como-lidas)
+    5.  [Endpoints de Fotos de Limpeza](#5-endpoints-de-fotos-de-limpeza)
+        1.  [Adicionar Foto a uma Limpeza](#51-adicionar-foto-a-uma-limpeza)
 3.  [Tarefas Agendadas (Cron Job)](#tarefas-agendadas-cron-job)
     1.  [Notificações de Limpeza Pendente](#notifica%C3%A7%C3%B5es-de-limpeza-pendente)
 4.  [Recursos Adicionais](#recursos-adicionais)
     1.  [PDF de QR Codes das Salas](#pdf-de-qr-codes-das-salas)
+    2.  [Coleção para Insomnia](#cole%C3%A7%C3%A3o-para-insomnia)
 5.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
     1.  [Por que UTC?](#por-que-utc)
     2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-%C3%A9-necess%C3%A1rio-ficar-atento-no-frontend-react-native--typescript)
@@ -354,6 +357,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
           * Campo `validade_limpeza_horas` (texto): `8`
           * Campo `localizacao` (texto): `Bloco C, Sala 203`
           * Campo `imagem` (arquivo): Selecionar o arquivo de imagem.
+          * Campo `responsaveis` (texto): `zelador1` (para múltiplos, envie o campo repetido: `responsaveis=zelador1&responsaveis=zelador2`)
   * **Resposta (`200 OK` para `GET`, `201 Created` para `POST`):** Retorna o objeto (ou lista de objetos) da sala.
     ```json
     {
@@ -367,7 +371,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         "instrucoes": null,
         "localizacao": "Bloco C, Sala 203",
         "ativa": true,
-        "responsaveis": [],
+        "responsaveis": ["zelador1"],
         "status_limpeza": "Limpeza Pendente",
         "ultima_limpeza_data_hora": null,
         "ultima_limpeza_funcionario": null
@@ -379,6 +383,9 @@ Gerencia as informações sobre as salas e o processo de limpeza.
   * **URI:** `/api/salas/{qr_code_id}/`
   * **Verbos HTTP:** `GET`, `PUT`, `PATCH`, `DELETE`
   * **Permissões:** `GET` (Qualquer autenticado), `PUT/PATCH/DELETE` (Apenas administradores).
+  * **Requisição (`PUT`, `PATCH`):**
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: multipart/form-data`
+      * **Body (Multipart Form-data):** Envie apenas os campos que deseja alterar.
 
 #### 2.3. Iniciar Limpeza de Sala
 
@@ -399,7 +406,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
 
 #### 2.4. Concluir Limpeza de Sala
 
-  * **Proposta:** Encontra a sessão de limpeza em aberto para a sala e registra o **horário de conclusão**. O status da sala muda para "Limpa".
+  * **Proposta:** Encontra a sessão de limpeza em aberto para a sala e registra o **horário de conclusão**. O status da sala muda para "Limpa". Requer que pelo menos uma foto de comprovação tenha sido enviada.
   * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
   * **Requisição:**
       * **Verbo HTTP:** `POST`
@@ -413,7 +420,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         ```
   * **Respostas:**
       * **`200 OK` (Sucesso):** Retorna o objeto `LimpezaRegistro` atualizado.
-      * **`400 Bad Request` (Erro):** Ocorre se a sala está inativa ou se nenhuma limpeza foi iniciada.
+      * **`400 Bad Request` (Erro):** Ocorre se a sala está inativa, se nenhuma limpeza foi iniciada, ou se nenhuma foto foi enviada.
 
 #### 2.5. Marcar Sala como Suja
 
@@ -454,8 +461,8 @@ Endpoints de apenas leitura para consultar o histórico de limpezas.
       * **URI:** `/api/limpezas/`
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`
   * **Filtros (Query Parameters):**
-      * **`sala`** (integer): Filtra os registros pelo ID exato da sala.
-          * **Exemplo:** `/api/limpezas/?sala=5`
+      * **`sala_uuid`** (string): Filtra os registros pelo UUID (`qr_code_id`) exato da sala.
+          * **Exemplo:** `/api/limpezas/?sala_uuid=e0b3cdba-3489-4954-b988-763ceb72b7c1`
       * **`sala_nome`** (string): Busca textual parcial (case-insensitive) pelo nome da sala.
           * **Exemplo:** `/api/limpezas/?sala_nome=Teórica`
       * **`funcionario_username`** (string): Busca textual parcial (case-insensitive) pelo nome de usuário do funcionário.
@@ -519,6 +526,35 @@ Endpoints para o usuário logado consultar e gerenciar suas notificações.
 
 -----
 
+### 5\. Endpoints de Fotos de Limpeza
+
+Endpoint para adicionar fotos de comprovação a uma sessão de limpeza.
+
+#### 5.1. Adicionar Foto a uma Limpeza
+
+  * **Proposta:** Faz o upload de uma foto e a associa a um registro de limpeza em andamento. Limite de 3 fotos por limpeza.
+  * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
+  * **Requisição:**
+      * **Verbo HTTP:** `POST`
+      * **URI:** `/api/fotos_limpeza/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ZELADOR_AQUI`, `Content-Type: multipart/form-data`
+      * **Body (Multipart Form-data):**
+          * Campo `registro_limpeza` (texto): `ID do registro retornado por 'iniciar_limpeza'`
+          * Campo `imagem` (arquivo): Selecionar o arquivo de imagem.
+  * **Respostas:**
+      * **`201 Created` (Sucesso):**
+        ```json
+        {
+            "id": 1,
+            "imagem": "http://127.0.0.1:8000/media/fotos_limpeza/uuid_aleatorio.jpg",
+            "timestamp": "2025-09-14T21:40:00Z"
+        }
+        ```
+      * **`400 Bad Request` (Erro):** Ocorre se a limpeza já foi concluída ou se o limite de 3 fotos foi atingido.
+      * **`404 Not Found` (Erro):** Ocorre se o `registro_limpeza` não existe ou não pertence ao usuário.
+
+-----
+
 ## Tarefas Agendadas (Cron Job)
 
 Para garantir que a equipe de Zeladoria seja notificada sobre salas cuja limpeza expirou por tempo, o sistema utiliza uma tarefa agendada.
@@ -548,6 +584,10 @@ O sistema gera automaticamente um arquivo PDF contendo uma página para cada sal
 
   * **URL de Acesso:** O arquivo está publicamente acessível através do diretório de mídias.
   * **Exemplo:** `http://127.0.0.1:8000/media/salas_qr_codes.pdf`
+
+### Coleção para Insomnia
+
+O projeto inclui um arquivo `extra/insomnia.json` que pode ser importado no cliente de API [Insomnia](https://insomnia.rest/). Ele contém uma coleção pré-configurada de todas as requisições da API, facilitando os testes e o desenvolvimento.
 
 -----
 

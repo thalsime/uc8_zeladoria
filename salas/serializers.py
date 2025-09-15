@@ -99,9 +99,13 @@ class SalaSerializer(serializers.ModelSerializer):
 
 class FotoLimpezaSerializer(serializers.ModelSerializer):
     """Serializa os dados da imagem de uma limpeza."""
+    registro_limpeza = serializers.PrimaryKeyRelatedField(
+        queryset=LimpezaRegistro.objects.all(), write_only=True
+    )
+
     class Meta:
         model = FotoLimpeza
-        fields = ['id', 'imagem', 'timestamp']
+        fields = ['id', 'imagem', 'timestamp', 'registro_limpeza']
 
 
 class LimpezaRegistroSerializer(serializers.ModelSerializer):

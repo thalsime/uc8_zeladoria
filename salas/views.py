@@ -222,23 +222,32 @@ class FotoLimpezaViewSet(mixins.CreateModelMixin,
         imagem = request.data.get('imagem')
 
         if not registro_id or not imagem:
-            return Response({'detail': 'Os campos "registro_limpeza" (ID) e "imagem" são obrigatórios.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Os campos "registro_limpeza" (ID) e "imagem" são obrigatórios.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Garante que o zelador só possa adicionar fotos em seus próprios registros de limpeza
             registro = LimpezaRegistro.objects.get(pk=registro_id, funcionario_responsavel=request.user)
         except LimpezaRegistro.DoesNotExist:
-            return Response({'detail': 'Registro de limpeza não encontrado ou não pertence a você.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Registro de limpeza não encontrado ou não pertence a você.'},
+                            status=status.HTTP_404_NOT_FOUND)
 
         if registro.data_hora_fim is not None:
-            return Response({'detail': 'Esta limpeza já foi concluída e não aceita mais fotos.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Esta limpeza já foi concluída e não aceita mais fotos.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         if registro.fotos.count() >= 3:
-            return Response({'detail': 'Limite de 3 fotos por registro de limpeza atingido.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Limite de 3 fotos por registro de limpeza atingido.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        # O serializer precisa do 'registro_limpeza' para salvar corretamente
-        serializer = self.get_serializer(data={'registro_limpeza': registro.pk, 'imagem': imagem})
+        # Prepara os dados para o serializador
+        serializer_data = {
+            'registro_limpeza': registro.id,
+            'imagem': imagem
+        }
+        serializer = self.get_serializer(data=serializer_data)
         serializer.is_valid(raise_exception=True)
+        # O serializer.save() agora tem todos os dados necessários
         self.perform_create(serializer)
+
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

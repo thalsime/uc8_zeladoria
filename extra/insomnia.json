@@ -1,394 +1,1600 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2025-09-14T12:55:00.000Z",
+  "__export_date": "2025-09-15T05:00:00.000Z",
   "__export_source": "br.net.tsr.zeladoria",
   "resources": [
     {
-      "_id": "wrk_zeladoria_v2",
+      "_id": "wrk_zeladoria_v6",
       "parentId": null,
-      "modified": 1726328100000,
-      "created": 1726328100000,
-      "name": "Zeladoria API (Completo)",
+      "modified": 1726405200000,
+      "created": 1726405200000,
+      "name": "Zeladoria API",
       "description": "",
       "scope": "collection",
       "_type": "workspace"
     },
     {
-      "_id": "env_base_v2",
-      "parentId": "wrk_zeladoria_v2",
-      "modified": 1726328100000,
-      "created": 1726328100000,
+      "_id": "env_base_v6",
+      "parentId": "wrk_zeladoria_v6",
+      "modified": 1726405200000,
+      "created": 1726405200000,
       "name": "Base Environment",
       "data": {
         "base_url": "http://127.0.0.1:8000",
-        "auth_token": "",
+        "auth_token": "COLE_SEU_TOKEN_AQUI",
         "sala_uuid": "COPIE_UM_QR_CODE_ID_AQUI",
-        "limpeza_id": "1"
+        "limpeza_id": "1",
+        "notificacao_id": "1",
+        "foto_id": "1"
       },
       "dataPropertyOrder": {
         "&": [
           "base_url",
           "auth_token",
           "sala_uuid",
-          "limpeza_id"
+          "limpeza_id",
+          "notificacao_id",
+          "foto_id"
         ]
       },
       "color": null,
       "isPrivate": false,
-      "metaSortKey": 1726328100000,
+      "metaSortKey": 1726405200000,
       "_type": "environment"
     },
     {
-      "_id": "fld_accounts_v2",
-      "parentId": "wrk_zeladoria_v2",
+      "_id": "fld_accounts_v6",
+      "parentId": "wrk_zeladoria_v6",
+      "modified": 1726405200000,
+      "created": 1726405200000,
       "name": "Accounts",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 0,
       "_type": "request_group"
     },
     {
-      "_id": "fld_salas_v2",
-      "parentId": "wrk_zeladoria_v2",
+      "_id": "fld_salas_v6",
+      "parentId": "wrk_zeladoria_v6",
+      "modified": 1726405200001,
+      "created": 1726405200001,
       "name": "Salas",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1,
       "_type": "request_group"
     },
     {
-      "_id": "fld_limpezas_v2",
-      "parentId": "wrk_zeladoria_v2",
+      "_id": "fld_fotos_v6",
+      "parentId": "wrk_zeladoria_v6",
+      "modified": 1726405200002,
+      "created": 1726405200002,
+      "name": "Fotos Limpeza",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 2,
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_limpezas_v6",
+      "parentId": "wrk_zeladoria_v6",
+      "modified": 1726405200003,
+      "created": 1726405200003,
       "name": "Limpezas",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 3,
       "_type": "request_group"
     },
     {
-      "_id": "fld_accounts_filters_v2",
-      "parentId": "fld_accounts_v2",
+      "_id": "fld_notificacoes_v6",
+      "parentId": "wrk_zeladoria_v6",
+      "modified": 1726405200004,
+      "created": 1726405200004,
+      "name": "Notificacoes",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 4,
+      "_type": "request_group"
+    },
+    {
+      "_id": "fld_accounts_filters_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200005,
+      "created": 1726405200005,
       "name": "Users (Filtros)",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 5,
       "_type": "request_group"
     },
     {
-      "_id": "fld_salas_filters_v2",
-      "parentId": "fld_salas_v2",
+      "_id": "fld_salas_filters_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200006,
+      "created": 1726405200006,
       "name": "Salas (Filtros)",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 6,
       "_type": "request_group"
     },
     {
-      "_id": "fld_limpezas_filters_v2",
-      "parentId": "fld_limpezas_v2",
+      "_id": "fld_limpezas_filters_v6",
+      "parentId": "fld_limpezas_v6",
+      "modified": 1726405200007,
+      "created": 1726405200007,
       "name": "Limpezas (Filtros)",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 7,
       "_type": "request_group"
     },
     {
-      "_id": "req_login_v2",
-      "parentId": "fld_accounts_v2",
-      "name": "POST Login",
+      "_id": "req_login_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200008,
+      "created": 1726405200008,
       "url": "{{ _.base_url }}/api/accounts/login/",
+      "name": "POST Login",
+      "description": "",
       "method": "POST",
       "body": {
         "mimeType": "application/json",
         "text": "{\n\t\"username\": \"admin\",\n\t\"password\": \"admin\"\n}"
       },
-      "headers": [{"name": "Content-Type", "value": "application/json"}],
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405200000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_current_user_v2",
-      "parentId": "fld_accounts_v2",
-      "name": "GET Current User",
+      "_id": "req_current_user_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200009,
+      "created": 1726405200009,
       "url": "{{ _.base_url }}/api/accounts/current_user/",
+      "name": "GET Current User",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199999,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_create_user_v2",
-      "parentId": "fld_accounts_v2",
-      "name": "POST Create User (Admin)",
+      "_id": "req_create_user_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200010,
+      "created": 1726405200010,
       "url": "{{ _.base_url }}/api/accounts/create_user/",
+      "name": "POST Create User (Admin)",
+      "description": "",
       "method": "POST",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n\t\"username\": \"novo_zelador\",\n\t\"password\": \"Senha@Forte123\",\n\t\"confirm_password\": \"Senha@Forte123\",\n\t\"nome\": \"Novo Zelador Silva\",\n\t\"email\": \"novo@zelador.com\",\n\t\"groups\": [1]\n}"
+        "text": "{\n\t\"username\": \"novo_zelador\",\n\t\"password\": \"Senha@Forte123\",\n\t\"confirm_password\": \"Senha@Forte123\",\n\t\"nome\": \"Novo Zelador da Silva\",\n\t\"email\": \"novo.zelador@email.com\",\n\t\"groups\": [1]\n}"
       },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199998,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_change_password_v2",
-      "parentId": "fld_accounts_v2",
-      "name": "POST Change Password",
+      "_id": "req_change_password_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200011,
+      "created": 1726405200011,
       "url": "{{ _.base_url }}/api/accounts/change_password/",
+      "name": "POST Change Password",
+      "description": "",
       "method": "POST",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n\t\"old_password\": \"senha_antiga\",\n\t\"new_password\": \"Nova@Senha123\",\n\t\"confirm_new_password\": \"Nova@Senha123\"\n}"
+        "text": "{\n\t\"old_password\": \"senha_antiga\",\n\t\"new_password\": \"NovaSenha@1234\",\n\t\"confirm_new_password\": \"NovaSenha@1234\"\n}"
       },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199997,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_groups_v2",
-      "parentId": "fld_accounts_v2",
-      "name": "GET List Groups",
+      "_id": "req_list_groups_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200012,
+      "created": 1726405200012,
       "url": "{{ _.base_url }}/api/accounts/list_groups/",
+      "name": "GET List Groups",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199996,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_get_profile_v2",
-      "parentId": "fld_accounts_v2",
+      "_id": "req_get_profile_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200013,
+      "created": 1726405200013,
+      "url": "{{ _.base_url }}/api/accounts/profile/",
       "name": "GET Profile",
-      "url": "{{ _.base_url }}/api/accounts/profile/",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199995,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_update_profile_v2",
-      "parentId": "fld_accounts_v2",
-      "name": "PATCH Update Profile",
+      "_id": "req_put_profile_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200014,
+      "created": 1726405200014,
       "url": "{{ _.base_url }}/api/accounts/profile/",
-      "method": "PATCH",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "name": "PUT Update Profile",
+      "description": "",
+      "method": "PUT",
       "body": {
         "mimeType": "multipart/form-data",
-        "params": [{"name": "nome", "value": "Meu Nome Atualizado"}, {"name": "profile_picture", "type": "file", "fileName": ""}]
+        "params": [
+          {
+            "name": "nome",
+            "value": "Nome Completo Atualizado"
+          },
+          {
+            "name": "profile_picture",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
       },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199994,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_users_all_v2",
-      "parentId": "fld_accounts_filters_v2",
-      "name": "GET List All Users",
+      "_id": "req_patch_profile_v6",
+      "parentId": "fld_accounts_v6",
+      "modified": 1726405200015,
+      "created": 1726405200015,
+      "url": "{{ _.base_url }}/api/accounts/profile/",
+      "name": "PATCH Update Profile",
+      "description": "",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "nome",
+            "value": "Nome Parcial"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199993,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_users_v6",
+      "parentId": "fld_accounts_filters_v6",
+      "modified": 1726405200016,
+      "created": 1726405200016,
       "url": "{{ _.base_url }}/api/accounts/list_users/",
+      "name": "GET List Users (Base)",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199992,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_users_username_v2",
-      "parentId": "fld_accounts_filters_v2",
-      "name": "GET by Username",
+      "_id": "req_filter_user_username_v6",
+      "parentId": "fld_accounts_filters_v6",
+      "modified": 1726405200017,
+      "created": 1726405200017,
       "url": "{{ _.base_url }}/api/accounts/list_users/?username=admin",
+      "name": "Filter by Username",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199991,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_users_email_v2",
-      "parentId": "fld_accounts_filters_v2",
-      "name": "GET by Email",
+      "_id": "req_filter_user_email_v6",
+      "parentId": "fld_accounts_filters_v6",
+      "modified": 1726405200018,
+      "created": 1726405200018,
       "url": "{{ _.base_url }}/api/accounts/list_users/?email=@example.com",
+      "name": "Filter by Email",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199990,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_users_superuser_v2",
-      "parentId": "fld_accounts_filters_v2",
-      "name": "GET by is_superuser",
+      "_id": "req_filter_user_superuser_v6",
+      "parentId": "fld_accounts_filters_v6",
+      "modified": 1726405200019,
+      "created": 1726405200019,
       "url": "{{ _.base_url }}/api/accounts/list_users/?is_superuser=true",
+      "name": "Filter by is_superuser",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199989,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_users_group_v2",
-      "parentId": "fld_accounts_filters_v2",
-      "name": "GET by Group",
+      "_id": "req_filter_user_group_v6",
+      "parentId": "fld_accounts_filters_v6",
+      "modified": 1726405200020,
+      "created": 1726405200020,
       "url": "{{ _.base_url }}/api/accounts/list_users/?group=Zeladoria",
+      "name": "Filter by Group",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199988,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_create_sala_v2",
-      "parentId": "fld_salas_v2",
-      "name": "POST Create Sala (Admin)",
+      "_id": "req_filter_user_mixed1_v6",
+      "parentId": "fld_accounts_filters_v6",
+      "modified": 1726405200021,
+      "created": 1726405200021,
+      "url": "{{ _.base_url }}/api/accounts/list_users/?is_superuser=false&group=Zeladoria",
+      "name": "Filter Mix (Superuser + Group)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199987,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_filter_user_mixed2_v6",
+      "parentId": "fld_accounts_filters_v6",
+      "modified": 1726405200022,
+      "created": 1726405200022,
+      "url": "{{ _.base_url }}/api/accounts/list_users/?username=zelador&email=@example.com",
+      "name": "Filter Mix (Username + Email)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199986,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_create_sala_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200023,
+      "created": 1726405200023,
       "url": "{{ _.base_url }}/api/salas/",
+      "name": "POST Create Sala",
+      "description": "",
       "method": "POST",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
-      "body": {"mimeType": "application/json", "text": "{\n\t\"nome_numero\": \"Sala Nova 101\",\n\t\"capacidade\": 40,\n\t\"localizacao\": \"Bloco C\",\n\t\"responsaveis\": []\n}"},
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "nome_numero",
+            "value": "Nova Sala com Foto"
+          },
+          {
+            "name": "capacidade",
+            "value": "50"
+          },
+          {
+            "name": "localizacao",
+            "value": "Bloco D"
+          },
+          {
+            "name": "imagem",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199985,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_get_sala_v2",
-      "parentId": "fld_salas_v2",
+      "_id": "req_get_sala_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200024,
+      "created": 1726405200024,
+      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/",
       "name": "GET Sala Details",
-      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199984,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_update_sala_v2",
-      "parentId": "fld_salas_v2",
-      "name": "PUT Update Sala (Admin)",
+      "_id": "req_put_sala_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200025,
+      "created": 1726405200025,
       "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/",
+      "name": "PUT Update Sala",
+      "description": "",
       "method": "PUT",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
-      "body": {"mimeType": "application/json", "text": "{\n\t\"nome_numero\": \"Sala Editada 101\",\n\t\"capacidade\": 42,\n\t\"localizacao\": \"Bloco C Editado\",\n\t\"ativa\": true,\n\t\"responsaveis\": []\n}"},
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "nome_numero",
+            "value": "Sala Totalmente Editada"
+          },
+          {
+            "name": "capacidade",
+            "value": "99"
+          },
+          {
+            "name": "localizacao",
+            "value": "Bloco Z"
+          },
+          {
+            "name": "ativa",
+            "value": "true"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199983,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_delete_sala_v2",
-      "parentId": "fld_salas_v2",
-      "name": "DELETE Sala (Admin)",
+      "_id": "req_patch_sala_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200026,
+      "created": 1726405200026,
       "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/",
+      "name": "PATCH Update Sala",
+      "description": "",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "descricao",
+            "value": "Apenas a descricao foi alterada."
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199982,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_delete_sala_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200027,
+      "created": 1726405200027,
+      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/",
+      "name": "DELETE Sala",
+      "description": "",
       "method": "DELETE",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199981,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_iniciar_limpeza_v2",
-      "parentId": "fld_salas_v2",
-      "name": "POST Iniciar Limpeza (Zeladoria)",
+      "_id": "req_iniciar_limpeza_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200028,
+      "created": 1726405200028,
       "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/iniciar_limpeza/",
+      "name": "POST Iniciar Limpeza",
+      "description": "",
       "method": "POST",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199980,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_concluir_limpeza_v2",
-      "parentId": "fld_salas_v2",
-      "name": "POST Concluir Limpeza (Zeladoria)",
+      "_id": "req_concluir_limpeza_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200029,
+      "created": 1726405200029,
       "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/concluir_limpeza/",
+      "name": "POST Concluir Limpeza",
+      "description": "",
       "method": "POST",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"},{"name": "Content-Type", "value": "application/json"}],
-      "body": {"mimeType": "application/json", "text": "{\n\t\"observacoes\": \"Limpeza concluída.\"\n}"},
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"observacoes\": \"Limpeza concluída com sucesso.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199979,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_salas_all_v2",
-      "parentId": "fld_salas_filters_v2",
-      "name": "GET List All Salas",
+      "_id": "req_marcar_suja_v6",
+      "parentId": "fld_salas_v6",
+      "modified": 1726405200030,
+      "created": 1726405200030,
+      "url": "{{ _.base_url }}/api/salas/{{ _.sala_uuid }}/marcar_como_suja/",
+      "name": "POST Marcar como Suja",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"observacoes\": \"Sala precisa de atenção urgente.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199978,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_salas_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200031,
+      "created": 1726405200031,
       "url": "{{ _.base_url }}/api/salas/",
+      "name": "GET List Salas (Base)",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199977,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_salas_ativa_v2",
-      "parentId": "fld_salas_filters_v2",
-      "name": "GET Filter Ativa=true",
+      "_id": "req_filter_salas_ativa_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200032,
+      "created": 1726405200032,
       "url": "{{ _.base_url }}/api/salas/?ativa=true",
+      "name": "Filter by Ativa=true",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199976,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_salas_nome_v2",
-      "parentId": "fld_salas_filters_v2",
-      "name": "GET Filter by Nome",
+      "_id": "req_filter_salas_nome_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200033,
+      "created": 1726405200033,
       "url": "{{ _.base_url }}/api/salas/?nome_numero=auditório",
+      "name": "Filter by Nome",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199975,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_salas_local_v2",
-      "parentId": "fld_salas_filters_v2",
-      "name": "GET Filter by Localizacao",
-      "url": "{{ _.base_url }}/api/salas/?localizacao=bloco a",
+      "_id": "req_filter_salas_local_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200034,
+      "created": 1726405200034,
+      "url": "{{ _.base_url }}/api/salas/?localizacao=bloco",
+      "name": "Filter by Localizacao",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199974,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_salas_cap_min_v2",
-      "parentId": "fld_salas_filters_v2",
-      "name": "GET Filter by Capacidade Min",
+      "_id": "req_filter_salas_cap_min_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200035,
+      "created": 1726405200035,
       "url": "{{ _.base_url }}/api/salas/?capacidade_min=50",
+      "name": "Filter by Capacidade Min",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199973,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_salas_cap_max_v2",
-      "parentId": "fld_salas_filters_v2",
-      "name": "GET Filter by Capacidade Max",
+      "_id": "req_filter_salas_cap_max_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200036,
+      "created": 1726405200036,
       "url": "{{ _.base_url }}/api/salas/?capacidade_max=100",
+      "name": "Filter by Capacidade Max",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199972,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_salas_resp_v2",
-      "parentId": "fld_salas_filters_v2",
-      "name": "GET Filter by Responsavel",
+      "_id": "req_filter_salas_resp_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200037,
+      "created": 1726405200037,
       "url": "{{ _.base_url }}/api/salas/?responsavel_username=zelador",
+      "name": "Filter by Responsavel",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199971,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_get_limpeza_details_v2",
-      "parentId": "fld_limpezas_v2",
-      "name": "GET Limpeza Details",
+      "_id": "req_filter_salas_mixed1_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200038,
+      "created": 1726405200038,
+      "url": "{{ _.base_url }}/api/salas/?localizacao=bloco&capacidade_min=30",
+      "name": "Filter Mix (Local + Cap Min)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199970,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_filter_salas_mixed2_v6",
+      "parentId": "fld_salas_filters_v6",
+      "modified": 1726405200039,
+      "created": 1726405200039,
+      "url": "{{ _.base_url }}/api/salas/?nome_numero=sala&responsavel_username=zelador",
+      "name": "Filter Mix (Nome + Responsavel)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199969,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_limpeza_details_v6",
+      "parentId": "fld_limpezas_v6",
+      "modified": 1726405200040,
+      "created": 1726405200040,
       "url": "{{ _.base_url }}/api/limpezas/{{ _.limpeza_id }}/",
+      "name": "GET Limpeza Details",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199968,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_limpezas_all_v2",
-      "parentId": "fld_limpezas_filters_v2",
-      "name": "GET List All Limpezas",
+      "_id": "req_list_limpezas_all_v6",
+      "parentId": "fld_limpezas_filters_v6",
+      "modified": 1726405200041,
+      "created": 1726405200041,
       "url": "{{ _.base_url }}/api/limpezas/",
+      "name": "GET List All Limpezas",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199967,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_limpezas_sala_id_v2",
-      "parentId": "fld_limpezas_filters_v2",
-      "name": "GET by Sala ID",
-      "url": "{{ _.base_url }}/api/limpezas/?sala=1",
+      "_id": "req_filter_limpezas_uuid_v6",
+      "parentId": "fld_limpezas_filters_v6",
+      "modified": 1726405200042,
+      "created": 1726405200042,
+      "url": "{{ _.base_url }}/api/limpezas/?sala_uuid={{ _.sala_uuid }}",
+      "name": "Filter by Sala UUID",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199966,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_limpezas_sala_nome_v2",
-      "parentId": "fld_limpezas_filters_v2",
-      "name": "GET by Sala Nome",
+      "_id": "req_filter_limpezas_nome_v6",
+      "parentId": "fld_limpezas_filters_v6",
+      "modified": 1726405200043,
+      "created": 1726405200043,
       "url": "{{ _.base_url }}/api/limpezas/?sala_nome=auditório",
+      "name": "Filter by Sala Nome",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199965,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_limpezas_func_v2",
-      "parentId": "fld_limpezas_filters_v2",
-      "name": "GET by Funcionario",
+      "_id": "req_filter_limpezas_func_v6",
+      "parentId": "fld_limpezas_filters_v6",
+      "modified": 1726405200044,
+      "created": 1726405200044,
       "url": "{{ _.base_url }}/api/limpezas/?funcionario_username=zelador",
+      "name": "Filter by Funcionario",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199964,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_limpezas_after_v2",
-      "parentId": "fld_limpezas_filters_v2",
-      "name": "GET by Date After",
+      "_id": "req_filter_limpezas_after_v6",
+      "parentId": "fld_limpezas_filters_v6",
+      "modified": 1726405200045,
+      "created": 1726405200045,
       "url": "{{ _.base_url }}/api/limpezas/?data_hora_limpeza_after=2025-09-01",
+      "name": "Filter by Date After",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199963,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_limpezas_before_v2",
-      "parentId": "fld_limpezas_filters_v2",
-      "name": "GET by Date Before",
+      "_id": "req_filter_limpezas_before_v6",
+      "parentId": "fld_limpezas_filters_v6",
+      "modified": 1726405200046,
+      "created": 1726405200046,
       "url": "{{ _.base_url }}/api/limpezas/?data_hora_limpeza_before=2025-09-15",
+      "name": "Filter by Date Before",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199962,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     },
     {
-      "_id": "req_list_limpezas_range_v2",
-      "parentId": "fld_limpezas_filters_v2",
-      "name": "GET by Date Range",
+      "_id": "req_filter_limpezas_mixed1_v6",
+      "parentId": "fld_limpezas_filters_v6",
+      "modified": 1726405200047,
+      "created": 1726405200047,
       "url": "{{ _.base_url }}/api/limpezas/?data_hora_limpeza_after=2025-09-01&data_hora_limpeza_before=2025-09-15",
+      "name": "Filter Mix (Date Range)",
+      "description": "",
       "method": "GET",
-      "headers": [{"name": "Authorization", "value": "Token {{ _.auth_token }}"}],
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199961,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_filter_limpezas_mixed2_v6",
+      "parentId": "fld_limpezas_filters_v6",
+      "modified": 1726405200048,
+      "created": 1726405200048,
+      "url": "{{ _.base_url }}/api/limpezas/?sala_nome=auditório&funcionario_username=admin",
+      "name": "Filter Mix (Sala + Funcionario)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199960,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_notificacoes_v6",
+      "parentId": "fld_notificacoes_v6",
+      "modified": 1726405200049,
+      "created": 1726405200049,
+      "url": "{{ _.base_url }}/api/notificacoes/",
+      "name": "GET Listar Minhas Notificações",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199959,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_marcar_lida_v6",
+      "parentId": "fld_notificacoes_v6",
+      "modified": 1726405200050,
+      "created": 1726405200050,
+      "url": "{{ _.base_url }}/api/notificacoes/{{ _.notificacao_id }}/marcar_como_lida/",
+      "name": "POST Marcar como Lida",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199958,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_marcar_todas_lidas_v6",
+      "parentId": "fld_notificacoes_v6",
+      "modified": 1726405200051,
+      "created": 1726405200051,
+      "url": "{{ _.base_url }}/api/notificacoes/marcar_todas_como_lidas/",
+      "name": "POST Marcar Todas como Lidas",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199957,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_add_foto_v6",
+      "parentId": "fld_fotos_v6",
+      "modified": 1726405200052,
+      "created": 1726405200052,
+      "url": "{{ _.base_url }}/api/fotos_limpeza/",
+      "name": "POST Adicionar Foto à Limpeza",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "registro_limpeza",
+            "value": "{{ _.limpeza_id }}"
+          },
+          {
+            "name": "imagem",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199956,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_list_fotos_v6",
+      "parentId": "fld_fotos_v6",
+      "modified": 1726405200053,
+      "created": 1726405200053,
+      "url": "{{ _.base_url }}/api/fotos_limpeza/",
+      "name": "GET Listar Minhas Fotos",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199955,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_get_foto_v6",
+      "parentId": "fld_fotos_v6",
+      "modified": 1726405200054,
+      "created": 1726405200054,
+      "url": "{{ _.base_url }}/api/fotos_limpeza/{{ _.foto_id }}/",
+      "name": "GET Foto Details",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199954,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_delete_foto_v6",
+      "parentId": "fld_fotos_v6",
+      "modified": 1726405200055,
+      "created": 1726405200055,
+      "url": "{{ _.base_url }}/api/fotos_limpeza/{{ _.foto_id }}/",
+      "name": "DELETE Foto Limpeza",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Token {{ _.auth_token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1726405199953,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
       "_type": "request"
     }
   ]
