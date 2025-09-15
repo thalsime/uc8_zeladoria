@@ -41,6 +41,7 @@ class LimpezaRegistroFilter(django_filters.FilterSet):
             (ex: data_hora_limpeza_after=2025-09-10).
         funcionario_username (str): Busca por nome de usuário do funcionário.
     """
+    sala_uuid = django_filters.UUIDFilter(field_name='sala__qr_code_id')
     data_hora_limpeza = django_filters.DateFromToRangeFilter()
     sala_nome = django_filters.CharFilter(
         field_name='sala__nome_numero', lookup_expr='icontains'
@@ -51,4 +52,4 @@ class LimpezaRegistroFilter(django_filters.FilterSet):
 
     class Meta:
         model = LimpezaRegistro
-        fields = ['sala', 'sala_nome', 'data_hora_limpeza', 'funcionario_username']
+        fields = ['sala_nome', 'sala_uuid', 'data_hora_limpeza', 'funcionario_username']

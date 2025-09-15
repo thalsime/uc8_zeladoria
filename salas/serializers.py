@@ -4,21 +4,22 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
-class BasicUserSerializer(serializers.ModelSerializer):
-    """Serializa informações básicas de um usuário.
-
-    É utilizado como um campo aninhado em outros serializers para representar
-    um usuário de forma concisa, expondo apenas seu ID e nome de usuário.
-    """
-    class Meta:
-        model = User
-        fields = ['id', 'username']
+# class BasicUserSerializer(serializers.ModelSerializer):
+#     """Serializa informações básicas de um usuário.
+#
+#     É utilizado como um campo aninhado em outros serializers para representar
+#     um usuário de forma concisa, expondo apenas seu ID e nome de usuário.
+#     """
+#     class Meta:
+#         model = User
+#         fields = ['id', 'username']
 
 
 class SalaSerializer(serializers.ModelSerializer):
     """Serializa os dados do modelo Sala para a API."""
-    responsaveis = serializers.PrimaryKeyRelatedField(
+    responsaveis = serializers.SlugRelatedField(
         many=True,
+        slug_field='username',  # O campo do modelo User que queremos usar
         queryset=User.objects.filter(groups__name='Zeladoria'),
         required=False
     )
@@ -33,22 +34,22 @@ class SalaSerializer(serializers.ModelSerializer):
                   'responsaveis', 'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
         read_only_fields = ['id', 'qr_code_id']
 
-    def to_representation(self, instance):
-        """Customiza a representação de saída da sala.
-
-        Este método sobrescreve o comportamento padrão para substituir a lista
-        de IDs de responsáveis por uma lista de objetos de usuário serializados
-        com `BasicUserSerializer`.
-
-        Args:
-            instance (Sala): A instância de Sala a ser representada.
-
-        Returns:
-            dict: A representação customizada do objeto Sala.
-        """
-        representation = super().to_representation(instance)
-        representation['responsaveis'] = BasicUserSerializer(instance.responsaveis.all(), many=True).data
-        return representation
+    # def to_representation(self, instance):
+    #     """Customiza a representação de saída da sala.
+    #
+    #     Este método sobrescreve o comportamento padrão para substituir a lista
+    #     de IDs de responsáveis por uma lista de objetos de usuário serializados
+    #     com `BasicUserSerializer`.
+    #
+    #     Args:
+    #         instance (Sala): A instância de Sala a ser representada.
+    #
+    #     Returns:
+    #         dict: A representação customizada do objeto Sala.
+    #     """
+    #     representation = super().to_representation(instance)
+    #     representation['responsaveis'] = BasicUserSerializer(instance.responsaveis.all(), many=True).data
+    #     return representation
 
     def get_status_limpeza(self, obj):
         if obj.limpeza_em_andamento:
@@ -109,9 +110,16 @@ class LimpezaRegistroSerializer(serializers.ModelSerializer):
     Facilita a leitura dos dados ao incluir representações aninhadas para
     o funcionário responsável e o nome da sala associada ao registro.
     """
-    funcionario_responsavel = BasicUserSerializer(read_only=True)
+    funcionario_responsavel = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
     sala_nome = serializers.CharField(source='sala.nome_numero', read_only=True)
     fotos = FotoLimpezaSerializer(many=True, read_only=True)
+    sala = serializers.SlugRelatedField(
+        slug_field='qr_code_id',
+        queryset=Sala.objects.all()
+    )
 
     class Meta:
         model = LimpezaRegistro
