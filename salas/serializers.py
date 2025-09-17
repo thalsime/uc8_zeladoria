@@ -26,7 +26,7 @@ class SalaSerializer(serializers.ModelSerializer):
     status_limpeza = serializers.SerializerMethodField()
     ultima_limpeza_data_hora = serializers.DateTimeField(source='ultima_limpeza_fim', read_only=True)
     ultima_limpeza_funcionario = serializers.CharField(source='ultimo_funcionario', read_only=True)
-    ativa = serializers.NullBooleanField(required=False)
+    ativa = serializers.BooleanField(required=False, allow_null=True, default=None)
 
     class Meta:
         model = Sala
