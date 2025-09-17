@@ -26,6 +26,7 @@ class SalaSerializer(serializers.ModelSerializer):
     status_limpeza = serializers.SerializerMethodField()
     ultima_limpeza_data_hora = serializers.DateTimeField(source='ultima_limpeza_fim', read_only=True)
     ultima_limpeza_funcionario = serializers.CharField(source='ultimo_funcionario', read_only=True)
+    ativa = serializers.NullBooleanField(required=False)
 
     class Meta:
         model = Sala
@@ -33,6 +34,24 @@ class SalaSerializer(serializers.ModelSerializer):
                   'localizacao', 'ativa', 'imagem',
                   'responsaveis', 'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
         read_only_fields = ['id', 'qr_code_id']
+
+    def create(self, validated_data):
+        """
+        Customiza a criação da Sala para lidar com o campo 'ativa'.
+        Se 'ativa' não for explicitamente enviado (resultando em None),
+        removemos a chave para permitir que o modelo Django aplique o valor padrão.
+        """
+        ativa_value = validated_data.get('ativa')
+
+        # Se o cliente enviou um valor vazio ou omitiu o campo, 'ativa_value' será None.
+        # Nesse caso, removemos do dicionário para que o modelo use `default=True`.
+        if ativa_value is None:
+            validated_data.pop('ativa', None)
+
+        # Se o cliente enviou explicitamente 'false', 'ativa_value' será False, e esse
+        # valor será usado, que é o comportamento esperado.
+
+        return super().create(validated_data)
 
     # def to_representation(self, instance):
     #     """Customiza a representação de saída da sala.
