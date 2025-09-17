@@ -23,6 +23,7 @@ class SalaViewSet(viewsets.ModelViewSet):
     filterset_class = SalaFilter
     lookup_field = 'qr_code_id'
     lookup_value_regex = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
     def get_permissions(self):
         """Define as permissões de acesso dinamicamente por ação.

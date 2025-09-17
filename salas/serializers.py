@@ -52,49 +52,28 @@ class SalaSerializer(serializers.ModelSerializer):
     #     return representation
 
     def get_status_limpeza(self, obj):
-        if obj.limpeza_em_andamento:
+        if hasattr(obj, 'limpeza_em_andamento'):
+            if obj.limpeza_em_andamento:
+                return "Em Limpeza"
+        elif obj.registros_limpeza.filter(data_hora_fim__isnull=True).exists():
             return "Em Limpeza"
 
-        if obj.ultimo_relatorio_suja_data and (
-                not obj.ultima_limpeza_fim or obj.ultimo_relatorio_suja_data > obj.ultima_limpeza_fim):
+        ultima_limpeza_fim = getattr(obj, 'ultima_limpeza_fim',
+                                     obj.registros_limpeza.filter(data_hora_fim__isnull=False).order_by('-data_hora_fim').values_list('data_hora_fim', flat=True).first())
+
+        ultimo_relatorio_suja_data = getattr(obj, 'ultimo_relatorio_suja_data',
+                                             obj.relatorios_suja.order_by('-data_hora').values_list('data_hora', flat=True).first())
+
+        if ultimo_relatorio_suja_data and (not ultima_limpeza_fim or ultimo_relatorio_suja_data > ultima_limpeza_fim):
             return "Suja"
 
-        if obj.ultima_limpeza_fim:
+        if ultima_limpeza_fim:
             validade_em_segundos = obj.validade_limpeza_horas * 3600
-            tempo_decorrido = (timezone.now() - obj.ultima_limpeza_fim).total_seconds()
+            tempo_decorrido = (timezone.now() - ultima_limpeza_fim).total_seconds()
             if tempo_decorrido < validade_em_segundos:
                 return "Limpa"
 
         return "Limpeza Pendente"
-
-    # def get_ultima_limpeza_data_hora(self, obj):
-    #     """
-    #     Obtém a data da última limpeza, usando o campo anotado se disponível,
-    #     ou fazendo a query como fallback.
-    #     """
-    #     if hasattr(obj, 'ultima_limpeza_anotada'):
-    #         dt = obj.ultima_limpeza_anotada
-    #         return dt.isoformat().replace('+00:00', 'Z') if dt else None
-    #
-    #     # Fallback
-    #     ultimo_registro = obj.registros_limpeza.first()
-    #     if ultimo_registro:
-    #         return ultimo_registro.data_hora_limpeza.isoformat() + 'Z'
-    #     return None
-    #
-    # def get_ultima_limpeza_funcionario(self, obj):
-    #     """
-    #     Obtém o funcionário da última limpeza, usando o campo anotado se
-    #     disponível, ou fazendo a query como fallback.
-    #     """
-    #     if hasattr(obj, 'funcionario_anotado'):
-    #         return obj.funcionario_anotado
-    #
-    #     # Fallback
-    #     ultimo_registro = obj.registros_limpeza.first()
-    #     if ultimo_registro and ultimo_registro.funcionario_responsavel:
-    #         return ultimo_registro.funcionario_responsavel.username
-    #     return None
 
 
 class FotoLimpezaSerializer(serializers.ModelSerializer):
