@@ -1,25 +1,15 @@
 from rest_framework import serializers
-from .models import Sala, LimpezaRegistro, RelatorioSalaSuja, FotoLimpeza
+from .models import Sala, LimpezaRegistro, FotoLimpeza
 from django.contrib.auth.models import User
 from django.utils import timezone
-
-
-# class BasicUserSerializer(serializers.ModelSerializer):
-#     """Serializa informações básicas de um usuário.
-#
-#     É utilizado como um campo aninhado em outros serializers para representar
-#     um usuário de forma concisa, expondo apenas seu ID e nome de usuário.
-#     """
-#     class Meta:
-#         model = User
-#         fields = ['id', 'username']
+from core.serializers import RelativeImageField
 
 
 class SalaSerializer(serializers.ModelSerializer):
     """Serializa os dados do modelo Sala para a API."""
     responsaveis = serializers.SlugRelatedField(
         many=True,
-        slug_field='username',  # O campo do modelo User que queremos usar
+        slug_field='username',
         queryset=User.objects.filter(groups__name='Zeladoria'),
         required=False
     )
@@ -27,6 +17,8 @@ class SalaSerializer(serializers.ModelSerializer):
     ultima_limpeza_data_hora = serializers.DateTimeField(source='ultima_limpeza_fim', read_only=True)
     ultima_limpeza_funcionario = serializers.CharField(source='ultimo_funcionario', read_only=True)
     ativa = serializers.BooleanField(required=False, allow_null=True, default=None)
+    imagem = RelativeImageField(required=False, allow_null=True)
+
 
     class Meta:
         model = Sala
@@ -43,32 +35,10 @@ class SalaSerializer(serializers.ModelSerializer):
         """
         ativa_value = validated_data.get('ativa')
 
-        # Se o cliente enviou um valor vazio ou omitiu o campo, 'ativa_value' será None.
-        # Nesse caso, removemos do dicionário para que o modelo use `default=True`.
         if ativa_value is None:
             validated_data.pop('ativa', None)
 
-        # Se o cliente enviou explicitamente 'false', 'ativa_value' será False, e esse
-        # valor será usado, que é o comportamento esperado.
-
         return super().create(validated_data)
-
-    # def to_representation(self, instance):
-    #     """Customiza a representação de saída da sala.
-    #
-    #     Este método sobrescreve o comportamento padrão para substituir a lista
-    #     de IDs de responsáveis por uma lista de objetos de usuário serializados
-    #     com `BasicUserSerializer`.
-    #
-    #     Args:
-    #         instance (Sala): A instância de Sala a ser representada.
-    #
-    #     Returns:
-    #         dict: A representação customizada do objeto Sala.
-    #     """
-    #     representation = super().to_representation(instance)
-    #     representation['responsaveis'] = BasicUserSerializer(instance.responsaveis.all(), many=True).data
-    #     return representation
 
     def get_status_limpeza(self, obj):
         if hasattr(obj, 'limpeza_em_andamento'):
@@ -100,6 +70,7 @@ class FotoLimpezaSerializer(serializers.ModelSerializer):
     registro_limpeza = serializers.PrimaryKeyRelatedField(
         queryset=LimpezaRegistro.objects.all(), write_only=True
     )
+    imagem = RelativeImageField()
 
     class Meta:
         model = FotoLimpeza
@@ -107,11 +78,7 @@ class FotoLimpezaSerializer(serializers.ModelSerializer):
 
 
 class LimpezaRegistroSerializer(serializers.ModelSerializer):
-    """Serializa os dados do modelo LimpezaRegistro para a API.
-
-    Facilita a leitura dos dados ao incluir representações aninhadas para
-    o funcionário responsável e o nome da sala associada ao registro.
-    """
+    """Serializa os dados do modelo LimpezaRegistro para a API."""
     funcionario_responsavel = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
