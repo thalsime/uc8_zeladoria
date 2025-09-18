@@ -36,11 +36,14 @@ Este é o backend do Sistema de Mapeamento da Limpeza de Salas, desenvolvido com
         3.  [Marcar Todas as Notificações como Lidas](#43-marcar-todas-as-notifica%C3%A7%C3%B5es-como-lidas)
     5.  [Endpoints de Fotos de Limpeza](#5-endpoints-de-fotos-de-limpeza)
         1.  [Adicionar Foto a uma Limpeza](#51-adicionar-foto-a-uma-limpeza)
+        2.  [Listar Fotos de Limpeza](#52-listar-fotos-de-limpeza)
+        3.  [Obter / Excluir Foto de Limpeza](#53-obter--excluir-foto-de-limpeza-espec%C3%ADfica)
 3.  [Tarefas Agendadas (Cron Job)](#tarefas-agendadas-cron-job)
     1.  [Notificações de Limpeza Pendente](#notifica%C3%A7%C3%B5es-de-limpeza-pendente)
 4.  [Recursos Adicionais](#recursos-adicionais)
     1.  [PDF de QR Codes das Salas](#pdf-de-qr-codes-das-salas)
     2.  [Coleção para Insomnia](#cole%C3%A7%C3%A3o-para-insomnia)
+    3.  [Guia para Requisições `multipart/form-data`](#guia-para-requisi%C3%A7%C3%B5es-multipartform-data-frontend)
 5.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
     1.  [Por que UTC?](#por-que-utc)
     2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-%C3%A9-necess%C3%A1rio-ficar-atento-no-frontend-react-native--typescript)
@@ -152,7 +155,7 @@ O servidor estará rodando em `http://127.0.0.1:8000/`. Você pode acessar o pai
 
 A API é composta por endpoints para gerenciamento de contas de usuário e gerenciamento de salas/registros de limpeza.
 
-### **Base URL:** `http://127.0.0.1:8000/api/`
+**Base URL:** `http://127.0.0.1:8000/api/`
 
 -----
 
@@ -209,8 +212,26 @@ Endpoints para autenticação e gerenciamento de usuários.
       * **URI:** `/api/accounts/current_user/`
       * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
   * **Respostas:**
-      * **`200 OK` (Sucesso):** Retorna o objeto completo do usuário, similar ao `user_data` do login.
+      * **`200 OK` (Sucesso):**
+        ```json
+        {
+            "id": 1,
+            "username": "seu_usuario",
+            "email": "email@example.com",
+            "is_superuser": false,
+            "groups": [1],
+            "nome": "Nome Completo do Usuário",
+            "profile": {
+                "profile_picture": "http://127.0.0.1:8000/media/profile_pics/imagem.jpg"
+            }
+        }
+        ```
       * **`401 Unauthorized` (Erro):** Ocorre se o token não for fornecido ou for inválido.
+        ```json
+        {
+            "detail": "As credenciais de autenticação не foram fornecidas."
+        }
+        ```
 
 #### 1.3. Listar Usuários
 
@@ -221,17 +242,44 @@ Endpoints para autenticação e gerenciamento de usuários.
       * **URI:** `/api/accounts/list_users/`
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`
   * **Filtros (Query Parameters):**
-      * **`username`** (string): Busca parcial (case-insensitive) por nome de usuário.
+      * `username` (string): Busca parcial (case-insensitive) por nome de usuário.
           * **Exemplo:** `/api/accounts/list_users/?username=admin`
-      * **`email`** (string): Busca parcial (case-insensitive) por e-mail.
+      * `email` (string): Busca parcial (case-insensitive) por e-mail.
           * **Exemplo:** `/api/accounts/list_users/?email=@example.com`
-      * **`is_superuser`** (boolean): Filtra por status de superusuário (`true` ou `false`).
+      * `is_superuser` (boolean): Filtra por status de superusuário (`true` ou `false`).
           * **Exemplo:** `/api/accounts/list_users/?is_superuser=true`
-      * **`group`** (string): Filtra por nome exato do grupo (case-insensitive).
+      * `group` (string): Filtra por nome exato do grupo (case-insensitive).
           * **Exemplo:** `/api/accounts/list_users/?group=Zeladoria`
   * **Respostas:**
       * **`200 OK` (Sucesso):** Retorna um array de objetos de usuário.
+        ```json
+        [
+            {
+                "id": 1,
+                "username": "admin",
+                "email": "admin@example.com",
+                "is_superuser": true,
+                "groups": [],
+                "nome": "Admin User",
+                "profile": { "profile_picture": null }
+            },
+            {
+                "id": 2,
+                "username": "zelador1",
+                "email": "zelador1@example.com",
+                "is_superuser": false,
+                "groups": [1],
+                "nome": "Zelador Um",
+                "profile": { "profile_picture": null }
+            }
+        ]
+        ```
       * **`403 Forbidden` (Erro):** Ocorre se o usuário não for um administrador.
+        ```json
+        {
+            "detail": "Você não tem permissão para executar essa ação."
+        }
+        ```
 
 #### 1.4. Criar Novo Usuário (Apenas Administradores)
 
@@ -257,15 +305,30 @@ Endpoints para autenticação e gerenciamento de usuários.
         ```json
         {
             "message": "Usuário criado com sucesso.",
-            "user": { "... objeto do novo usuário ..." },
+            "user": {
+                "id": 3,
+                "username": "novo_usuario",
+                "email": "novo@email.com",
+                "is_superuser": false,
+                "groups": [1],
+                "nome": "Nome Completo",
+                "profile": { "profile_picture": null }
+            },
             "token": "x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0"
         }
         ```
-      * **`400 Bad Request` (Erro de Validação):** Ocorre se as senhas não coincidem, a senha é fraca, ou o `username` já existe.
+      * **`400 Bad Request` (Erro de Validação):** Ocorre se as senhas не coincidem, a senha é fraca, ou o `username` já existe.
         ```json
         {
             "password": [
                 "As senhas não coincidem."
+            ]
+        }
+        ```
+        ```json
+        {
+            "username": [
+                "Um usuário com este nome de usuário já existe."
             ]
         }
         ```
@@ -287,8 +350,23 @@ Endpoints para autenticação e gerenciamento de usuários.
         }
         ```
   * **Respostas:**
-      * **`200 OK` (Sucesso):** `{"message": "Senha alterada com sucesso."}`
+      * **`200 OK` (Sucesso):**
+        ```json
+        {
+            "message": "Senha alterada com sucesso."
+        }
+        ```
       * **`400 Bad Request` (Erro):** Ocorre se a senha antiga está incorreta, as novas não coincidem ou a nova senha é fraca.
+        ```json
+        {
+            "old_password": "A senha antiga está incorreta."
+        }
+        ```
+        ```json
+        {
+            "new_password": "As novas senhas não coincidem."
+        }
+        ```
 
 #### 1.6. Listar Grupos Disponíveis
 
@@ -311,19 +389,23 @@ Endpoints para autenticação e gerenciamento de usuários.
   * **Proposta:** Permite visualizar e atualizar o próprio perfil, incluindo nome e foto.
   * **Permissões:** Apenas o próprio usuário autenticado.
   * **Requisições:**
-      * **Ver Perfil:** `GET /api/accounts/profile/`
-      * **Atualizar Perfil:** `PUT` ou `PATCH` para `/api/accounts/profile/`
+      * **Ver Perfil (`GET`):**
+          * **URI:** `/api/accounts/profile/`
           * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
+      * **Atualizar Perfil (`PUT` ou `PATCH`):**
+          * **URI:** `/api/accounts/profile/`
+          * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`, `Content-Type: multipart/form-data`
           * **Body (Multipart Form-data):** Para enviar uma imagem, a requisição deve ser do tipo `multipart/form-data`.
               * Campo `nome` (texto): `Novo Nome Completo`
               * Campo `profile_picture` (arquivo): Selecionar o arquivo de imagem.
-  * **Resposta (`200 OK`):**
-    ```json
-    {
-        "nome": "Nome Atualizado",
-        "profile_picture": "http://127.0.0.1:8000/media/profile_pics/uuid_aleatorio.jpg"
-    }
-    ```
+  * **Respostas (`200 OK`):**
+      * **Resposta para `GET` e `PUT`/`PATCH`:**
+        ```json
+        {
+            "nome": "Nome Atualizado",
+            "profile_picture": "http://127.0.0.1:8000/media/profile_pics/uuid_aleatorio.jpg"
+        }
+        ```
 
 -----
 
@@ -334,80 +416,161 @@ Gerencia as informações sobre as salas e o processo de limpeza.
 #### 2.1. Listar Salas / Criar Nova Sala
 
   * **URI:** `/api/salas/`
-  * **Verbos HTTP:** `GET`, `POST`
-  * **Permissões:** `GET` (Qualquer autenticado), `POST` (Apenas administradores).
-  * **Filtros (`GET` - Query Parameters):**
-      * **`ativa`** (boolean): Filtra por salas ativas (`true`) ou inativas (`false`).
-          * **Exemplo:** `/api/salas/?ativa=true`
-      * **`nome_numero`** (string): Busca parcial (case-insensitive) por nome ou número da sala.
-          * **Exemplo:** `/api/salas/?nome_numero=Auditório`
-      * **`localizacao`** (string): Busca parcial (case-insensitive) por localização.
-          * **Exemplo:** `/api/salas/?localizacao=Bloco`
-      * **`capacidade_min`** (integer): Filtra por salas com capacidade maior ou igual ao valor informado.
-          * **Exemplo:** `/api/salas/?capacidade_min=50`
-      * **`capacidade_max`** (integer): Filtra por salas com capacidade menor ou igual ao valor informado.
-          * **Exemplo:** `/api/salas/?capacidade_max=100`
-      * **`responsavel_username`** (string): Busca parcial (case-insensitive) pelo nome de usuário de um dos responsáveis.
-          * **Exemplo:** `/api/salas/?responsavel_username=zelador`
-  * **Requisição (`POST`):**
+
+  * **Verbo `GET` (Listar):**
+
+      * **Proposta:** Lista todas as salas com filtros.
+      * **Permissões:** Qualquer usuário autenticado.
+      * **Filtros (Query Parameters):**
+          * `ativa` (boolean): Filtra por salas ativas (`true`) ou inativas (`false`).
+              * **Exemplo:** `/api/salas/?ativa=true`
+          * `nome_numero` (string): Busca parcial (case-insensitive) por nome ou número da sala.
+              * **Exemplo:** `/api/salas/?nome_numero=Auditório`
+          * `localizacao` (string): Busca parcial (case-insensitive) por localização.
+              * **Exemplo:** `/api/salas/?localizacao=Bloco`
+          * `capacidade_min` (integer): Filtra por salas com capacidade maior ou igual ao valor informado.
+              * **Exemplo:** `/api/salas/?capacidade_min=50`
+          * `capacidade_max` (integer): Filtra por salas com capacidade menor ou igual ao valor informado.
+              * **Exemplo:** `/api/salas/?capacidade_max=100`
+          * `responsavel_username` (string): Busca parcial (case-insensitive) pelo nome de usuário de um dos responsáveis.
+              * **Exemplo:** `/api/salas/?responsavel_username=zelador`
+      * **Resposta (`200 OK`):**
+        ```json
+        [
+            {
+                "id": 1,
+                "qr_code_id": "uuid-da-sala-1",
+                "nome_numero": "Laboratório de Redes",
+                "imagem": "http://127.0.0.1:8000/media/sala_pics/uuid_aleatorio.jpg",
+                "capacidade": 25,
+                "validade_limpeza_horas": 8,
+                "descricao": null,
+                "instrucoes": null,
+                "localizacao": "Bloco C, Sala 203",
+                "ativa": true,
+                "responsaveis": ["zelador1"],
+                "status_limpeza": "Limpeza Pendente",
+                "ultima_limpeza_data_hora": null,
+                "ultima_limpeza_funcionario": null
+            }
+        ]
+        ```
+
+  * **Verbo `POST` (Criar):**
+
+      * **Proposta:** Cria uma nova sala.
+      * **Permissões:** Apenas administradores.
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: multipart/form-data`
       * **Body (Multipart Form-data):**
           * Campo `nome_numero` (texto): `Laboratório de Redes`
           * Campo `capacidade` (texto): `25`
           * Campo `validade_limpeza_horas` (texto): `8`
           * Campo `localizacao` (texto): `Bloco C, Sala 203`
-          * Campo `imagem` (arquivo): Selecionar o arquivo de imagem.
-          * Campo `responsaveis` (texto): `zelador1` (para múltiplos, envie o campo repetido: `responsaveis=zelador1&responsaveis=zelador2`)
-  * **Resposta (`200 OK` para `GET`, `201 Created` para `POST`):** Retorna o objeto (ou lista de objetos) da sala.
-    ```json
-    {
-        "id": 1,
-        "qr_code_id": "uuid-da-sala",
-        "nome_numero": "Laboratório de Redes",
-        "imagem": "http://127.0.0.1:8000/media/sala_pics/uuid_aleatorio.jpg",
-        "capacidade": 25,
-        "validade_limpeza_horas": 8,
-        "descricao": null,
-        "instrucoes": null,
-        "localizacao": "Bloco C, Sala 203",
-        "ativa": true,
-        "responsaveis": ["zelador1"],
-        "status_limpeza": "Limpeza Pendente",
-        "ultima_limpeza_data_hora": null,
-        "ultima_limpeza_funcionario": null
-    }
-    ```
+          * Campo `imagem` (arquivo, opcional): Selecionar o arquivo de imagem.
+          * Campo `responsaveis` (texto, opcional): `zelador1` (para múltiplos, envie o campo repetido: `responsaveis=zelador1&responsaveis=zelador2`)
+      * **Respostas:**
+          * **`201 Created`:**
+            ```json
+            {
+                "id": 1,
+                "qr_code_id": "uuid-da-sala-1",
+                "nome_numero": "Laboratório de Redes",
+                "imagem": "http://127.0.0.1:8000/media/sala_pics/uuid_aleatorio.jpg",
+                "capacidade": 25,
+                "validade_limpeza_horas": 8,
+                "descricao": null,
+                "instrucoes": null,
+                "localizacao": "Bloco C, Sala 203",
+                "ativa": true,
+                "responsaveis": ["zelador1"],
+                "status_limpeza": "Limpeza Pendente",
+                "ultima_limpeza_data_hora": null,
+                "ultima_limpeza_funcionario": null
+            }
+            ```
+          * **`400 Bad Request` (Erro de Validação):**
+            ```json
+            {
+                "nome_numero": [ "sala com este Nome/Número já existe." ]
+            }
+            ```
+          * **`403 Forbidden`:**
+            ```json
+            { "detail": "Você не tem permissão para executar essa ação." }
+            ```
 
 #### 2.2. Obter Detalhes / Atualizar / Excluir Sala Específica
 
   * **URI:** `/api/salas/{qr_code_id}/`
-  * **Verbos HTTP:** `GET`, `PUT`, `PATCH`, `DELETE`
-  * **Permissões:** `GET` (Qualquer autenticado), `PUT/PATCH/DELETE` (Apenas administradores).
-  * **Requisição (`PUT`, `PATCH`):**
+
+  * **Verbo `GET` (Detalhes):**
+
+      * **Permissões:** Qualquer usuário autenticado.
+      * **Respostas:**
+          * **`200 OK`:** Retorna o objeto completo da sala (mesmo formato da criação).
+          * **`404 Not Found`:**
+            ```json
+            { "detail": "Não encontrado." }
+            ```
+
+  * **Verbos `PUT` / `PATCH` (Atualizar):**
+
+      * **Permissões:** Apenas administradores.
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: multipart/form-data`
-      * **Body (Multipart Form-data):** Envie apenas os campos que deseja alterar.
+      * **Body (Multipart Form-data):** Envie apenas os campos que deseja alterar. `PATCH` para atualização parcial, `PUT` para completa.
+          * Campo `localizacao` (texto): `Bloco D, Auditório Principal`
+      * **Respostas:**
+          * **`200 OK`:** Retorna o objeto da sala atualizado.
+          * **`400 Bad Request` / `403 Forbidden` / `404 Not Found`.**
+
+  * **Verbo `DELETE` (Excluir):**
+
+      * **Permissões:** Apenas administradores.
+      * **Respostas:**
+          * **`204 No Content` (Sucesso):** A sala foi excluída.
+          * **`400 Bad Request` (Erro de Negócio):**
+            ```json
+            { "detail": "Salas inativas não podem ser excluídas. Ative a sala primeiro." }
+            ```
+          * **`403 Forbidden` / `404 Not Found`.**
 
 #### 2.3. Iniciar Limpeza de Sala
 
   * **Proposta:** Cria um registro para marcar o **início** de uma sessão de limpeza. O status da sala muda para "Em Limpeza".
-  * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
+  * **Permissões:** Apenas usuários do grupo **Zeladoria**.
   * **Requisição:**
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/salas/{qr_code_id}/iniciar_limpeza/`
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ZELADOR_AQUI`
   * **Respostas:**
-      * **`201 Created` (Sucesso):** Retorna o objeto `LimpezaRegistro` criado.
-      * **`400 Bad Request` (Erro):** Ocorre se a sala está inativa ou se já existe uma limpeza em andamento para ela.
+      * **`201 Created` (Sucesso):**
         ```json
         {
-            "detail": "Esta sala já está em processo de limpeza."
+            "id": 10,
+            "sala": "uuid-da-sala-1",
+            "sala_nome": "Laboratório de Redes",
+            "data_hora_inicio": "2025-09-15T14:30:00Z",
+            "data_hora_fim": null,
+            "funcionario_responsavel": "zelador1",
+            "observacoes": null,
+            "fotos": []
         }
         ```
+      * **`400 Bad Request` (Erro):**
+          * Se a sala já está em limpeza:
+            ```json
+            { "detail": "Esta sala já está em processo de limpeza." }
+            ```
+          * Se a sala está inativa:
+            ```json
+            { "detail": "Salas inativas не podem ter a limpeza iniciada." }
+            ```
+      * **`403 Forbidden` / `404 Not Found`.**
 
 #### 2.4. Concluir Limpeza de Sala
 
   * **Proposta:** Encontra a sessão de limpeza em aberto para a sala e registra o **horário de conclusão**. O status da sala muda para "Limpa". Requer que pelo menos uma foto de comprovação tenha sido enviada.
-  * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
+  * **Permissões:** Apenas usuários do grupo **Zeladoria**.
   * **Requisição:**
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/salas/{qr_code_id}/concluir_limpeza/`
@@ -419,13 +582,40 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         }
         ```
   * **Respostas:**
-      * **`200 OK` (Sucesso):** Retorna o objeto `LimpezaRegistro` atualizado.
-      * **`400 Bad Request` (Erro):** Ocorre se a sala está inativa, se nenhuma limpeza foi iniciada, ou se nenhuma foto foi enviada.
+      * **`200 OK` (Sucesso):**
+        ```json
+        {
+            "id": 10,
+            "sala": "uuid-da-sala-1",
+            "sala_nome": "Laboratório de Redes",
+            "data_hora_inicio": "2025-09-15T14:30:00Z",
+            "data_hora_fim": "2025-09-15T14:45:00Z",
+            "funcionario_responsavel": "zelador1",
+            "observacoes": "Limpeza finalizada, tudo em ordem.",
+            "fotos": [
+                {
+                    "id": 1,
+                    "imagem": "http://127.0.0.1:8000/media/fotos_limpeza/foto1.jpg",
+                    "timestamp": "2025-09-15T14:40:00Z"
+                }
+            ]
+        }
+        ```
+      * **`400 Bad Request` (Erro):**
+          * Se nenhuma limpeza foi iniciada:
+            ```json
+            { "detail": "Nenhuma limpeza foi iniciada para esta sala." }
+            ```
+          * Se nenhuma foto de comprovação foi enviada:
+            ```json
+            { "detail": "É necessário enviar pelo menos uma foto antes de concluir a limpeza." }
+            ```
+      * **`403 Forbidden` / `404 Not Found`.**
 
 #### 2.5. Marcar Sala como Suja
 
   * **Proposta:** Cria um relatório de que uma sala está suja, alterando seu status para "Suja" e sobrepondo o status de "Limpa".
-  * **Permissões:** Apenas usuários do grupo ***Solicitante de Serviços***.
+  * **Permissões:** Apenas usuários do grupo **Solicitante de Serviços**.
   * **Requisição:**
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/salas/{qr_code_id}/marcar_como_suja/`
@@ -444,7 +634,10 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         }
         ```
       * **`400 Bad Request` (Erro):** Ocorre se a sala reportada estiver inativa.
-      * **`403 Forbidden` (Erro):** Ocorre se o usuário não pertencer ao grupo `Solicitante de Serviços`.
+        ```json
+        { "detail": "Não é possível reportar uma sala inativa." }
+        ```
+      * **`403 Forbidden` (Erro):** Ocorre se o usuário не pertencer ao grupo `Solicitante de Serviços`.
 
 -----
 
@@ -461,19 +654,35 @@ Endpoints de apenas leitura para consultar o histórico de limpezas.
       * **URI:** `/api/limpezas/`
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`
   * **Filtros (Query Parameters):**
-      * **`sala_uuid`** (string): Filtra os registros pelo UUID (`qr_code_id`) exato da sala.
+      * `sala_uuid` (string): Filtra os registros pelo UUID (`qr_code_id`) exato da sala.
           * **Exemplo:** `/api/limpezas/?sala_uuid=e0b3cdba-3489-4954-b988-763ceb72b7c1`
-      * **`sala_nome`** (string): Busca textual parcial (case-insensitive) pelo nome da sala.
+      * `sala_nome` (string): Busca textual parcial (case-insensitive) pelo nome da sala.
           * **Exemplo:** `/api/limpezas/?sala_nome=Teórica`
-      * **`funcionario_username`** (string): Busca textual parcial (case-insensitive) pelo nome de usuário do funcionário.
+      * `funcionario_username` (string): Busca textual parcial (case-insensitive) pelo nome de usuário do funcionário.
           * **Exemplo:** `/api/limpezas/?funcionario_username=zelador`
-      * **`data_hora_limpeza_after`** (date): Filtra registros a partir da data informada (formato `YYYY-MM-DD`).
+      * `data_hora_limpeza_after` (date): Filtra registros a partir da data informada (formato `YYYY-MM-DD`).
           * **Exemplo:** `/api/limpezas/?data_hora_limpeza_after=2025-09-10`
-      * **`data_hora_limpeza_before`** (date): Filtra registros até a data informada (formato `YYYY-MM-DD`).
+      * `data_hora_limpeza_before` (date): Filtra registros até a data informada (formato `YYYY-MM-DD`).
           * **Exemplo:** `/api/limpezas/?data_hora_limpeza_after=2025-09-01&data_hora_limpeza_before=2025-09-15`
   * **Respostas:**
-      * **`200 OK` (Sucesso):** Retorna um array de objetos `LimpezaRegistro`.
-      * **`403 Forbidden` (Erro):** Ocorre se o usuário não for um administrador.
+      * **`200 OK` (Sucesso):**
+        ```json
+        [
+            {
+                "id": 10,
+                "sala": "uuid-da-sala-1",
+                "sala_nome": "Laboratório de Redes",
+                "data_hora_inicio": "2025-09-15T14:30:00Z",
+                "data_hora_fim": "2025-09-15T14:45:00Z",
+                "funcionario_responsavel": "zelador1",
+                "observacoes": "Limpeza finalizada.",
+                "fotos": [
+                    { "id": 1, "imagem": "...", "timestamp": "..." }
+                ]
+            }
+        ]
+        ```
+      * **`403 Forbidden` (Erro):** Ocorre se o usuário не for um administrador.
 
 -----
 
@@ -513,6 +722,9 @@ Endpoints para o usuário logado consultar e gerenciar suas notificações.
   * **Respostas:**
       * **`204 No Content` (Sucesso):** A notificação foi marcada como lida com sucesso.
       * **`404 Not Found` (Erro):** Ocorre se a notificação não existir ou não pertencer ao usuário.
+        ```json
+        { "detail": "Não encontrado." }
+        ```
 
 #### 4.3. Marcar Todas as Notificações como Lidas
 
@@ -528,12 +740,12 @@ Endpoints para o usuário logado consultar e gerenciar suas notificações.
 
 ### 5\. Endpoints de Fotos de Limpeza
 
-Endpoint para adicionar fotos de comprovação a uma sessão de limpeza.
+Endpoints para adicionar e gerenciar fotos de comprovação de uma sessão de limpeza.
 
 #### 5.1. Adicionar Foto a uma Limpeza
 
   * **Proposta:** Faz o upload de uma foto e a associa a um registro de limpeza em andamento. Limite de 3 fotos por limpeza.
-  * **Permissões:** Apenas usuários do grupo ***Zeladoria***.
+  * **Permissões:** Apenas usuários do grupo **Zeladoria**.
   * **Requisição:**
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/fotos_limpeza/`
@@ -550,8 +762,62 @@ Endpoint para adicionar fotos de comprovação a uma sessão de limpeza.
             "timestamp": "2025-09-14T21:40:00Z"
         }
         ```
-      * **`400 Bad Request` (Erro):** Ocorre se a limpeza já foi concluída ou se o limite de 3 fotos foi atingido.
+      * **`400 Bad Request` (Erro):**
+          * Se o limite de fotos foi atingido:
+            ```json
+            { "detail": "Limite de 3 fotos por registro de limpeza atingido." }
+            ```
+          * Se a limpeza já foi concluída:
+            ```json
+            { "detail": "Esta limpeza já foi concluída e não aceita mais fotos." }
+            ```
+          * Se campos obrigatórios faltaram:
+            ```json
+            { "detail": "Os campos \"registro_limpeza\" (ID) e \"imagem\" são obrigatórios." }
+            ```
       * **`404 Not Found` (Erro):** Ocorre se o `registro_limpeza` não existe ou não pertence ao usuário.
+        ```json
+        { "detail": "Registro de limpeza не encontrado ou não pertence a você." }
+        ```
+
+#### 5.2. Listar Fotos de Limpeza
+
+  * **Proposta:** Lista as fotos de limpeza. Administradores veem todas; zeladores veem apenas as suas.
+  * **Permissões:** Qualquer usuário autenticado.
+  * **Requisição:**
+      * **Verbo HTTP:** `GET`
+      * **URI:** `/api/fotos_limpeza/`
+      * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`
+  * **Resposta (`200 OK`):**
+    ```json
+    [
+        {
+            "id": 1,
+            "imagem": "http://127.0.0.1:8000/media/fotos_limpeza/uuid_aleatorio.jpg",
+            "timestamp": "2025-09-14T21:40:00Z"
+        }
+    ]
+    ```
+
+#### 5.3. Obter / Excluir Foto de Limpeza Específica
+
+  * **URI:** `/api/fotos_limpeza/{id}/`
+
+  * **Permissões:** O próprio zelador que enviou a foto ou um administrador.
+
+  * **Verbo `GET` (Obter):**
+
+      * **Proposta:** Obtém os detalhes de uma foto específica.
+      * **Respostas:**
+          * **`200 OK`:** Retorna o objeto da foto (mesmo formato da criação).
+          * **`404 Not Found`**.
+
+  * **Verbo `DELETE` (Excluir):**
+
+      * **Proposta:** Exclui uma foto.
+      * **Respostas:**
+          * **`204 No Content` (Sucesso):** A foto foi excluída.
+          * **`404 Not Found`**.
 
 -----
 
@@ -570,9 +836,9 @@ O projeto inclui um comando de gerenciamento (`verificar_limpezas_pendentes`) qu
     */15 * * * * /caminho/para/seu/projeto/venv/bin/python /caminho/para/seu/projeto/manage.py verificar_limpezas_pendentes >> /caminho/para/seu/projeto/logs/cron.log 2>&1
     ```
 
-      * **`*/15 * * * *`**: Define a execução a cada 15 minutos.
-      * **`/caminho/para/seu/projeto/venv/bin/python`**: Caminho absoluto para o interpretador Python do seu ambiente virtual.
-      * **`>> /caminho/para/seu/projeto/logs/cron.log 2>&1`**: (Recomendado) Redireciona a saída do comando para um arquivo de log para facilitar a depuração.
+      * `*/15 * * * *`: Define a execução a cada 15 minutos.
+      * `/caminho/para/seu/projeto/venv/bin/python`: Caminho absoluto para o interpretador Python do seu ambiente virtual.
+      * `>> /caminho/para/seu/projeto/logs/cron.log 2>&1`: (Recomendado) Redireciona a saída do comando para um arquivo de log para facilitar a depuração.
 
 -----
 
@@ -588,6 +854,100 @@ O sistema gera automaticamente um arquivo PDF contendo uma página para cada sal
 ### Coleção para Insomnia
 
 O projeto inclui um arquivo `extra/insomnia.json` que pode ser importado no cliente de API [Insomnia](https://insomnia.rest/). Ele contém uma coleção pré-configurada de todas as requisições da API, facilitando os testes e o desenvolvimento.
+
+### Guia para Requisições `multipart/form-data` (Frontend)
+
+Endpoints que envolvem upload de arquivos (como fotos de salas ou de perfil) exigem que a requisição seja enviada com o `Content-Type` `multipart/form-data`. Em clientes JavaScript/TypeScript, isso é feito com a classe `FormData`.
+
+**Principais Pontos:**
+
+1.  **Não defina o `Content-Type` manualmente:** Ao usar `FormData` com `fetch` ou `axios`, o navegador define automaticamente o `Content-Type` correto, incluindo o `boundary` necessário. Se você definir manualmente como `'multipart/form-data'`, a requisição falhará.
+2.  **Use `append`:** Use o método `.append()` do objeto `FormData` para adicionar campos de texto e arquivos.
+3.  **Para arquivos (React Native):** O objeto do arquivo deve ter as propriedades `uri`, `name`, e `type`.
+
+#### Exemplo 1: Criando uma Nova Sala (POST `/api/salas/`)
+
+```typescript
+// Exemplo para criar uma nova sala com uma imagem
+
+interface File {
+  uri: string;
+  name: string;
+  type: string; // Ex: 'image/jpeg'
+}
+
+const criarNovaSala = async (token: string, nome: string, capacidade: number, imagem: File) => {
+  const formData = new FormData();
+
+  formData.append('nome_numero', nome);
+  formData.append('capacidade', capacidade.toString());
+  formData.append('validade_limpeza_horas', '8');
+  formData.append('localizacao', 'Bloco Teste, Sala 101');
+  
+  // Anexa o arquivo
+  // O terceiro argumento (nome do arquivo) é crucial
+  formData.append('imagem', {
+    uri: imagem.uri,
+    name: imagem.name,
+    type: imagem.type,
+  } as any);
+  
+  // Adicionando um responsável (pode ser repetido para múltiplos)
+  formData.append('responsaveis', 'zelador1');
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/salas/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${token}`,
+        // Não defina 'Content-Type' aqui!
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Erro ao criar sala:', data);
+    } else {
+      console.log('Sala criada com sucesso:', data);
+    }
+  } catch (error) {
+    console.error('Erro de rede:', error);
+  }
+};
+```
+
+#### Exemplo 2: Adicionando Foto a uma Limpeza (POST `/api/fotos_limpeza/`)
+
+```typescript
+// Exemplo para fazer upload de uma foto de comprovação
+
+const adicionarFotoLimpeza = async (token: string, registroLimpezaId: number, foto: File) => {
+  const formData = new FormData();
+
+  formData.append('registro_limpeza', registroLimpezaId.toString());
+  formData.append('imagem', {
+    uri: foto.uri,
+    name: foto.name,
+    type: foto.type,
+  } as any);
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/fotos_limpeza/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${token}`,
+      },
+      body: formData,
+    });
+
+    // ... tratar resposta ...
+  } catch (error) {
+    console.error('Erro de rede:', error);
+  }
+};
+```
 
 -----
 
