@@ -29,6 +29,8 @@ class Sala(models.Model):
             responsáveis pela sala.
         validade_limpeza_horas (IntegerField): Período em horas que uma
             limpeza é considerada válida.
+        data_notificacao_pendencia (DateTimeField): Registra quando a última
+            notificação de limpeza pendente foi enviada para evitar duplicatas.
     """
     nome_numero = models.CharField(max_length=100, unique=True, verbose_name="Nome/Número")
     capacidade = models.IntegerField(
@@ -69,11 +71,16 @@ class Sala(models.Model):
         blank=True,
         verbose_name="Imagem da Sala"
     )
+    data_notificacao_pendencia = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Data da Última Notificação de Pendência",
+        help_text="Registra quando a última notificação de limpeza pendente foi enviada."
+    )
 
 
     class Meta:
         """Define metadados para o modelo Sala.
-
         Configura os nomes de exibição no admin do Django e a ordenação
         padrão das consultas pelo campo `nome_numero`.
         """
@@ -103,10 +110,8 @@ class Sala(models.Model):
 
 class LimpezaRegistro(models.Model):
     """Registra a ocorrência de uma limpeza em uma determinada sala.
-
     Armazena a qual sala o registro pertence, o funcionário que realizou a
     limpeza e o momento exato em que ela foi registrada.
-
     Attributes:
         sala (ForeignKey): A sala que foi limpa.
         data_hora_limpeza (DateTimeField): Data e hora em que o registro foi
@@ -118,14 +123,11 @@ class LimpezaRegistro(models.Model):
     funcionario_responsavel = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Funcionário Responsável")
     observacoes = models.TextField(blank=True, null=True, verbose_name="Observações")
 
-    # data_hora_limpeza = models.DateTimeField(auto_now_add=True, verbose_name="Data e Hora da Limpeza")
-
     data_hora_inicio = models.DateTimeField(verbose_name="Início da Limpeza")
     data_hora_fim = models.DateTimeField(null=True, blank=True, verbose_name="Fim da Limpeza")
 
     class Meta:
         """Define metadados para o modelo LimpezaRegistro.
-
         Configura os nomes de exibição e a ordenação padrão das consultas,
         mostrando os registros mais recentes primeiro.
         """

@@ -13,7 +13,6 @@ from core.permissions import IsAdminUser, IsZeladorUser, IsSolicitanteServicosUs
 
 class SalaViewSet(viewsets.ModelViewSet):
     """Gerencia as operações CRUD para o modelo Sala.
-
     Fornece endpoints para criar, ler, atualizar e deletar salas, com
     permissões de acesso granulares e uma ação customizada para registrar
     a limpeza.
@@ -27,11 +26,9 @@ class SalaViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Define as permissões de acesso dinamicamente por ação.
-
         Restringe as operações de escrita (`create`, `update`, `destroy`) a
         administradores, a ação de `marcar_como_limpa` ao grupo 'Zeladoria',
         e permite a leitura (`list`, `retrieve`) a qualquer usuário autenticado.
-
         Returns:
             list: Uma lista de instâncias de classes de permissão.
         """
@@ -74,7 +71,6 @@ class SalaViewSet(viewsets.ModelViewSet):
             )
         )
         return queryset
-        # --- FIM DA CORREÇÃO ---
 
     @action(detail=True, methods=['post'], permission_classes=[IsZeladorUser])
     def iniciar_limpeza(self, request, qr_code_id=None):
@@ -101,7 +97,12 @@ class SalaViewSet(viewsets.ModelViewSet):
     def concluir_limpeza(self, request, qr_code_id=None):
         """Atualiza um registro de limpeza existente, marcando sua conclusão."""
         sala = self.get_object()
-        # ... (código de verificação de sala ativa não muda) ...
+
+        if not sala.ativa:
+            return Response(
+                {'detail': 'Salas inativas não podem ter a limpeza concluída.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         registro_aberto = LimpezaRegistro.objects.filter(sala=sala, data_hora_fim__isnull=True).order_by(
             '-data_hora_inicio').first()
@@ -118,6 +119,10 @@ class SalaViewSet(viewsets.ModelViewSet):
         registro_aberto.data_hora_fim = timezone.now()
         registro_aberto.observacoes = request.data.get('observacoes', registro_aberto.observacoes)
         registro_aberto.save()
+
+        if sala.data_notificacao_pendencia:
+            sala.data_notificacao_pendencia = None
+            sala.save(update_fields=['data_notificacao_pendencia'])
 
         serializer = LimpezaRegistroSerializer(registro_aberto)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -144,7 +149,6 @@ class SalaViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """Sobrescreve o método de exclusão para adicionar uma regra de negócio.
-
         Impede a exclusão de uma sala se ela estiver marcada como inativa,
         retornando um erro 400. A sala deve ser reativada antes de poder
         ser excluída.
@@ -160,7 +164,6 @@ class SalaViewSet(viewsets.ModelViewSet):
 
 class LimpezaRegistroViewSet(viewsets.ReadOnlyModelViewSet):
     """Fornece endpoints de apenas leitura para os registros de limpeza.
-
     Permite que administradores consultem o histórico de limpezas de todas
     as salas, com suporte a filtros.
     """

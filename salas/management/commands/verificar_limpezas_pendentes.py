@@ -1,8 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.db.models import F
-from salas.models import Sala, LimpezaRegistro
-from core.models import Notificacao
+from salas.models import Sala
 from core.notification_service import criar_notificacao_para_responsaveis
 
 
@@ -37,18 +35,16 @@ class Command(BaseCommand):
             tempo_decorrido = (timezone.now() - ultimo_registro.data_hora_fim).total_seconds()
 
             if tempo_decorrido >= validade_em_segundos:
-                # Verifica se já existe uma notificação recente para este evento para evitar duplicatas
+                if sala.data_notificacao_pendencia and sala.data_notificacao_pendencia >= ultimo_registro.data_hora_fim:
+                    continue  # Já notificado, pular para a próxima sala
+
                 mensagem = f"A limpeza da sala '{sala.nome_numero}' expirou e está pendente."
+                criar_notificacao_para_responsaveis(sala, mensagem)
 
-                notificacao_existente = Notificacao.objects.filter(
-                    destinatario__in=sala.responsaveis.all(),
-                    mensagem=mensagem,
-                    data_criacao__gte=ultimo_registro.data_hora_fim
-                ).exists()
+                sala.data_notificacao_pendencia = timezone.now()
+                sala.save(update_fields=['data_notificacao_pendencia'])
 
-                if not notificacao_existente:
-                    criar_notificacao_para_responsaveis(sala, mensagem)
-                    salas_notificadas += 1
+                salas_notificadas += 1
 
         if salas_notificadas > 0:
             self.stdout.write(self.style.SUCCESS(f'{salas_notificadas} sala(s) notificada(s) sobre limpeza pendente.'))
