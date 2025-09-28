@@ -27,6 +27,33 @@ class SalaSerializer(serializers.ModelSerializer):
                   'responsaveis', 'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
         read_only_fields = ['id', 'qr_code_id']
 
+    def to_internal_value(self, data):
+        """
+        Sobrescreve o método de conversão de dados para tratar o caso de
+        remoção de todos os responsáveis via multipart/form-data.
+
+        Quando um campo `responsaveis` é enviado com um valor vazio em uma
+        requisição form-data, ele é interpretado como `['']`. Este método
+        intercepta essa condição específica e a converte para uma lista vazia `[]`,
+        permitindo que a validação prossiga e a relação ManyToMany seja limpa
+        corretamente.
+
+        Args:
+            data (QueryDict): Os dados brutos da requisição.
+
+        Returns:
+            dict: Os dados processados e prontos para validação.
+        """
+        if 'responsaveis' in data:
+            responsaveis_list = data.getlist('responsaveis')
+
+            if len(responsaveis_list) == 1 and responsaveis_list[0] == '':
+                mutable_data = data.copy()
+                mutable_data.setlist('responsaveis', [])
+                data = mutable_data
+
+        return super().to_internal_value(data)
+
     def create(self, validated_data):
         """
         Customiza a criação da Sala para lidar com o campo 'ativa'.
