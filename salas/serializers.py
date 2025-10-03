@@ -1,8 +1,22 @@
 from rest_framework import serializers
-from .models import Sala, LimpezaRegistro, FotoLimpeza
+from .models import Sala, LimpezaRegistro, FotoLimpeza, RelatorioSalaSuja
 from django.contrib.auth.models import User
 from django.utils import timezone
 from core.serializers import RelativeImageField
+
+
+class RelatorioSalaSujaSerializer(serializers.ModelSerializer):
+    """
+    Serializa os dados essenciais de um relatório de sala suja para aninhamento.
+    """
+    reportado_por = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
+    class Meta:
+        model = RelatorioSalaSuja
+        fields = ['data_hora', 'reportado_por', 'observacoes']
 
 
 class SalaSerializer(serializers.ModelSerializer):
@@ -18,14 +32,19 @@ class SalaSerializer(serializers.ModelSerializer):
     ultima_limpeza_funcionario = serializers.CharField(source='ultimo_funcionario', read_only=True)
     ativa = serializers.BooleanField(required=False, allow_null=True, default=None)
     imagem = RelativeImageField(required=False, allow_null=True)
-
+    detalhes_suja = serializers.SerializerMethodField()
 
     class Meta:
         model = Sala
-        fields = ['id', 'qr_code_id', 'nome_numero', 'capacidade', 'validade_limpeza_horas', 'descricao', 'instrucoes',
-                  'localizacao', 'ativa', 'imagem',
-                  'responsaveis', 'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario']
-        read_only_fields = ['id', 'qr_code_id']
+        fields = [
+            'id', 'qr_code_id', 'nome_numero', 'capacidade', 'validade_limpeza_horas', 'descricao', 'instrucoes',
+            'localizacao', 'ativa', 'imagem', 'responsaveis', 'status_limpeza', 'ultima_limpeza_data_hora',
+            'ultima_limpeza_funcionario', 'detalhes_suja'
+        ]
+        read_only_fields = [
+            'id', 'qr_code_id', 'status_limpeza', 'ultima_limpeza_data_hora', 'ultima_limpeza_funcionario',
+            'detalhes_suja'
+        ]
 
     def to_internal_value(self, data):
         """
@@ -75,10 +94,12 @@ class SalaSerializer(serializers.ModelSerializer):
             return "Em Limpeza"
 
         ultima_limpeza_fim = getattr(obj, 'ultima_limpeza_fim',
-                                     obj.registros_limpeza.filter(data_hora_fim__isnull=False).order_by('-data_hora_fim').values_list('data_hora_fim', flat=True).first())
+                                     obj.registros_limpeza.filter(data_hora_fim__isnull=False).order_by(
+                                         '-data_hora_fim').values_list('data_hora_fim', flat=True).first())
 
         ultimo_relatorio_suja_data = getattr(obj, 'ultimo_relatorio_suja_data',
-                                             obj.relatorios_suja.order_by('-data_hora').values_list('data_hora', flat=True).first())
+                                             obj.relatorios_suja.order_by('-data_hora').values_list('data_hora',
+                                                                                                    flat=True).first())
 
         if ultimo_relatorio_suja_data and (not ultima_limpeza_fim or ultimo_relatorio_suja_data > ultima_limpeza_fim):
             return "Suja"
@@ -90,6 +111,31 @@ class SalaSerializer(serializers.ModelSerializer):
                 return "Limpa"
 
         return "Limpeza Pendente"
+
+    # ========= INÍCIO DA CORREÇÃO =========
+    def get_detalhes_suja(self, obj: Sala) -> dict | None:
+        """
+        Retorna os detalhes do último relatório de sujeira se a sala estiver
+        efetivamente no estado 'SUJA'. Caso contrário, retorna null.
+        """
+        # Replicamos a mesma lógica de consulta de 'get_status_limpeza'
+        # para garantir consistência sem causar erros.
+        ultima_limpeza_fim = getattr(obj, 'ultima_limpeza_fim',
+                                     obj.registros_limpeza.filter(data_hora_fim__isnull=False).order_by(
+                                         '-data_hora_fim').values_list('data_hora_fim', flat=True).first())
+
+        ultimo_relatorio_suja = obj.relatorios_suja.order_by('-data_hora').first()
+
+        if ultimo_relatorio_suja:
+            ultimo_relatorio_suja_data = ultimo_relatorio_suja.data_hora
+            # A condição exata que define o status "Suja".
+            if not ultima_limpeza_fim or ultimo_relatorio_suja_data > ultima_limpeza_fim:
+                # Se a condição for atendida, serializamos e retornamos os detalhes.
+                return RelatorioSalaSujaSerializer(ultimo_relatorio_suja).data
+
+        # Para qualquer outra condição, o valor é null.
+        return None
+    # ========= FIM DA CORREÇÃO =========
 
 
 class FotoLimpezaSerializer(serializers.ModelSerializer):

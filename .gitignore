@@ -372,3 +372,5 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,django,visualstudiocode,pycharm+all
 
+/uc8_api_zeladoria*.txt
+/uc8_zeladoria*.txt

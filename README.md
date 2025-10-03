@@ -1,56 +1,56 @@
-# Sistema de Mapeamento da Limpeza de Salas (API RESTful)
+# **Sistema de Mapeamento da Limpeza de Salas (API RESTful)**
 
 Este é o backend do Sistema de Mapeamento da Limpeza de Salas, desenvolvido com Django e Django REST Framework. Ele fornece uma API RESTful para gerenciar salas, registrar suas limpezas e autenticar usuários da equipe de zeladoria. O foco do projeto é otimizar o fluxo de trabalho da equipe de limpeza e fornecer informações atualizadas sobre a disponibilidade de salas limpas, solucionando ineficiências no gerenciamento manual da limpeza de salas no SENAC.
 
-## Índice
+## **Índice**
 
 1.  [Ambiente de Desenvolvimento](#ambiente-de-desenvolvimento)
-    1.  [Pré-requisitos](#pr%C3%A9-requisitos)
-    2.  [Clonar o Repositório](#1-clonar-o-reposit%C3%B3rio)
+    1.  [Pré-requisitos](#pr%2525C3%2525A9-requisitos)
+    2.  [Clonar o Repositório](#1-clonar-o-reposit%2525C3%2525B3rio)
     3.  [Configurar o Ambiente Virtual (venv)](#2-configurar-o-ambiente-virtual-venv)
-    4.  [Configurar Variáveis de Ambiente (.env)](#3-configurar-vari%C3%A1veis-de-ambiente-env)
-    5.  [Instalar as Dependências](#4-instalar-as-depend%C3%AAncias)
+    4.  [Configurar Variáveis de Ambiente (.env)](#3-configurar-vari%2525C3%2525A1veis-de-ambiente-env)
+    5.  [Instalar as Dependências](#4-instalar-as-depend%2525C3%2525AAncias)
     6.  [Configurar o Banco de Dados](#5-configurar-o-banco-de-dados)
-    7.  [Criar um Superusuário](#6-criar-um-superusu%C3%A1rio-opcional-mas-recomendado)
+    7.  [Criar um Superusuário](#6-criar-um-superusu%2525C3%2525A1rio-opcional-mas-recomendado)
     8.  [Rodar o Servidor de Desenvolvimento](#7-rodar-o-servidor-de-desenvolvimento)
-2.  [Documentação dos Endpoints da API](#documenta%C3%A7%C3%A3o-dos-endpoints-da-api)
-    1.  [Endpoints da Aplicação `accounts`](#1-endpoints-da-aplica%C3%A7%C3%A3o-accounts)
-        1.  [Login de Usuário](#11-login-de-usu%C3%A1rio)
-        2.  [Obter Dados do Usuário Logado](#12-obter-dados-do-usu%C3%A1rio-logado)
-        3.  [Listar Usuários](#13-listar-usu%C3%A1rios)
-        4.  [Criar Novo Usuário](#14-criar-novo-usu%C3%A1rio-apenas-administradores)
-        5.  [Mudar Senha do Usuário Autenticado](#15-mudar-senha-do-usu%C3%A1rio-autenticado)
-        6.  [Listar Grupos Disponíveis](#16-listar-grupos-dispon%C3%ADveis)
-        7.  [Gerenciar Perfil do Usuário](#17-gerenciar-perfil-do-usu%C3%A1rio)
-    2.  [Endpoints da Aplicação `salas`](#2-endpoints-da-aplica%C3%A7%C3%A3o-salas)
+2.  [Documentação dos Endpoints da API](#documenta%2525C3%2525A7%2525C3%2525A3o-dos-endpoints-da-api)
+    1.  [Endpoints da Aplicação accounts](#1-endpoints-da-aplica%2525C3%2525A7%2525C3%2525A3o-accounts)
+        1.  [Login de Usuário](#11-login-de-usu%2525C3%2525A1rio)
+        2.  [Obter Dados do Usuário Logado](#12-obter-dados-do-usu%2525C3%2525A1rio-logado)
+        3.  [Listar Usuários](#13-listar-usu%2525C3%2525A1rios)
+        4.  [Criar Novo Usuário](#14-criar-novo-usu%2525C3%2525A1rio-apenas-administradores)
+        5.  [Mudar Senha do Usuário Autenticado](#15-mudar-senha-do-usu%2525C3%2525A1rio-autenticado)
+        6.  [Listar Grupos Disponíveis](#16-listar-grupos-dispon%2525C3%2525ADveis)
+        7.  [Gerenciar Perfil do Usuário](#17-gerenciar-perfil-do-usu%2525C3%2525A1rio)
+    2.  [Endpoints da Aplicação salas](#2-endpoints-da-aplica%2525C3%2525A7%2525C3%2525A3o-salas)
         1.  [Listar Salas / Criar Nova Sala](#21-listar-salas--criar-nova-sala)
-        2.  [Obter Detalhes / Atualizar / Excluir Sala](#22-obter-detalhes--atualizar--excluir-sala-espec%C3%ADfica)
+        2.  [Obter Detalhes / Atualizar / Excluir Sala](#22-obter-detalhes--atualizar--excluir-sala-espec%2525C3%2525ADfica)
         3.  [Iniciar Limpeza de Sala](#23-iniciar-limpeza-de-sala)
         4.  [Concluir Limpeza de Sala](#24-concluir-limpeza-de-sala)
         5.  [Marcar Sala como Suja](#25-marcar-sala-como-suja)
-    3.  [Endpoints da Aplicação `limpezas`](#3-endpoints-da-aplica%C3%A7%C3%A3o-limpezas)
+    3.  [Endpoints da Aplicação limpezas](#3-endpoints-da-aplica%2525C3%2525A7%2525C3%2525A3o-limpezas)
         1.  [Listar Registros de Limpeza](#31-listar-registros-de-limpeza)
-    4.  [Endpoints da Aplicação `notificacoes`](#4-endpoints-da-aplica%C3%A7%C3%A3o-notificacoes)
-        1.  [Listar Notificações](#41-listar-notifica%C3%A7%C3%B5es)
-        2.  [Marcar Notificação Específica como Lida](#42-marcar-notifica%C3%A7%C3%A3o-espec%C3%ADfica-como-lida)
-        3.  [Marcar Todas as Notificações como Lidas](#43-marcar-todas-as-notifica%C3%A7%C3%B5es-como-lidas)
+    4.  [Endpoints da Aplicação notificacoes](#4-endpoints-da-aplica%2525C3%2525A7%2525C3%2525A3o-notificacoes)
+        1.  [Listar Notificações](#41-listar-notifica%2525C3%2525A7%2525C3%2525B5es)
+        2.  [Marcar Notificação Específica como Lida](#42-marcar-notifica%2525C3%2525A7%2525C3%2525A3o-espec%2525C3%2525ADfica-como-lida)
+        3.  [Marcar Todas as Notificações como Lidas](#43-marcar-todas-as-notifica%2525C3%2525A7%2525C3%2525B5es-como-lidas)
     5.  [Endpoints de Fotos de Limpeza](#5-endpoints-de-fotos-de-limpeza)
         1.  [Adicionar Foto a uma Limpeza](#51-adicionar-foto-a-uma-limpeza)
         2.  [Listar Fotos de Limpeza](#52-listar-fotos-de-limpeza)
-        3.  [Obter / Excluir Foto de Limpeza](#53-obter--excluir-foto-de-limpeza-espec%C3%ADfica)
+        3.  [Obter / Excluir Foto de Limpeza](#53-obter--excluir-foto-de-limpeza-espec%2525C3%2525ADfica)
 3.  [Tarefas Agendadas (Cron Job)](#tarefas-agendadas-cron-job)
-    1.  [Notificações de Limpeza Pendente](#notifica%C3%A7%C3%B5es-de-limpeza-pendente)
+    1.  [Notificações de Limpeza Pendente](#notifica%2525C3%2525A7%2525C3%2525B5es-de-limpeza-pendente)
 4.  [Recursos Adicionais](#recursos-adicionais)
     1.  [PDF de QR Codes das Salas](#pdf-de-qr-codes-das-salas)
-    2.  [Coleção para Insomnia](#cole%C3%A7%C3%A3o-para-insomnia)
-    3.  [Guia para Requisições `multipart/form-data`](#guia-para-requisi%C3%A7%C3%B5es-multipartform-data-frontend)
-5.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%C3%A1rios-na-api-ultima_limpeza_data_hora)
+    2.  [Coleção para Insomnia](#cole%2525C3%2525A7%2525C3%2525A3o-para-insomnia)
+    3.  [Guia para Requisições multipart/form-data](#guia-para-requisi%2525C3%2525A7%2525C3%2525B5es-multipartform-data-frontend)
+5.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%2525C3%2525A1rios-na-api-ultima_limpeza_data_hora)
     1.  [Por que UTC?](#por-que-utc)
-    2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-%C3%A9-necess%C3%A1rio-ficar-atento-no-frontend-react-native--typescript)
+    2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-%2525C3%2525A9-necess%2525C3%2525A1rio-ficar-atento-no-frontend-react-native--typescript)
 
 ## Ambiente de Desenvolvimento
 
-Siga os passos abaixo para configurar e executar o projeto em seu ambiente local. É altamente recomendado usar um ambiente virtual (`venv`) para isolar as dependências do projeto.
+Siga os passos abaixo para configurar e executar o projeto em seu ambiente local. É altamente recomendado usar um ambiente virtual (venv) para isolar as dependências do projeto.
 
 ### Pré-requisitos
 
@@ -177,6 +177,7 @@ Endpoints para autenticação e gerenciamento de usuários.
             "password": "sua_senha"
         }
         ```
+
   * **Respostas:**
       * **`200 OK` (Sucesso):**
         ```json
@@ -229,7 +230,7 @@ Endpoints para autenticação e gerenciamento de usuários.
       * **`401 Unauthorized` (Erro):** Ocorre se o token não for fornecido ou for inválido.
         ```json
         {
-            "detail": "As credenciais de autenticação не foram fornecidas."
+            "detail": "As credenciais de autenticação não foram fornecidas."
         }
         ```
 
@@ -300,6 +301,7 @@ Endpoints para autenticação e gerenciamento de usuários.
             "groups": [1]
         }
         ```
+
   * **Respostas:**
       * **`201 Created` (Sucesso):**
         ```json
@@ -325,6 +327,7 @@ Endpoints para autenticação e gerenciamento de usuários.
             ]
         }
         ```
+
         ```json
         {
             "username": [
@@ -349,6 +352,7 @@ Endpoints para autenticação e gerenciamento de usuários.
             "confirm_new_password": "Nova@Senha123"
         }
         ```
+
   * **Respostas:**
       * **`200 OK` (Sucesso):**
         ```json
@@ -362,13 +366,14 @@ Endpoints para autenticação e gerenciamento de usuários.
             "old_password": "A senha antiga está incorreta."
         }
         ```
+
         ```json
         {
             "new_password": "As novas senhas não coincidem."
         }
         ```
 
-#### 1.6. Listar Grupos Disponíveis
+#### **1.6. Listar Grupos Disponíveis**
 
   * **Proposta:** Retorna uma lista de todos os grupos (papéis) de usuários disponíveis no sistema.
   * **Permissões:** Qualquer usuário autenticado.
@@ -451,13 +456,36 @@ Gerencia as informações sobre as salas e o processo de limpeza.
                 "responsaveis": ["zelador1"],
                 "status_limpeza": "Limpeza Pendente",
                 "ultima_limpeza_data_hora": null,
-                "ultima_limpeza_funcionario": null
+                "ultima_limpeza_funcionario": null,
+                "detalhes_suja": null
+            },
+            {
+                "id": 2,
+                "qr_code_id": "uuid-da-sala-2",
+                "nome_numero": "Auditório Principal",
+                "imagem": null,
+                "capacidade": 150,
+                "validade_limpeza_horas": 24,
+                "descricao": "Auditório para eventos.",
+                "instrucoes": "Verificar microfones.",
+                "localizacao": "Bloco A",
+                "ativa": true,
+                "responsaveis": ["zelador1", "zelador2"],
+                "status_limpeza": "Suja",
+                "ultima_limpeza_data_hora": "2025-10-01T10:00:00Z",
+                "ultima_limpeza_funcionario": "zelador1",
+                "detalhes_suja": {
+                    "data_hora": "2025-10-02T15:30:00Z",
+                    "reportado_por": "funcionario_solicitante",
+                    "observacoes": "Derramaram café no chão da primeira fileira."
+                }
             }
         ]
         ```
 
-  * **Verbo `POST` (Criar):**
-
+      * **Observação sobre o campo `detalhes_suja`:** Este campo é um objeto que contém os detalhes do último relatório de sujeira. Ele será null para todas as salas que não estiverem com o status "Suja". Quando o status for "Suja", ele será preenchido com a data, o usuário que reportou e as observações do relatório.
+  
+  * **Verbo POST (Criar):**
       * **Proposta:** Cria uma nova sala.
       * **Permissões:** Apenas administradores.
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: multipart/form-data`
@@ -469,7 +497,8 @@ Gerencia as informações sobre as salas e o processo de limpeza.
           * Campo `imagem` (arquivo, opcional): Selecionar o arquivo de imagem.
           * Campo `responsaveis` (texto, opcional): `zelador1` (para múltiplos, envie o campo repetido: `responsaveis=zelador1&responsaveis=zelador2`)
       * **Respostas:**
-          * **`201 Created`:**
+          * **`201 Created`:** A resposta contém o objeto da sala recém-criada, que sempre iniciará com `status\limpeza`: "Limpeza Pendente" e `detalhes\suja`: null.
+
             ```json
             {
                 "id": 1,
@@ -485,7 +514,8 @@ Gerencia as informações sobre as salas e o processo de limpeza.
                 "responsaveis": ["zelador1"],
                 "status_limpeza": "Limpeza Pendente",
                 "ultima_limpeza_data_hora": null,
-                "ultima_limpeza_funcionario": null
+                "ultima_limpeza_funcionario": null,
+                "detalhes_suja": null
             }
             ```
           * **`400 Bad Request` (Erro de Validação):**
@@ -496,7 +526,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
             ```
           * **`403 Forbidden`:**
             ```json
-            { "detail": "Você не tem permissão para executar essa ação." }
+            { "detail": "Você não tem permissão para executar essa ação." }
             ```
 
 #### 2.2. Obter Detalhes / Atualizar / Excluir Sala Específica
@@ -507,8 +537,56 @@ Gerencia as informações sobre as salas e o processo de limpeza.
 
       * **Permissões:** Qualquer usuário autenticado.
       * **Respostas:**
-          * **`200 OK`:** Retorna o objeto completo da sala (mesmo formato da criação).
+          * **`200 OK` (Exemplo de sala Suja):** Retorna o objeto completo da sala. O campo `detalhes\suja` será preenchido se o status for `"Suja"`.
+
+            ```json
+            {
+                "id": 2,
+                "qr_code_id": "uuid-da-sala-2",
+                "nome_numero": "Auditório Principal",
+                "imagem": null,
+                "capacidade": 150,
+                "validade_limpeza_horas": 24,
+                "descricao": "Auditório para eventos.",
+                "instrucoes": "Verificar microfones.",
+                "localizacao": "Bloco A",
+                "ativa": true,
+                "responsaveis": ["zelador1", "zelador2"],
+                "status_limpeza": "Suja",
+                "ultima_limpeza_data_hora": "2025-10-01T10:00:00Z",
+                "ultima_limpeza_funcionario": "zelador1",
+                "detalhes_suja": {
+                    "data_hora": "2025-10-02T15:30:00Z",
+                    "reportado_por": "funcionario_solicitante",
+                    "observacoes": "Derramaram café no chão da primeira fileira."
+                }
+            }
+            ```
+
+          * **`200 OK` (Exemplo de sala Limpa):** Se o status não for "Suja", `detalhes\suja` será `null`.
+
+            ```json
+            {
+                "id": 3,
+                "qr_code_id": "uuid-da-sala-3",
+                "nome_numero": "Sala de Reuniões",
+                "imagem": null,
+                "capacidade": 10,
+                "validade_limpeza_horas": 48,
+                "descricao": null,
+                "instrucoes": null,
+                "localizacao": "Administração",
+                "ativa": true,
+                "responsaveis": [],
+                "status_limpeza": "Limpa",
+                "ultima_limpeza_data_hora": "2025-10-03T09:00:00Z",
+                "ultima_limpeza_funcionario": "zelador2",
+                "detalhes_suja": null
+            }
+            ```
+
           * **`404 Not Found`:**
+
             ```json
             { "detail": "Não encontrado." }
             ```
@@ -532,9 +610,10 @@ Gerencia as informações sobre as salas e o processo de limpeza.
             ```json
             { "detail": "Salas inativas não podem ser excluídas. Ative a sala primeiro." }
             ```
+
           * **`403 Forbidden` / `404 Not Found`.**
 
-#### 2.3. Iniciar Limpeza de Sala
+#### **2.3. Iniciar Limpeza de Sala**
 
   * **Proposta:** Cria um registro para marcar o **início** de uma sessão de limpeza. O status da sala muda para "Em Limpeza".
   * **Permissões:** Apenas usuários do grupo **Zeladoria**.
@@ -558,13 +637,17 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         ```
       * **`400 Bad Request` (Erro):**
           * Se a sala já está em limpeza:
+
             ```json
             { "detail": "Esta sala já está em processo de limpeza." }
             ```
+
           * Se a sala está inativa:
+
             ```json
-            { "detail": "Salas inativas не podem ter a limpeza iniciada." }
+            { "detail": "Salas inativas não podem ter a limpeza iniciada." }
             ```
+
       * **`403 Forbidden` / `404 Not Found`.**
 
 #### 2.4. Concluir Limpeza de Sala
@@ -581,6 +664,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
             "observacoes": "Limpeza finalizada, tudo em ordem."
         }
         ```
+
   * **Respostas:**
       * **`200 OK` (Sucesso):**
         ```json
@@ -603,13 +687,17 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         ```
       * **`400 Bad Request` (Erro):**
           * Se nenhuma limpeza foi iniciada:
+
             ```json
             { "detail": "Nenhuma limpeza foi iniciada para esta sala." }
             ```
+
           * Se nenhuma foto de comprovação foi enviada:
+
             ```json
             { "detail": "É necessário enviar pelo menos uma foto antes de concluir a limpeza." }
             ```
+
       * **`403 Forbidden` / `404 Not Found`.**
 
 #### 2.5. Marcar Sala como Suja
@@ -626,6 +714,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
             "observacoes": "Material derramado no chão."
         }
         ```
+
   * **Respostas:**
       * **`201 Created` (Sucesso):**
         ```json
@@ -637,9 +726,8 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         ```json
         { "detail": "Não é possível reportar uma sala inativa." }
         ```
-      * **`403 Forbidden` (Erro):** Ocorre se o usuário не pertencer ao grupo `Solicitante de Serviços`.
 
------
+      * **403 Forbidden (Erro):** Ocorre se o usuário não pertencer ao grupo Solicitante de Serviços.
 
 ### 3\. Endpoints da Aplicação `limpezas`
 
@@ -764,20 +852,25 @@ Endpoints para adicionar e gerenciar fotos de comprovação de uma sessão de li
         ```
       * **`400 Bad Request` (Erro):**
           * Se o limite de fotos foi atingido:
+
             ```json
             { "detail": "Limite de 3 fotos por registro de limpeza atingido." }
             ```
+
           * Se a limpeza já foi concluída:
+
             ```json
             { "detail": "Esta limpeza já foi concluída e não aceita mais fotos." }
             ```
+
           * Se campos obrigatórios faltaram:
+
             ```json
             { "detail": "Os campos \"registro_limpeza\" (ID) e \"imagem\" são obrigatórios." }
             ```
       * **`404 Not Found` (Erro):** Ocorre se o `registro_limpeza` não existe ou não pertence ao usuário.
         ```json
-        { "detail": "Registro de limpeza не encontrado ou não pertence a você." }
+        { "detail": "Registro de limpeza não encontrado ou não pertence a você." }
         ```
 
 #### 5.2. Listar Fotos de Limpeza
@@ -883,7 +976,7 @@ const criarNovaSala = async (token: string, nome: string, capacidade: number, im
   formData.append('capacidade', capacidade.toString());
   formData.append('validade_limpeza_horas', '8');
   formData.append('localizacao', 'Bloco Teste, Sala 101');
-  
+
   // Anexa o arquivo
   // O terceiro argumento (nome do arquivo) é crucial
   formData.append('imagem', {
@@ -891,7 +984,7 @@ const criarNovaSala = async (token: string, nome: string, capacidade: number, im
     name: imagem.name,
     type: imagem.type,
   } as any);
-  
+
   // Adicionando um responsável (pode ser repetido para múltiplos)
   formData.append('responsaveis', 'zelador1');
 
