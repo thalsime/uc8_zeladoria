@@ -127,7 +127,7 @@ class SalaViewSet(viewsets.ModelViewSet):
         serializer = LimpezaRegistroSerializer(registro_aberto)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsSolicitanteServicosUser])
+    @action(detail=True, methods=['post'], permission_classes=[IsSolicitanteServicosUser], parser_classes=[parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser])
     def marcar_como_suja(self, request, qr_code_id=None):
         """Cria um relatório de sala suja para uma sala específica."""
         sala = self.get_object()
