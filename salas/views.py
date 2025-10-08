@@ -5,10 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import OuterRef, Subquery, Exists
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import Sala, LimpezaRegistro, RelatorioSalaSuja, FotoLimpeza
 from .filters import SalaFilter, LimpezaRegistroFilter
 from .serializers import SalaSerializer, LimpezaRegistroSerializer, FotoLimpezaSerializer
-from core.permissions import IsAdminUser, IsZeladorUser, IsSolicitanteServicosUser
+from core.permissions import IsAdminUser, IsZeladorUser, IsSolicitanteServicosUser, IsAdminOrZeladoria
 
 
 class SalaViewSet(viewsets.ModelViewSet):
@@ -163,23 +164,52 @@ class SalaViewSet(viewsets.ModelViewSet):
 
 
 class LimpezaRegistroViewSet(viewsets.ReadOnlyModelViewSet):
-    """Fornece endpoints de apenas leitura para os registros de limpeza.
-    Permite que administradores consultem o histórico de limpezas de todas
-    as salas, com suporte a filtros.
+    """
+    ViewSet para a visualização do histórico de registros de limpeza.
+
+    Fornece uma lista de todos os registros de limpeza com otimizações de
+    consulta para evitar o problema N+1. O acesso é restrito a administradores
+    e membros da zeladoria.
+
+    Regras de Acesso e Visualização:
+    - **Administradores**: Possuem acesso irrestrito e visualizam todos os
+      registros de limpeza do sistema.
+    - **Membros do grupo 'Zeladoria'**: Podem acessar o endpoint, mas visualizam
+      apenas o histórico de limpezas que eles próprios realizaram.
     """
     queryset = LimpezaRegistro.objects.all()
     serializer_class = LimpezaRegistroSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrZeladoria]
+    filter_backends = [DjangoFilterBackend]
     filterset_class = LimpezaRegistroFilter
 
     def get_queryset(self):
         """
-        Otimiza a consulta principal para evitar o problema N+1, pré-carregando
-        os dados da sala, do funcionário e das fotos associadas.
+        Retorna o queryset de registros de limpeza filtrado por perfil de usuário.
+
+        Este método aplica a lógica de negócio para a visibilidade dos dados:
+        - Se o usuário for um superusuário, retorna todos os registros.
+        - Se for um membro da zeladoria, filtra os registros para retornar apenas
+          aqueles onde o usuário é o funcionário responsável.
+
+        As consultas são otimizadas com `select_related` e `prefetch_related`
+        para garantir a performance da listagem.
+
+        Returns:
+            Um QuerySet de objetos `LimpezaRegistro` filtrado de acordo com
+            as regras de permissão do usuário.
         """
-        return LimpezaRegistro.objects.select_related(
+        user = self.request.user
+        base_queryset = LimpezaRegistro.objects.select_related(
             'sala', 'funcionario_responsavel'
-        ).prefetch_related('fotos')
+        ).prefetch_related('fotos').order_by('-data_hora_fim')
+
+        if user.is_superuser:
+            return base_queryset
+
+        # Neste ponto, a classe de permissão já garantiu que o usuário
+        # pertence ao grupo 'Zeladoria'.
+        return base_queryset.filter(funcionario_responsavel=user)
 
 
 class FotoLimpezaViewSet(mixins.CreateModelMixin,

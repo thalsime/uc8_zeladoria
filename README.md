@@ -5,48 +5,48 @@ Este é o backend do Sistema de Mapeamento da Limpeza de Salas, desenvolvido com
 ## **Índice**
 
 1.  [Ambiente de Desenvolvimento](#ambiente-de-desenvolvimento)
-    1.  [Pré-requisitos](#pr%2525C3%2525A9-requisitos)
-    2.  [Clonar o Repositório](#1-clonar-o-reposit%2525C3%2525B3rio)
+    1.  [Pré-requisitos](#pré-requisitos)
+    2.  [Clonar o Repositório](#1-clonar-o-repositório)
     3.  [Configurar o Ambiente Virtual (venv)](#2-configurar-o-ambiente-virtual-venv)
-    4.  [Configurar Variáveis de Ambiente (.env)](#3-configurar-vari%2525C3%2525A1veis-de-ambiente-env)
-    5.  [Instalar as Dependências](#4-instalar-as-depend%2525C3%2525AAncias)
+    4.  [Configurar Variáveis de Ambiente (.env)](#3-configurar-variáeis-de-ambiente-env)
+    5.  [Instalar as Dependências](#4-instalar-as-dependências)
     6.  [Configurar o Banco de Dados](#5-configurar-o-banco-de-dados)
-    7.  [Criar um Superusuário](#6-criar-um-superusu%2525C3%2525A1rio-opcional-mas-recomendado)
+    7.  [Criar um Superusuário](#6-criar-um-superusuário-opcional-mas-recomendado)
     8.  [Rodar o Servidor de Desenvolvimento](#7-rodar-o-servidor-de-desenvolvimento)
-2.  [Documentação dos Endpoints da API](#documenta%2525C3%2525A7%2525C3%2525A3o-dos-endpoints-da-api)
-    1.  [Endpoints da Aplicação accounts](#1-endpoints-da-aplica%2525C3%2525A7%2525C3%2525A3o-accounts)
-        1.  [Login de Usuário](#11-login-de-usu%2525C3%2525A1rio)
-        2.  [Obter Dados do Usuário Logado](#12-obter-dados-do-usu%2525C3%2525A1rio-logado)
-        3.  [Listar Usuários](#13-listar-usu%2525C3%2525A1rios)
-        4.  [Criar Novo Usuário](#14-criar-novo-usu%2525C3%2525A1rio-apenas-administradores)
-        5.  [Mudar Senha do Usuário Autenticado](#15-mudar-senha-do-usu%2525C3%2525A1rio-autenticado)
-        6.  [Listar Grupos Disponíveis](#16-listar-grupos-dispon%2525C3%2525ADveis)
-        7.  [Gerenciar Perfil do Usuário](#17-gerenciar-perfil-do-usu%2525C3%2525A1rio)
-    2.  [Endpoints da Aplicação salas](#2-endpoints-da-aplica%2525C3%2525A7%2525C3%2525A3o-salas)
+2.  [Documentação dos Endpoints da API](#documentação-dos-endpoints-da-api)
+    1.  [Endpoints da Aplicação accounts](#1-endpoints-da-aplicação-accounts)
+        1.  [Login de Usuário](#11-login-de-usuário)
+        2.  [Obter Dados do Usuário Logado](#12-obter-dados-do-usuário-logado)
+        3.  [Listar Usuários](#13-listar-usuários)
+        4.  [Criar Novo Usuário](#14-criar-novo-usuário-apenas-administradores)
+        5.  [Mudar Senha do Usuário Autenticado](#15-mudar-senha-do-usuário-autenticado)
+        6.  [Listar Grupos Disponíveis](#16-listar-grupos-disponíveis)
+        7.  [Gerenciar Perfil do Usuário](#17-gerenciar-perfil-do-usuário)
+    2.  [Endpoints da Aplicação salas](#2-endpoints-da-aplicação-salas)
         1.  [Listar Salas / Criar Nova Sala](#21-listar-salas--criar-nova-sala)
-        2.  [Obter Detalhes / Atualizar / Excluir Sala](#22-obter-detalhes--atualizar--excluir-sala-espec%2525C3%2525ADfica)
+        2.  [Obter Detalhes / Atualizar / Excluir Sala](#22-obter-detalhes--atualizar--excluir-sala-específica)
         3.  [Iniciar Limpeza de Sala](#23-iniciar-limpeza-de-sala)
         4.  [Concluir Limpeza de Sala](#24-concluir-limpeza-de-sala)
         5.  [Marcar Sala como Suja](#25-marcar-sala-como-suja)
-    3.  [Endpoints da Aplicação limpezas](#3-endpoints-da-aplica%2525C3%2525A7%2525C3%2525A3o-limpezas)
+    3.  [Endpoints da Aplicação limpezas](#3-endpoints-da-aplicação-limpezas)
         1.  [Listar Registros de Limpeza](#31-listar-registros-de-limpeza)
-    4.  [Endpoints da Aplicação notificacoes](#4-endpoints-da-aplica%2525C3%2525A7%2525C3%2525A3o-notificacoes)
-        1.  [Listar Notificações](#41-listar-notifica%2525C3%2525A7%2525C3%2525B5es)
-        2.  [Marcar Notificação Específica como Lida](#42-marcar-notifica%2525C3%2525A7%2525C3%2525A3o-espec%2525C3%2525ADfica-como-lida)
-        3.  [Marcar Todas as Notificações como Lidas](#43-marcar-todas-as-notifica%2525C3%2525A7%2525C3%2525B5es-como-lidas)
+    4.  [Endpoints da Aplicação notificacoes](#4-endpoints-da-aplicação-notificacoes)
+        1.  [Listar Notificações](#41-listar-notificaões)
+        2.  [Marcar Notificação Específica como Lida](#42-marcar-notificação-específica-como-lida)
+        3.  [Marcar Todas as Notificações como Lidas](#43-marcar-todas-as-notificaões-como-lidas)
     5.  [Endpoints de Fotos de Limpeza](#5-endpoints-de-fotos-de-limpeza)
         1.  [Adicionar Foto a uma Limpeza](#51-adicionar-foto-a-uma-limpeza)
         2.  [Listar Fotos de Limpeza](#52-listar-fotos-de-limpeza)
-        3.  [Obter / Excluir Foto de Limpeza](#53-obter--excluir-foto-de-limpeza-espec%2525C3%2525ADfica)
+        3.  [Obter / Excluir Foto de Limpeza](#53-obter--excluir-foto-de-limpeza-específica)
 3.  [Tarefas Agendadas (Cron Job)](#tarefas-agendadas-cron-job)
-    1.  [Notificações de Limpeza Pendente](#notifica%2525C3%2525A7%2525C3%2525B5es-de-limpeza-pendente)
+    1.  [Notificações de Limpeza Pendente](#notificaões-de-limpeza-pendente)
 4.  [Recursos Adicionais](#recursos-adicionais)
     1.  [PDF de QR Codes das Salas](#pdf-de-qr-codes-das-salas)
-    2.  [Coleção para Insomnia](#cole%2525C3%2525A7%2525C3%2525A3o-para-insomnia)
-    3.  [Guia para Requisições multipart/form-data](#guia-para-requisi%2525C3%2525A7%2525C3%2525B5es-multipartform-data-frontend)
-5.  [Entendendo Fusos Horários na API](#entendendo-fusos-hor%2525C3%2525A1rios-na-api-ultima_limpeza_data_hora)
+    2.  [Coleção para Insomnia](#coleção-para-insomnia)
+    3.  [Guia para Requisições multipart/form-data](#guia-para-requisiões-multipartform-data-frontend)
+5.  [Entendendo Fusos Horários na API](#entendendo-fusos-horários-na-api-ultima_limpeza_data_hora)
     1.  [Por que UTC?](#por-que-utc)
-    2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-%2525C3%2525A9-necess%2525C3%2525A1rio-ficar-atento-no-frontend-react-native--typescript)
+    2.  [O Que é Necessário Ficar Atento no Frontend](#o-que-é-necessário-ficar-atento-no-frontend-react-native--typescript)
 
 ## Ambiente de Desenvolvimento
 
@@ -166,7 +166,9 @@ Endpoints para autenticação e gerenciamento de usuários.
 #### 1.1. Login de Usuário
 
   * **Proposta:** Autenticar um usuário e retorna um token de autenticação junto com os dados do usuário logado.
+
   * **Requisição:**
+
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/accounts/login/`
       * **Headers:** `Content-Type: application/json`
@@ -179,6 +181,7 @@ Endpoints para autenticação e gerenciamento de usuários.
         ```
 
   * **Respostas:**
+
       * **`200 OK` (Sucesso):**
         ```json
         {
@@ -285,8 +288,11 @@ Endpoints para autenticação e gerenciamento de usuários.
 #### 1.4. Criar Novo Usuário (Apenas Administradores)
 
   * **Proposta:** Cria uma nova conta de usuário. A senha informada será validada contra as regras de força de senha do Django.
+
   * **Permissões:** Apenas administradores.
+
   * **Requisição:**
+
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/accounts/create_user/`
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: application/json`
@@ -303,7 +309,9 @@ Endpoints para autenticação e gerenciamento de usuários.
         ```
 
   * **Respostas:**
+
       * **`201 Created` (Sucesso):**
+
         ```json
         {
             "message": "Usuário criado com sucesso.",
@@ -319,7 +327,9 @@ Endpoints para autenticação e gerenciamento de usuários.
             "token": "x9y8z7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0"
         }
         ```
-      * **`400 Bad Request` (Erro de Validação):** Ocorre se as senhas не coincidem, a senha é fraca, ou o `username` já existe.
+
+      * **`400 Bad Request` (Erro de Validação):** Ocorre se as senhas não coincidem, a senha é fraca, ou o `username` já existe.
+
         ```json
         {
             "password": [
@@ -339,8 +349,11 @@ Endpoints para autenticação e gerenciamento de usuários.
 #### 1.5. Mudar Senha do Usuário Autenticado
 
   * **Proposta:** Permite que o usuário autenticado altere sua própria senha. A nova senha será validada contra as regras de força do Django.
+
   * **Permissões:** Qualquer usuário autenticado.
+
   * **Requisição:**
+
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/accounts/change_password/`
       * **Headers:** `Authorization: Token SEU_TOKEN_AQUI`, `Content-Type: application/json`
@@ -354,13 +367,17 @@ Endpoints para autenticação e gerenciamento de usuários.
         ```
 
   * **Respostas:**
+
       * **`200 OK` (Sucesso):**
+
         ```json
         {
             "message": "Senha alterada com sucesso."
         }
         ```
+
       * **`400 Bad Request` (Erro):** Ocorre se a senha antiga está incorreta, as novas não coincidem ou a nova senha é fraca.
+
         ```json
         {
             "old_password": "A senha antiga está incorreta."
@@ -425,8 +442,11 @@ Gerencia as informações sobre as salas e o processo de limpeza.
   * **Verbo `GET` (Listar):**
 
       * **Proposta:** Lista todas as salas com filtros.
+
       * **Permissões:** Qualquer usuário autenticado.
+
       * **Filtros (Query Parameters):**
+
           * `ativa` (boolean): Filtra por salas ativas (`true`) ou inativas (`false`).
               * **Exemplo:** `/api/salas/?ativa=true`
           * `nome_numero` (string): Busca parcial (case-insensitive) por nome ou número da sala.
@@ -439,7 +459,9 @@ Gerencia as informações sobre as salas e o processo de limpeza.
               * **Exemplo:** `/api/salas/?capacidade_max=100`
           * `responsavel_username` (string): Busca parcial (case-insensitive) pelo nome de usuário de um dos responsáveis.
               * **Exemplo:** `/api/salas/?responsavel_username=zelador`
+
       * **Resposta (`200 OK`):**
+
         ```json
         [
             {
@@ -484,8 +506,9 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         ```
 
       * **Observação sobre o campo `detalhes_suja`:** Este campo é um objeto que contém os detalhes do último relatório de sujeira. Ele será null para todas as salas que não estiverem com o status "Suja". Quando o status for "Suja", ele será preenchido com a data, o usuário que reportou e as observações do relatório.
-  
+
   * **Verbo POST (Criar):**
+
       * **Proposta:** Cria uma nova sala.
       * **Permissões:** Apenas administradores.
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`, `Content-Type: multipart/form-data`
@@ -518,13 +541,17 @@ Gerencia as informações sobre as salas e o processo de limpeza.
                 "detalhes_suja": null
             }
             ```
+
           * **`400 Bad Request` (Erro de Validação):**
+
             ```json
             {
                 "nome_numero": [ "sala com este Nome/Número já existe." ]
             }
             ```
+
           * **`403 Forbidden`:**
+
             ```json
             { "detail": "Você não tem permissão para executar essa ação." }
             ```
@@ -606,7 +633,9 @@ Gerencia as informações sobre as salas e o processo de limpeza.
       * **Permissões:** Apenas administradores.
       * **Respostas:**
           * **`204 No Content` (Sucesso):** A sala foi excluída.
+
           * **`400 Bad Request` (Erro de Negócio):**
+
             ```json
             { "detail": "Salas inativas não podem ser excluídas. Ative a sala primeiro." }
             ```
@@ -623,6 +652,7 @@ Gerencia as informações sobre as salas e o processo de limpeza.
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ZELADOR_AQUI`
   * **Respostas:**
       * **`201 Created` (Sucesso):**
+
         ```json
         {
             "id": 10,
@@ -635,7 +665,9 @@ Gerencia as informações sobre as salas e o processo de limpeza.
             "fotos": []
         }
         ```
+
       * **`400 Bad Request` (Erro):**
+
           * Se a sala já está em limpeza:
 
             ```json
@@ -653,8 +685,11 @@ Gerencia as informações sobre as salas e o processo de limpeza.
 #### 2.4. Concluir Limpeza de Sala
 
   * **Proposta:** Encontra a sessão de limpeza em aberto para a sala e registra o **horário de conclusão**. O status da sala muda para "Limpa". Requer que pelo menos uma foto de comprovação tenha sido enviada.
+
   * **Permissões:** Apenas usuários do grupo **Zeladoria**.
+
   * **Requisição:**
+
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/salas/{qr_code_id}/concluir_limpeza/`
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_ZELADOR_AQUI`, `Content-Type: application/json`
@@ -666,7 +701,9 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         ```
 
   * **Respostas:**
+
       * **`200 OK` (Sucesso):**
+
         ```json
         {
             "id": 10,
@@ -685,7 +722,9 @@ Gerencia as informações sobre as salas e o processo de limpeza.
             ]
         }
         ```
+
       * **`400 Bad Request` (Erro):**
+
           * Se nenhuma limpeza foi iniciada:
 
             ```json
@@ -703,8 +742,11 @@ Gerencia as informações sobre as salas e o processo de limpeza.
 #### 2.5. Marcar Sala como Suja
 
   * **Proposta:** Cria um relatório de que uma sala está suja, alterando seu status para "Suja" e sobrepondo o status de "Limpa".
+
   * **Permissões:** Apenas usuários do grupo **Solicitante de Serviços**.
+
   * **Requisição:**
+
       * **Verbo HTTP:** `POST`
       * **URI:** `/api/salas/{qr_code_id}/marcar_como_suja/`
       * **Headers:** `Authorization: Token SEU_TOKEN_DE_SOLICITANTE_AQUI`, `Content-Type: application/json`
@@ -716,13 +758,17 @@ Gerencia as informações sobre as salas e o processo de limpeza.
         ```
 
   * **Respostas:**
+
       * **`201 Created` (Sucesso):**
+
         ```json
         {
             "status": "Relatório de sala suja enviado com sucesso."
         }
         ```
+
       * **`400 Bad Request` (Erro):** Ocorre se a sala reportada estiver inativa.
+
         ```json
         { "detail": "Não é possível reportar uma sala inativa." }
         ```
@@ -735,12 +781,12 @@ Endpoints de apenas leitura para consultar o histórico de limpezas.
 
 #### 3.1. Listar Registros de Limpeza
 
-  * **Proposta:** Recupera uma lista de todos os registros históricos de limpeza, com filtros avançados.
-  * **Permissões:** Apenas administradores (`is_superuser=True`).
+  * **Proposta:** Recupera o histórico de registros de limpeza. Administradores visualizam todos os registros, enquanto usuários da Zeladoria visualizam apenas os registros que eles próprios criaram.
+  * **Permissões:** Acesso permitido para **Administradores** e membros do grupo **Zeladoria**.
   * **Requisição:**
       * **Verbo HTTP:** `GET`
       * **URI:** `/api/limpezas/`
-      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_AQUI`
+      * **Headers:** `Authorization: Token SEU_TOKEN_DE_ADMIN_OU_ZELADOR_AQUI`
   * **Filtros (Query Parameters):**
       * `sala_uuid` (string): Filtra os registros pelo UUID (`qr_code_id`) exato da sala.
           * **Exemplo:** `/api/limpezas/?sala_uuid=e0b3cdba-3489-4954-b988-763ceb72b7c1`
@@ -752,6 +798,7 @@ Endpoints de apenas leitura para consultar o histórico de limpezas.
           * **Exemplo:** `/api/limpezas/?data_hora_limpeza_after=2025-09-10`
       * `data_hora_limpeza_before` (date): Filtra registros até a data informada (formato `YYYY-MM-DD`).
           * **Exemplo:** `/api/limpezas/?data_hora_limpeza_after=2025-09-01&data_hora_limpeza_before=2025-09-15`
+      * **Observação:** Para usuários do grupo 'Zeladoria', estes filtros são aplicados apenas sobre o subconjunto de seus próprios registros.
   * **Respostas:**
       * **`200 OK` (Sucesso):**
         ```json
@@ -770,7 +817,7 @@ Endpoints de apenas leitura para consultar o histórico de limpezas.
             }
         ]
         ```
-      * **`403 Forbidden` (Erro):** Ocorre se o usuário не for um administrador.
+      * **`403 Forbidden` (Erro):** Ocorre se o usuário autenticado não for um administrador nem pertencer ao grupo 'Zeladoria'.
 
 -----
 
