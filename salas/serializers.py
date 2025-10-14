@@ -30,7 +30,7 @@ class SalaSerializer(serializers.ModelSerializer):
     status_limpeza = serializers.SerializerMethodField()
     ultima_limpeza_data_hora = serializers.DateTimeField(source='ultima_limpeza_fim', read_only=True)
     ultima_limpeza_funcionario = serializers.CharField(source='ultimo_funcionario', read_only=True)
-    ativa = serializers.BooleanField(required=False, allow_null=True, default=None)
+    ativa = serializers.BooleanField(required=False)
     imagem = RelativeImageField(required=False, allow_null=True)
     detalhes_suja = serializers.SerializerMethodField()
 
@@ -73,18 +73,23 @@ class SalaSerializer(serializers.ModelSerializer):
 
         return super().to_internal_value(data)
 
-    def create(self, validated_data):
+    def update(self, instance, validated_data):
         """
-        Customiza a criação da Sala para lidar com o campo 'ativa'.
-        Se 'ativa' não for explicitamente enviado (resultando em None),
-        removemos a chave para permitir que o modelo Django aplique o valor padrão.
+        Garante que o campo `ativa` seja obrigatório para requisições `PUT`.
+
+        Esta verificação é feita nos dados brutos da requisição (`request.data`)
+        para contornar a conversão automática do DRF de um campo booleano
+        ausente para `False` em requisições multipart/form-data.
         """
-        ativa_value = validated_data.get('ativa')
+        is_put_request = not self.partial
+        request_data = self.context['request'].data
 
-        if ativa_value is None:
-            validated_data.pop('ativa', None)
+        if is_put_request and 'ativa' not in request_data:
+            raise serializers.ValidationError({
+                'ativa': 'Este campo é obrigatório para atualizações completas (PUT).'
+            })
 
-        return super().create(validated_data)
+        return super().update(instance, validated_data)
 
     def get_status_limpeza(self, obj):
         if hasattr(obj, 'limpeza_em_andamento'):
@@ -112,14 +117,11 @@ class SalaSerializer(serializers.ModelSerializer):
 
         return "Limpeza Pendente"
 
-    # ========= INÍCIO DA CORREÇÃO =========
     def get_detalhes_suja(self, obj: Sala) -> dict | None:
         """
         Retorna os detalhes do último relatório de sujeira se a sala estiver
         efetivamente no estado 'SUJA'. Caso contrário, retorna null.
         """
-        # Replicamos a mesma lógica de consulta de 'get_status_limpeza'
-        # para garantir consistência sem causar erros.
         ultima_limpeza_fim = getattr(obj, 'ultima_limpeza_fim',
                                      obj.registros_limpeza.filter(data_hora_fim__isnull=False).order_by(
                                          '-data_hora_fim').values_list('data_hora_fim', flat=True).first())
@@ -128,14 +130,10 @@ class SalaSerializer(serializers.ModelSerializer):
 
         if ultimo_relatorio_suja:
             ultimo_relatorio_suja_data = ultimo_relatorio_suja.data_hora
-            # A condição exata que define o status "Suja".
             if not ultima_limpeza_fim or ultimo_relatorio_suja_data > ultima_limpeza_fim:
-                # Se a condição for atendida, serializamos e retornamos os detalhes.
                 return RelatorioSalaSujaSerializer(ultimo_relatorio_suja).data
 
-        # Para qualquer outra condição, o valor é null.
         return None
-    # ========= FIM DA CORREÇÃO =========
 
 
 class FotoLimpezaSerializer(serializers.ModelSerializer):
