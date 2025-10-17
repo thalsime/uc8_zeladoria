@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 from decouple import config
 from accounts.views import AuthViewSet
@@ -37,6 +38,7 @@ a partir de variáveis de ambiente, e todas as rotas da API geradas pelo
 roteador sob o prefixo 'api/'.
 """
 urlpatterns = [
+    path('', TemplateView.as_view(template_name='landpage_zeladoria.html'), name='landpage'),
     path(config('URI_ADMIN'), admin.site.urls),
     path('api/', include(router.urls)),
 ]

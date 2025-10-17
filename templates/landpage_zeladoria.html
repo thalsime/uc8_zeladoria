@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senac RN - Projeto Mapeamento de Limpeza</title>
+
+    <meta name="description" content="Conheça o projeto 'Sistema de Mapeamento da Limpeza de Salas', desenvolvido por alunos do Técnico em Desenvolvimento de Sistemas (Turma 2024.20.151) do Senac RN - Mossoró.">
+
+    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/8/86/Senac_logo.svg" type="image/svg+xml">
+
+    <link rel="apple-touch-icon" href="https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/dpfac/promocao-das-exportacoes-e-cultura-exportadora/raizes-comex/capacitacao-tecnica-e-empoderamento-para-insercao-profissional-2/senac/imagens/logos-senac-mdic.png/image_view_fullscreen">
+
+    <meta property="og:title" content="Senac RN - Projeto Mapeamento de Limpeza">
+    <meta property="og:description" content="Conheça o projeto 'Sistema de Mapeamento da Limpeza de Salas', desenvolvido por alunos do Técnico em Desenvolvimento de Sistemas (Turma 2024.20.151) do Senac RN - Mossoró, sob orientação de Thiago Medeiros e apoio de Maria Paula.">
+    <meta property="og:image" content="https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/dpfac/promocao-das-exportacoes-e-cultura-exportadora/raizes-comex/capacitacao-tecnica-e-empoderamento-para-insercao-profissional-2/senac/imagens/logos-senac-mdic.png/image_view_fullscreen">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Senac RN - Projeto Mapeamento de Limpeza">
+    <meta name="twitter:description" content="Conheça o projeto 'Sistema de Mapeamento da Limpeza de Salas', desenvolvido por alunos do Técnico em Desenvolvimento de Sistemas (Turma 2024.20.151) do Senac RN - Mossoró.">
+    <meta name="twitter:image" content="https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/dpfac/promocao-das-exportacoes-e-cultura-exportadora/raizes-comex/capacitacao-tecnica-e-empoderamento-para-insercao-profissional-2/senac/imagens/logos-senac-mdic.png/image_view_fullscreen">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.jsdelivr.net/npm/hugeicons@1.0.0/hugeicons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons&family=Material+Icons+Outlined" rel="stylesheet">
+
+    <style>
+        /* ==========================================================================
+           RESET E ESTILOS GLOBAIS (Baseado na Especificação Técnica, Seção IV.A)
+           ========================================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            /* height: 100%; */ /* Removido para permitir rolagem natural da página */
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--senac-color-background-light);
+            color: var(--senac-color-text-dark);
+            line-height: 1.6; /* Default line height */
+            font-size: 16px; /* Base for rem units */
+        }
+
+        /* ==========================================================================
+           SISTEMA DE DESIGN DIGITAL SENAC (Baseado na Especificação Técnica, Seção III)
+           ========================================================================== */
+        :root {
+            /* III.A.3: Área de Proteção e Unidade de Espaçamento */
+            --senac-spacing-unit-x: 1rem;
+            --senac-clear-space: calc(var(--senac-spacing-unit-x) * 2.5); /* Espaçamento principal */
+            --senac-gutter-space: calc(var(--senac-spacing-unit-x) * 1.5); /* Espaçamento menor */
+
+            /* III.B: Paleta de Cores Senac */
+            --senac-color-blue-primary: #004A8D;
+            --senac-color-orange-primary: #F7941D;
+            --senac-color-orange-light: #FDC180;
+            --senac-color-support-blue-1: #181c49;
+            --senac-color-support-blue-2: #0130a4;
+            --senac-color-support-blue-3: #7784ac;
+            --senac-color-support-blue-4: #bfd4e4;
+            --senac-color-support-cyan-1: #4eb0fa;
+            --senac-color-support-green-1: #009ba9;
+            --senac-color-support-yellow-1: #f6be00;
+            --senac-color-support-red-1: #fc4629;
+            --senac-color-support-magenta-1: #f91567;
+            --senac-color-text-dark: #212529; /* Manual: N/A, Uso Geral */
+            --senac-color-text-light: #FFFFFF; /* Manual: N/A, Uso Geral */
+            --senac-color-background-light: #F8F9FA; /* Manual: N/A, Uso Geral */
+
+            /* III.D: Paleta de Cores para Realce de Sintaxe */
+            --senac-code-keyword: var(--senac-color-support-red-1); /* Manual p.33 */
+            --senac-code-string: var(--senac-color-support-green-1); /* Manual p.33 */
+            --senac-code-comment: var(--senac-color-support-blue-3); /* Manual p.33 */
+            --senac-code-function: var(--senac-color-blue-primary); /* Manual p.30 */
+            --senac-code-number: var(--senac-color-support-cyan-1); /* Manual p.33 */
+            --senac-code-tag: var(--senac-color-support-magenta-1); /* Manual p.33 */
+            --senac-code-attribute: var(--senac-color-orange-primary); /* Manual p.30 */
+            --senac-code-background: #e9ecef;
+        }
+
+        /* ==========================================================================
+           ESTRUTURA E LAYOUT DA LANDING PAGE
+           ========================================================================== */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--senac-clear-space) 0;
+        }
+
+        section {
+            padding: var(--senac-clear-space) 0;
+            border-bottom: 1px solid var(--senac-color-support-blue-4);
+        }
+
+        section:last-of-type {
+            border-bottom: none;
+        }
+
+        /* Cabeçalho */
+        .page-header {
+            background-color: var(--senac-color-blue-primary);
+            padding: var(--senac-gutter-space) 0;
+            border-bottom: 5px solid var(--senac-color-orange-primary);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .senac-logo {
+            width: 180px; /* Tamanho adequado para header */
+            height: auto;
+            object-fit: contain;
+            /* III.A.2: Preservar proporção */
+        }
+
+        .header-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 300;
+            color: var(--senac-color-text-light);
+            text-align: right;
+        }
+
+        /* Rodapé */
+        .page-footer {
+            background-color: var(--senac-color-support-blue-1);
+            color: var(--senac-color-text-light);
+            padding: var(--senac-clear-space) 0;
+            text-align: center;
+        }
+
+        .footer-content .senac-logo-footer {
+             width: 150px;
+             height: auto;
+             margin-bottom: var(--senac-gutter-space);
+             filter: brightness(0) invert(1); /* Logo branco no fundo escuro */
+        }
+
+        .footer-content p {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            margin-bottom: var(--senac-gutter-space);
+        }
+
+         .footer-content a {
+            color: var(--senac-color-orange-light);
+            text-decoration: none;
+         }
+         .footer-content a:hover {
+            text-decoration: underline;
+         }
+
+        /* ==========================================================================
+           ESTILOS DE CONTEÚDO (Baseado na Especificação Técnica, Seção III.C)
+           ========================================================================== */
+        h1, h2, h3, h4 {
+            font-family: 'Roboto', sans-serif;
+            color: var(--senac-color-blue-primary);
+            margin-bottom: var(--senac-gutter-space);
+            line-height: 1.3;
+        }
+
+        /* Título Principal da Página (Hero) */
+        h1.page-title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 0.5em;
+        }
+
+        /* Títulos de Seção */
+        h2.section-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+            border-bottom: 3px solid var(--senac-color-orange-primary);
+            padding-bottom: 0.3em;
+            display: inline-block;
+        }
+
+        /* Subtítulos */
+        h3.subsection-title {
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            font-weight: 700;
+        }
+
+        h4.item-title {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 700;
+            color: var(--senac-color-orange-primary);
+        }
+
+        p, li {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: 400;
+            margin-bottom: var(--senac-gutter-space);
+            color: var(--senac-color-text-dark);
+        }
+
+        ul, ol {
+            padding-left: 2em;
+            margin-bottom: var(--senac-gutter-space);
+        }
+        li { margin-bottom: 0.5em; }
+
+        strong { font-weight: 700; }
+        em { font-style: italic; }
+
+        a {
+            color: var(--senac-color-blue-primary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: var(--senac-color-orange-primary);
+        }
+
+        /* Estilos para Ícones (Baseado na Especificação Técnica, Seção III.F.3) */
+        i.icon, .icon, [data-feather] {
+            vertical-align: middle;
+            color: inherit;
+            font-size: 1.1em; /* Ligeiramente maior que o texto */
+            margin: 0 0.2em;
+        }
+
+        /* Estilos para Código Inline (Baseado na Especificação Técnica, Seção IV.A.4) */
+        p code, li code {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--senac-code-background);
+            color: var(--senac-color-blue-primary);
+            padding: 0.2em 0.4em;
+            margin: 0 0.2em;
+            font-size: 85%;
+            border-radius: 3px;
+        }
+
+        /* Estilos para Blocos de Código (Baseado na Especificação Técnica, Seção IV.C) */
+        pre {
+            background-color: var(--senac-code-background);
+            border-left: 5px solid var(--senac-color-orange-primary);
+            padding: var(--senac-gutter-space);
+            margin-bottom: var(--senac-gutter-space);
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 0 5px 5px 0;
+        }
+        pre code {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700; /* Bold conforme Seção IV.C */
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            line-height: 1.5;
+            color: var(--senac-color-text-dark);
+            background-color: transparent; /* Remove fundo duplo */
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        /* Classes para Realce de Sintaxe (Baseado na Especificação Técnica, Seção III.D) */
+        .code-keyword { color: var(--senac-code-keyword); }
+        .code-string { color: var(--senac-code-string); }
+        .code-comment { color: var(--senac-code-comment); font-style: italic; }
+        .code-function { color: var(--senac-code-function); }
+        .code-number { color: var(--senac-code-number); }
+        .code-tag { color: var(--senac-code-tag); }
+        .code-attribute { color: var(--senac-code-attribute); }
+
+        /* Estilos específicos das seções */
+        #geral .overview-text {
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            font-weight: 300;
+        }
+
+        .uc-item {
+            margin-bottom: var(--senac-clear-space);
+        }
+
+        .repo-list li {
+            list-style: none; /* Remove default numbering */
+            counter-increment: student-counter; /* Increment counter for each li */
+            margin-bottom: 0.7em;
+            padding-left: 1.5em; /* Space for custom number */
+            position: relative; /* Needed for absolute positioning of the number */
+        }
+        .repo-list li::before {
+            content: counter(student-counter) "."; /* Display counter */
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+            color: var(--senac-color-blue-primary);
+        }
+        .repo-list li a {
+            font-weight: 400; /* Regular weight for links */
+        }
+        .repo-list li i.icon { /* Style for GitHub icon */
+             font-size: 1em;
+             margin-left: 0.5em;
+             color: var(--senac-color-support-blue-3);
+        }
+
+        .future-steps-note {
+             background-color: var(--senac-color-support-blue-4);
+             padding: var(--senac-gutter-space);
+             border-radius: 5px;
+             border-left: 5px solid var(--senac-color-blue-primary);
+             margin-top: var(--senac-clear-space);
+        }
+        .future-steps-note p { margin-bottom: 0.5em; }
+
+        .api-usage-note {
+             background-color: var(--senac-color-support-blue-4);
+             padding: var(--senac-gutter-space);
+             border-radius: 5px;
+             border-left: 5px solid var(--senac-color-blue-primary);
+             margin-bottom: var(--senac-clear-space);
+        }
+         .api-usage-note p { margin-bottom: 0.5em; }
+
+        /* Estilo para botão (ex: link para repositório) */
+        .cta-button {
+            display: inline-block;
+            background-color: var(--senac-color-orange-primary);
+            color: var(--senac-color-text-light) !important; /* Force light text */
+            padding: 0.8em 1.5em;
+            border-radius: 5px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            margin-top: var(--senac-gutter-space);
+            border: none; /* Reset default button border */
+            cursor: pointer;
+        }
+        .cta-button:hover {
+            background-color: var(--senac-color-blue-primary);
+            color: var(--senac-color-text-light) !important; /* Force light text */
+            text-decoration: none;
+        }
+        .cta-button .icon {
+            margin-right: 0.5em;
+            vertical-align: middle;
+        }
+
+        /* Responsividade Básica */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .senac-logo {
+                margin-bottom: var(--senac-gutter-space);
+            }
+            .header-title {
+                text-align: left;
+                font-size: clamp(1rem, 4vw, 1.5rem);
+            }
+            h1.page-title { font-size: clamp(2rem, 8vw, 3rem); }
+            h2.section-title { font-size: clamp(1.8rem, 7vw, 2.5rem); }
+            h3.subsection-title { font-size: clamp(1.3rem, 6vw, 1.8rem); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="page-header">
+        <div class="header-content">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Senac_logo.svg" alt="Logotipo Senac" class="senac-logo" style="filter: brightness(0) invert(1);"> <span class="header-title">Técnico em Desenvolvimento de Sistemas<br>Turma 2024.20.151<br>Senac RN - Mossoró</span>
+        </div>
+    </header>
+
+    <main>
+        <section id="geral">
+            <div class="container">
+                <h1 class="page-title">Sistema de Mapeamento da Limpeza de Salas</h1>
+                <p class="overview-text">
+                    Este projeto, idealizado pelo instrutor Thiago Medeiros e desenvolvido pelos alunos do curso <strong>Técnico em Desenvolvimento de Sistemas</strong> do Senac RN (Mossoró), com apoio da instrutora Maria Paula, visa otimizar o fluxo de trabalho da equipe de zeladoria da instituição. Através de um aplicativo mobile (CleanSmart) e uma API de suporte, o sistema permite gerenciar e mapear as salas que já foram limpas, fornecendo informações atualizadas sobre a disponibilidade e o estado de higienização dos ambientes.
+                </p>
+                <p class="overview-text">
+                    <i class="icon material-icons-outlined">construction</i> <strong>Atenção:</strong> O projeto ainda está em desenvolvimento ativo. Novas funcionalidades e melhorias serão adicionadas futuramente.
+                </p>
+            </div>
+        </section>
+
+        <section id="proposta">
+            <div class="container">
+                <h2 class="section-title">Proposta Pedagógica</h2>
+                <p>
+                    Este projeto nasceu como uma iniciativa prática e contextualizada, alinhada ao <strong>Modelo Pedagógico Senac</strong>, que valoriza a aprendizagem por competências e o protagonismo do aluno. Orientados pelo instrutor Thiago Medeiros e com o suporte da instrutora Maria Paula, os alunos foram desafiados a aplicar seus conhecimentos na resolução de um problema real da instituição: a gestão manual e potencialmente ineficiente da limpeza das salas.
+                </p>
+                <p>
+                    A abordagem integrou diversas Unidades Curriculares, simulando um ambiente de desenvolvimento profissional onde os alunos (desenvolvedores mobile frontend) consumiram uma API RESTful robusta (backend) fornecida e gerenciada pelo instrutor Thiago Medeiros. Isso permitiu trabalhar não apenas aspectos técnicos (React Native, TypeScript, APIs), mas também as <strong>Marcas Formativas Senac</strong> como:
+                </p>
+                <ul>
+                    <li><i class="icon fa-solid fa-code"></i> <strong>Domínio técnico-científico:</strong> Aplicação de tecnologias atuais e boas práticas de desenvolvimento.</li>
+                    <li><i class="icon fa-solid fa-lightbulb"></i> <strong>Criatividade e atitude empreendedora:</strong> Proposição de uma solução tecnológica para um problema existente.</li>
+                    <li><i class="icon fa-solid fa-magnifying-glass"></i> <strong>Visão crítica:</strong> Análise do problema e dos requisitos para o desenvolvimento da solução.</li>
+                    <li><i class="icon fa-solid fa-users"></i> <strong>Colaboração e comunicação:</strong> Interação com a API (contrato definido) e uso de versionamento (GitHub).</li>
+                    <li><i class="icon fa-solid fa-seedling"></i> <strong>Atitude Sustentável:</strong> Otimização de processos, potencialmente reduzindo desperdícios de tempo e recursos.</li>
+                    <li><i class="icon fa-solid fa-mobile-screen-button"></i> <strong>Autonomia digital:</strong> Uso de ferramentas e tecnologias para criar a aplicação.</li>
+                </ul>
+                <p>
+                    O projeto visa validar a capacidade dos alunos de transformar um requisito de negócio em um produto de software completo e funcional, preparando-os para os desafios do mercado de trabalho sob a orientação dos instrutores.
+                </p>
+            </div>
+        </section>
+
+        <section id="ucs">
+            <div class="container">
+                <h2 class="section-title">Unidades Curriculares Envolvidas</h2>
+                <p>
+                    Este projeto integrador abrange e aplica conhecimentos desenvolvidos ao longo das seguintes Unidades Curriculares (UCs) do curso <strong>Técnico em Desenvolvimento de Sistemas</strong>:
+                </p>
+                <div class="uc-item">
+                    <h4 class="item-title">UC8: Desenvolver aplicações mobile</h4>
+                    <p>Foco principal do projeto, utilizando React Native e TypeScript para criar a interface e a lógica do aplicativo CleanSmart que interage com a API.</p>
+                </div>
+                <div class="uc-item">
+                    <h4 class="item-title">UC9: Realizar operações de atualização e manutenção</h4>
+                    <p>Conceitos aplicados na compreensão do ciclo de vida do software e na potencial necessidade de futuras atualizações da aplicação.</p>
+                </div>
+                <div class="uc-item">
+                    <h4 class="item-title">UC10: Realizar testes nas aplicações desenvolvidas</h4>
+                    <p>A prática de testes foi um componente essencial do desenvolvimento. Os alunos realizaram validações do contrato e funcionamento da API antes de consumi-la, além de testes manuais diretamente nas aplicações para assegurar sua funcionalidade e usabilidade, garantindo a entrega de uma solução robusta.</p>
+                </div>
+                 <div class="uc-item">
+                    <h4 class="item-title">UC11: Realizar operações de suporte junto ao usuário</h4>
+                    <p>O design da interface (UI) e a experiência do usuário (UX) foram pensados para facilitar o uso pela equipe de zeladoria, aplicando conceitos de suporte ao usuário final.</p>
+                </div>
+                <div class="uc-item">
+                    <h4 class="item-title">UC12: Projeto Integrador Desenvolvedor de aplicações</h4>
+                    <p>Esta UC consolida a integração das competências das UCs anteriores na entrega de um projeto completo, desde a análise até a implementação e testes.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="repositorios">
+            <div class="container">
+                <h2 class="section-title">Repositórios do Projeto</h2>
+                <p>O código-fonte do projeto (API e aplicativos dos alunos) está disponível no GitHub:</p>
+
+                <h3 class="subsection-title" style="margin-top: var(--senac-clear-space);">API Backend (Django REST Framework)</h3>
+                <p>Gerenciada pelo instrutor orientador Thiago Medeiros, fornece os endpoints para o aplicativo mobile.</p>
+                <a href="https://github.com/thalsime/uc8_zeladoria" target="_blank" class="cta-button"><i class="icon fab fa-github"></i> Ver API no GitHub</a>
+
+                <h3 class="subsection-title" style="margin-top: var(--senac-clear-space);">Aplicações Mobile dos Alunos (React Native)</h3>
+                <p>
+                    Desenvolvidas individualmente pelos alunos, sob orientação de Thiago Medeiros e com apoio de Maria Paula. Durante o período de desenvolvimento, os alunos utilizaram a plataforma <a href="https://expo.dev/" target="_blank">Expo</a>, um conjunto de ferramentas e serviços open-source construídos em torno do React Native que simplifica a criação e iteração de aplicativos iOS e Android. Para as apresentações à banca (professores, corpo administrativo e convidados), foi utilizado o aplicativo <a href="https://expo.dev/go" target="_blank">Expo Go</a> (<a href="https://play.google.com/store/apps/details?id=host.exp.exponent" target="_blank">Google Play</a> | <a href="https://apps.apple.com/us/app/expo-go/id982107779" target="_blank">App Store</a>), que permite carregar e visualizar rapidamente os projetos desenvolvidos com Expo em dispositivos móveis reais, sem a necessidade de compilação nativa.
+                </p>
+                <ol class="repo-list">
+                    <li>Emerson Bruno Carvalho da Silva <a href="https://github.com/Emerson308/senacZeladoria" target="_blank" aria-label="Repositório de Emerson Bruno"><i class="icon fab fa-github"></i></a></li>
+                    <li>Enzo Makenzy de Queiroz Bezerra <a href="https://github.com/enzomakenzy/zeladoria-senac" target="_blank" aria-label="Repositório de Enzo Makenzy"><i class="icon fab fa-github"></i></a></li>
+                    <li>Erik Elias Varela de Sousa <a href="https://github.com/ErikEliasV/Clean-Smart" target="_blank" aria-label="Repositório de Erik Elias"><i class="icon fab fa-github"></i></a></li>
+                    <li>João da Rocha Bezerra Neto <a href="https://github.com/joaorocha-neto/Projeto_Final_UC8" target="_blank" aria-label="Repositório de João da Rocha"><i class="icon fab fa-github"></i></a></li>
+                    <li>João Henrique da Silva Moura <a href="https://github.com/Jozuao/SenacZela/" target="_blank" aria-label="Repositório de João Henrique"><i class="icon fab fa-github"></i></a></li>
+                    <li>Layza Kathleen de Medeiros Costa <a href="https://github.com/layzamedeiros/gerenciamento-de-limpeza" target="_blank" aria-label="Repositório de Layza Kathleen"><i class="icon fab fa-github"></i></a></li>
+                    <li>Marcia Rejane Rodrigues de Souza <a href="https://github.com/MarciaRejane/zeladoria-senacRN" target="_blank" aria-label="Repositório de Marcia Rejane"><i class="icon fab fa-github"></i></a></li>
+                    <li>Samuel Fernandes de Lima <a href="https://github.com/Samucaprogramerpy/Projeto_final" target="_blank" aria-label="Repositório de Samuel Fernandes"><i class="icon fab fa-github"></i></a></li>
+                    <li>Vitorio Augusto Lima Nascimento <a href="https://github.com/Vitorio-Desenvolvedor/uc8_Zeladoria_App" target="_blank" aria-label="Repositório de Vitorio Augusto"><i class="icon fab fa-github"></i></a></li>
+                </ol>
+                <div class="future-steps-note">
+                     <p><i class="icon material-icons-outlined">update</i> <strong>Próximos Passos e Publicação:</strong></p>
+                     <p>
+                         Os aplicativos desenvolvidos pelos alunos ainda passarão por uma segunda banca avaliadora para validação final. Após essa etapa, serão iniciados os processos de geração dos arquivos APK finais (para Android) e, posteriormente, a publicação nas respectivas lojas de aplicativos (Google Play Store e Apple App Store) para apreciação pública. Assim que esta nova fase for concluída, os links diretos para download e as instruções de instalação serão adicionados nesta seção.
+                     </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="uso-api">
+            <div class="container">
+                <h2 class="section-title">Instruções de Uso da API</h2>
+                <p>
+                    A API RESTful do sistema está funcional e pode ser acessada publicamente para testes e integração.
+                </p>
+                <p><strong>URL Base da API:</strong> <code>https://zeladoria.tsr.net.br/api/</code></p>
+                <p>Recomendamos o uso de ferramentas como <a href="https://www.postman.com/" target="_blank">Postman</a> ou <a href="https://insomnia.rest/" target="_blank">Insomnia</a> para interagir com os endpoints.</p>
+
+                <h3 class="subsection-title" style="margin-top: var(--senac-clear-space);">Usuários de Teste</h3>
+                <div class="api-usage-note">
+                    <p><i class="icon fa-solid fa-user-gear"></i> <strong>Usuário Zelador:</strong></p>
+                    <ul>
+                        <li>Username: <code>zelador</code></li>
+                        <li>Senha: <code>Senac@098</code></li>
+                        <li>Grupo: <strong>Zeladoria</strong></li>
+                        <li>Permissões: Pode iniciar e concluir limpezas, visualizar seu histórico e adicionar fotos de comprovação.</li>
+                    </ul>
+                </div>
+                 <div class="api-usage-note" style="border-left-color: var(--senac-color-orange-primary);">
+                    <p><i class="icon fa-solid fa-user-tag"></i> <strong>Usuário Colaborador:</strong></p>
+                    <ul>
+                        <li>Username: <code>colaborador</code></li>
+                        <li>Senha: <code>Senac@098</code></li>
+                        <li>Grupo: <strong>Solicitante de Serviços</strong></li>
+                        <li>Permissões: Pode visualizar o status das salas e marcar uma sala como "Suja", reportando a necessidade de limpeza.</li>
+                    </ul>
+                </div>
+
+                <h3 class="subsection-title" style="margin-top: var(--senac-clear-space);">Exemplos de Endpoints</h3>
+
+                <h4 class="item-title">1. Login (Obter Token)</h4>
+                <p>Use as credenciais acima para obter um token de autenticação, necessário para as demais requisições.</p>
+                <pre><code><span class="code-keyword">POST</span> /api/accounts/login/
+<span class="code-keyword">Content-Type:</span> application/json
+
+{
+    <span class="code-string">"username"</span>: <span class="code-string">"zelador"</span>, <span class="code-comment">// ou "colaborador"</span>
+    <span class="code-string">"password"</span>: <span class="code-string">"Senac@098"</span>
+}</code></pre>
+                <p><strong>Resposta de Sucesso (200 OK):</strong> Retorna o token e dados do usuário.</p>
+                <pre><code>{
+    <span class="code-string">"token"</span>: <span class="code-string">"seu_token_aqui..."</span>,
+    <span class="code-string">"user_data"</span>: { ... }
+}</code></pre>
+
+                <h4 class="item-title" style="margin-top: var(--senac-clear-space);">2. Listar Salas</h4>
+                <p>Retorna a lista de salas cadastradas e seus status atuais. Requer autenticação.</p>
+                <pre><code><span class="code-keyword">GET</span> /api/salas/
+<span class="code-keyword">Authorization:</span> Token seu_token_aqui</code></pre>
+                <p><strong>Resposta de Sucesso (200 OK):</strong> Retorna um array de objetos de sala.</p>
+                <pre><code>[
+    {
+        <span class="code-string">"id"</span>: <span class="code-number">1</span>,
+        <span class="code-string">"qr_code_id"</span>: <span class="code-string">"uuid-da-sala-1"</span>,
+        <span class="code-string">"nome_numero"</span>: <span class="code-string">"Laboratório de Redes"</span>,
+        <span class="code-string">"status_limpeza"</span>: <span class="code-string">"Limpeza Pendente"</span>,
+        <span class="code-string">"ultima_limpeza_data_hora"</span>: <span class="code-keyword">null</span>,
+        <span class="code-string">"detalhes_suja"</span>: <span class="code-keyword">null</span>,
+        ...
+    },
+    {
+        <span class="code-string">"id"</span>: <span class="code-number">2</span>,
+         <span class="code-string">"qr_code_id"</span>: <span class="code-string">"uuid-da-sala-2"</span>,
+        <span class="code-string">"nome_numero"</span>: <span class="code-string">"Auditório Principal"</span>,
+        <span class="code-string">"status_limpeza"</span>: <span class="code-string">"Suja"</span>,
+        <span class="code-string">"ultima_limpeza_data_hora"</span>: <span class="code-string">"2025-10-17T10:00:00Z"</span>,
+        <span class="code-string">"detalhes_suja"</span>: {
+             <span class="code-string">"data_hora"</span>: <span class="code-string">"2025-10-17T15:30:00Z"</span>,
+             <span class="code-string">"reportado_por"</span>: <span class="code-string">"colaborador"</span>,
+             <span class="code-string">"observacoes"</span>: <span class="code-string">"Café derramado."</span>
+        },
+        ...
+    }
+]</code></pre>
+
+                <h4 class="item-title" style="margin-top: var(--senac-clear-space);">3. Iniciar e Concluir Limpeza (Apenas Zeladoria)</h4>
+                <p>Para registrar uma limpeza, o usuário <code>zelador</code> deve:</p>
+                <ol>
+                    <li>Iniciar a limpeza: <pre><code><span class="code-keyword">POST</span> /api/salas/{qr_code_id}/iniciar_limpeza/</code></pre> (Retorna o ID do registro de limpeza).</li>
+                    <li>Adicionar pelo menos uma foto de comprovação: <pre><code><span class="code-keyword">POST</span> /api/fotos_limpeza/</code></pre> (Requisição <code>multipart/form-data</code> contendo o ID do registro e o arquivo de imagem).</li>
+                    <li>Concluir a limpeza: <pre><code><span class="code-keyword">POST</span> /api/salas/{qr_code_id}/concluir_limpeza/</code></pre> (Pode incluir observações no corpo JSON).</li>
+                </ol>
+
+                 <h4 class="item-title" style="margin-top: var(--senac-clear-space);">4. Marcar Sala como Suja (Apenas Solicitante)</h4>
+                <p>O usuário <code>colaborador</code> pode reportar uma sala suja:</p>
+                <pre><code><span class="code-keyword">POST</span> /api/salas/{qr_code_id}/marcar_como_suja/
+<span class="code-keyword">Content-Type:</span> application/json
+
+{
+    <span class="code-string">"observacoes"</span>: <span class="code-string">"Lixo acumulado na lixeira."</span> <span class="code-comment">// Opcional</span>
+}</code></pre>
+
+                 <p style="margin-top: var(--senac-clear-space);">Para mais detalhes sobre todos os endpoints disponíveis, filtros e estruturas de dados, consulte a <a href="https://github.com/thalsime/uc8_zeladoria" target="_blank">documentação completa no repositório da API</a>.</p>
+
+            </div>
+        </section>
+
+        <section id="conclusao" style="background-color: #e9ecef;">
+            <div class="container" style="text-align: center;">
+                <h2 class="section-title">Validação e Próximos Passos</h2>
+                <p>
+                    Este projeto demonstra a aplicação prática dos conhecimentos adquiridos no curso Técnico em Desenvolvimento de Sistemas, resultando em uma solução relevante para o Senac RN. Ele valida a capacidade dos alunos em desenvolver software de ponta a ponta, utilizando tecnologias modernas e seguindo boas práticas de mercado.
+                </p>
+                <p>
+                    Como um projeto em evolução, futuras iterações poderão incluir novas funcionalidades como relatórios de produtividade, integração com agendamentos e checklists de limpeza detalhados.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="page-footer">
+        <div class="footer-content">
+             <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Senac_logo.svg" alt="Logotipo Senac" class="senac-logo-footer">
+             <p>&copy; 2025 Senac Rio Grande do Norte. Projeto desenvolvido por alunos do curso Técnico em Desenvolvimento de Sistemas - Turma 2024.20.151 (Unidade Mossoró), sob orientação de Thiago Medeiros e apoio de Maria Paula.</p>
+             <p><a href="https://www.rn.senac.br/" target="_blank">www.rn.senac.br</a></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        // Ativa o Feather Icons após o carregamento do DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+        });
+    </script>
+
+</body>
+</html>
