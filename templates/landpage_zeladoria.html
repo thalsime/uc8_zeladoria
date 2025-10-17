@@ -9,17 +9,17 @@
 
     <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/8/86/Senac_logo.svg" type="image/svg+xml">
 
-    <link rel="apple-touch-icon" href="https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/dpfac/promocao-das-exportacoes-e-cultura-exportadora/raizes-comex/capacitacao-tecnica-e-empoderamento-para-insercao-profissional-2/senac/imagens/logos-senac-mdic.png/image_view_fullscreen">
+    <link rel="apple-touch-icon" href="https://api.rn.senac.br/api/Arquivo/Download/282">
 
     <meta property="og:title" content="Senac RN - Projeto Mapeamento de Limpeza">
     <meta property="og:description" content="Conheça o projeto 'Sistema de Mapeamento da Limpeza de Salas', desenvolvido por alunos do Técnico em Desenvolvimento de Sistemas (Turma 2024.20.151) do Senac RN - Mossoró, sob orientação de Thiago Medeiros e apoio de Maria Paula.">
-    <meta property="og:image" content="https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/dpfac/promocao-das-exportacoes-e-cultura-exportadora/raizes-comex/capacitacao-tecnica-e-empoderamento-para-insercao-profissional-2/senac/imagens/logos-senac-mdic.png/image_view_fullscreen">
+    <meta property="og:image" content="https://api.rn.senac.br/api/Arquivo/Download/282">
     <meta property="og:type" content="website">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Senac RN - Projeto Mapeamento de Limpeza">
     <meta name="twitter:description" content="Conheça o projeto 'Sistema de Mapeamento da Limpeza de Salas', desenvolvido por alunos do Técnico em Desenvolvimento de Sistemas (Turma 2024.20.151) do Senac RN - Mossoró.">
-    <meta name="twitter:image" content="https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/dpfac/promocao-das-exportacoes-e-cultura-exportadora/raizes-comex/capacitacao-tecnica-e-empoderamento-para-insercao-profissional-2/senac/imagens/logos-senac-mdic.png/image_view_fullscreen">
+    <meta name="twitter:image" content="https://api.rn.senac.br/api/Arquivo/Download/282">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -286,9 +286,19 @@
 
         /* Estilos específicos das seções */
         #geral .overview-text {
-            font-size: clamp(1.1rem, 3vw, 1.4rem);
-            font-weight: 300;
+            font-size: clamp(1.1rem, 3vw, 1.4rem); /* Aumentei ligeiramente a fonte para mais destaque */
+            /* font-weight: 300; */ /* Removi o font-weight light para melhorar legibilidade */
+            margin-bottom: var(--senac-clear-space); /* Aumentei a margem inferior para mais respiro */
         }
+        /* Estilo específico para o aviso de desenvolvimento */
+        #geral .development-notice {
+            font-size: clamp(1rem, 2.5vw, 1.25rem); /* Tamanho igual ao parágrafo padrão */
+            background-color: var(--senac-color-support-blue-4);
+            padding: var(--senac-gutter-space);
+            border-radius: 5px;
+            border-left: 5px solid var(--senac-color-orange-primary);
+        }
+         #geral .development-notice .icon { color: var(--senac-color-orange-primary); }
 
         .uc-item {
             margin-bottom: var(--senac-clear-space);
@@ -392,9 +402,9 @@
             <div class="container">
                 <h1 class="page-title">Sistema de Mapeamento da Limpeza de Salas</h1>
                 <p class="overview-text">
-                    Este projeto, idealizado pelo instrutor Thiago Medeiros e desenvolvido pelos alunos do curso <strong>Técnico em Desenvolvimento de Sistemas</strong> do Senac RN (Mossoró), com apoio da instrutora Maria Paula, visa otimizar o fluxo de trabalho da equipe de zeladoria da instituição. Através de um aplicativo mobile (CleanSmart) e uma API de suporte, o sistema permite gerenciar e mapear as salas que já foram limpas, fornecendo informações atualizadas sobre a disponibilidade e o estado de higienização dos ambientes.
+                    Nascido de uma demanda real do Senac CEP Mossoró para otimizar o gerenciamento da limpeza das salas, este projeto foi estruturado como uma prática pedagógica integrada para os alunos do curso <strong>Técnico em Desenvolvimento de Sistemas</strong>. Simulando um ambiente profissional, o instrutor Thiago Medeiros desenvolveu a API backend ("Sistema de Mapeamento da Limpeza de Salas"), enquanto os alunos, com orientação da instrutor, assumiram o desafio de criar individualmente o aplicativo mobile que consome essa API. O sistema permite gerenciar e mapear as salas limpas, fornecendo informações atualizadas sobre a higienização dos ambientes.
                 </p>
-                <p class="overview-text">
+                <p class="development-notice">
                     <i class="icon material-icons-outlined">construction</i> <strong>Atenção:</strong> O projeto ainda está em desenvolvimento ativo. Novas funcionalidades e melhorias serão adicionadas futuramente.
                 </p>
             </div>
@@ -431,7 +441,7 @@
                 </p>
                 <div class="uc-item">
                     <h4 class="item-title">UC8: Desenvolver aplicações mobile</h4>
-                    <p>Foco principal do projeto, utilizando React Native e TypeScript para criar a interface e a lógica do aplicativo CleanSmart que interage com a API.</p>
+                    <p>Foco principal do projeto, utilizando React Native e TypeScript para criar a interface e a lógica do aplicativo que interage com a API.</p>
                 </div>
                 <div class="uc-item">
                     <h4 class="item-title">UC9: Realizar operações de atualização e manutenção</h4>
@@ -439,7 +449,7 @@
                 </div>
                 <div class="uc-item">
                     <h4 class="item-title">UC10: Realizar testes nas aplicações desenvolvidas</h4>
-                    <p>A prática de testes foi um componente essencial do desenvolvimento. Os alunos realizaram validações do contrato e funcionamento da API antes de consumi-la, além de testes manuais diretamente nas aplicações para assegurar sua funcionalidade e usabilidade, garantindo a entrega de uma solução robusta.</p>
+                    <p>Os alunos realizaram validações do contrato e funcionamento da API antes de consumi-la, além de testes manuais diretamente nas aplicações para assegurar sua funcionalidade e usabilidade.</p>
                 </div>
                  <div class="uc-item">
                     <h4 class="item-title">UC11: Realizar operações de suporte junto ao usuário</h4>
