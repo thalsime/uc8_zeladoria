@@ -42,7 +42,7 @@ class LimpezaRegistroFilter(django_filters.FilterSet):
         funcionario_username (str): Busca por nome de usuário do funcionário.
     """
     sala_uuid = django_filters.UUIDFilter(field_name='sala__qr_code_id')
-    data_hora_limpeza = django_filters.DateFromToRangeFilter()
+    data_hora_fim = django_filters.DateFromToRangeFilter(field_name='data_hora_fim')
     sala_nome = django_filters.CharFilter(
         field_name='sala__nome_numero', lookup_expr='icontains'
     )
@@ -52,4 +52,4 @@ class LimpezaRegistroFilter(django_filters.FilterSet):
 
     class Meta:
         model = LimpezaRegistro
-        fields = ['sala_nome', 'sala_uuid', 'data_hora_limpeza', 'funcionario_username']
+        fields = ['sala_nome', 'sala_uuid', 'data_hora_fim', 'funcionario_username']
