@@ -2,31 +2,10 @@
 
 from django.db import migrations
 
-def create_initial_pdf(apps, schema_editor):
-    """
-    Função que será executada pela migração para gerar o PDF inicial.
-
-    Importamos a função de geração de PDF aqui dentro para garantir que
-    todas as aplicações já estejam carregadas quando ela for chamada.
-    """
-    try:
-        from salas.pdf_generator import generate_salas_pdf
-        print("\nGerando PDF inicial com as salas existentes...")
-        generate_salas_pdf()
-        print("PDF inicial gerado com sucesso.")
-    except Exception as e:
-        print(f"\nOcorreu um erro ao gerar o PDF inicial: {e}")
-        # A migração não será interrompida, mas um aviso será exibido.
-        pass
-
 class Migration(migrations.Migration):
 
     dependencies = [
-        # O Django coloca aqui a última migração da app 'salas' automaticamente
         ('salas', '0008_sala_validade_limpeza_horas'),
     ]
 
-    operations = [
-        # Esta operação diz ao Django para rodar nossa função Python
-        migrations.RunPython(create_initial_pdf),
-    ]
+    operations = []
