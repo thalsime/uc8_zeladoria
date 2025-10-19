@@ -7,12 +7,14 @@ Define fixtures reutilizáveis para toda a sessão de testes, como:
 - Criação de ativos de teste, como imagens temporárias.
 """
 import os
-import uuid
-from pathlib import Path
-from dotenv import load_dotenv
 import pytest
 import requests
+import uuid
+from dotenv import load_dotenv
+from pathlib import Path
 from PIL import Image
+from typing import Dict, Any
+
 
 # Carrega as variáveis de ambiente do arquivo .env.test de forma robusta
 dotenv_path = Path(__file__).parent / ".env.test"
@@ -135,3 +137,26 @@ def auth_header_assistente(api_base_url) -> dict:
     # Use as variáveis de ambiente corretas para o assistente
     token = TokenManager.get_token(api_base_url, "TEST_USER_ASSISTENTE_USERNAME", "TEST_USER_ASSISTENTE_PASSWORD")
     return {"Authorization": f"Token {token}"}
+
+@pytest.fixture
+def iniciar_limpeza_para_teste(
+    api_base_url: str,
+    auth_header_zelador: Dict[str, str],
+    sala_de_teste: Dict[str, Any] # Depende da fixture sala_de_teste
+) -> Dict[str, Any]:
+    """
+    Fixture auxiliar que inicia uma limpeza para uma sala de teste
+    e retorna os dados do registro de limpeza criado.
+    Agora definida em conftest.py para ser acessível globalmente nos testes.
+    """
+    sala_uuid = sala_de_teste["qr_code_id"]
+    response = requests.post(
+        f"{api_base_url}/salas/{sala_uuid}/iniciar_limpeza/",
+        headers=auth_header_zelador
+    )
+    # Usar assert para falhar o teste imediatamente se a fixture não puder ser configurada
+    assert response.status_code == 201, f"Fixture 'iniciar_limpeza_para_teste': Falha ao iniciar limpeza: {response.text}"
+    registro_limpeza = response.json()
+    # Adiciona o UUID da sala ao dicionário retornado
+    registro_limpeza['sala_uuid_test'] = sala_uuid
+    return registro_limpeza

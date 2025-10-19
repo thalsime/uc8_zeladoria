@@ -9,27 +9,7 @@ from pathlib import Path
 
 # Fixtures de conftest.py serão injetadas automaticamente pelo pytest
 
-# --- Fixture Auxiliar ---
-
-@pytest.fixture
-def iniciar_limpeza_para_teste(api_base_url: str, auth_header_zelador: Dict[str, str], sala_de_teste: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Fixture auxiliar que inicia uma limpeza para uma sala de teste
-    e retorna os dados do registro de limpeza criado.
-    """
-    sala_uuid = sala_de_teste["qr_code_id"]
-    response = requests.post(
-        f"{api_base_url}/salas/{sala_uuid}/iniciar_limpeza/",
-        headers=auth_header_zelador
-    )
-    assert response.status_code == 201, f"Falha ao iniciar limpeza na fixture: {response.text}"
-    registro_limpeza = response.json()
-    # Adiciona o UUID da sala ao dicionário retornado para facilitar o uso nos testes
-    registro_limpeza['sala_uuid_test'] = sala_uuid
-    return registro_limpeza
-
-
-# --- Testes para Iniciar Limpeza ---
+# Testes para Iniciar Limpeza
 
 def test_iniciar_limpeza_zelador_sucesso(api_base_url: str, auth_header_zelador: Dict[str, str], sala_de_teste: Dict[str, Any]):
     """Verifica se um Zelador pode iniciar a limpeza de uma sala ativa."""
@@ -102,7 +82,7 @@ def test_iniciar_limpeza_sala_inativa_falha(api_base_url: str, auth_header_admin
     requests.patch(f"{api_base_url}/salas/{sala_uuid}/", headers=auth_header_admin, data={"ativa": True})
 
 
-# --- Testes para Adicionar Foto de Limpeza ---
+# Testes para Adicionar Foto de Limpeza
 
 def test_adicionar_foto_zelador_sucesso(api_base_url: str, auth_header_zelador: Dict[str, str], iniciar_limpeza_para_teste: Dict[str, Any], test_image_path: Path):
     """Verifica se um Zelador pode adicionar uma foto a uma limpeza em andamento."""
@@ -175,7 +155,7 @@ def test_adicionar_foto_outros_usuarios_falha(api_base_url: str, request: Any, a
     assert response.status_code == 403
 
 
-# --- Testes para Concluir Limpeza ---
+# Testes para Concluir Limpeza
 
 def test_concluir_limpeza_zelador_com_foto_sucesso(api_base_url: str, auth_header_zelador: Dict[str, str], iniciar_limpeza_para_teste: Dict[str, Any], test_image_path: Path):
     """Verifica se um Zelador pode concluir a limpeza após adicionar uma foto."""

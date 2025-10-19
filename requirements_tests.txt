@@ -11,6 +11,7 @@ pillow==11.3.0
 pluggy==1.6.0
 Pygments==2.19.2
 pytest==8.4.2
+pytest-django==4.11.1
 python-decouple==3.8
 python-dotenv==1.1.1
 qrcode==8.2
