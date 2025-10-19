@@ -42,7 +42,6 @@ class LimpezaRegistroFilter(django_filters.FilterSet):
         funcionario_username (str): Busca por nome de usuário do funcionário.
     """
     sala_uuid = django_filters.UUIDFilter(field_name='sala__qr_code_id')
-    data_hora_limpeza = django_filters.DateFromToRangeFilter()
     sala_nome = django_filters.CharFilter(
         field_name='sala__nome_numero', lookup_expr='icontains'
     )
@@ -50,6 +49,33 @@ class LimpezaRegistroFilter(django_filters.FilterSet):
         field_name='funcionario_responsavel__username', lookup_expr='icontains'
     )
 
+    # Filtros Novos
+    data_hora_fim_after = django_filters.DateFilter(
+        field_name='data_hora_fim',  # Filtra pelo campo data_hora_fim
+        lookup_expr='gte'
+    )
+    data_hora_fim_before = django_filters.DateFilter(
+        field_name='data_hora_fim',  # Filtra pelo campo data_hora_fim
+        lookup_expr='lte'
+    )
+
+    # Filtros Antigos/Depreciados (Transição)
+    # data_hora_limpeza_after = django_filters.DateFilter(
+    #     field_name='data_hora_fim',  # TAMBÉM filtra pelo campo data_hora_fim
+    #     lookup_expr='gte',
+    #     label='(Depreciado) Filtra registros concluídos após esta data. Use data_hora_fim_after.'
+    # )
+    # data_hora_limpeza_before = django_filters.DateFilter(
+    #     field_name='data_hora_fim',  # TAMBÉM filtra pelo campo data_hora_fim
+    #     lookup_expr='lte',
+    #     label='(Depreciado) Filtra registros concluídos antes desta data. Use data_hora_fim_before.'
+    # )
+    #data_hora_fim = django_filters.DateFromToRangeFilter(field_name='data_hora_fim')
+
     class Meta:
         model = LimpezaRegistro
-        fields = ['sala_nome', 'sala_uuid', 'data_hora_limpeza', 'funcionario_username']
+        fields = [
+            'sala_nome', 'sala_uuid', 'funcionario_username',
+            'data_hora_fim_after', 'data_hora_fim_before',
+            # 'data_hora_limpeza_after', 'data_hora_limpeza_before'
+        ]
