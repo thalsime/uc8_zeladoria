@@ -88,52 +88,76 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    """Serializa os dados para a criação de um novo usuário."""
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-    confirm_password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    """
+    Serializador para a criação de novos usuários por administradores.
+    Inclui validação de confirmação e força de senha.
+    """
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
+    confirm_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
     nome = serializers.CharField(source='first_name', required=False, allow_blank=True)
     groups = serializers.PrimaryKeyRelatedField(
-        many=True,
         queryset=Group.objects.all(),
-        required=False,
-        help_text="Lista de IDs de grupos aos quais o usuário pertencerá."
+        many=True,
+        required=False
     )
+    profile = ProfileSerializer(read_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'confirm_password', 'is_superuser', 'groups', 'nome']
-        extra_kwargs = {
-            'is_superuser': {'required': False, 'default': False},
-            'email': {'required': False, 'allow_blank': True}
-        }
+        fields = ('id', 'username', 'password', 'confirm_password', 'email', 'is_superuser', 'groups', 'nome', 'profile')
+        read_only_fields = ('profile',)
 
-    def validate(self, data):
-        """Valida se a senha e a confirmação de senha são idênticas."""
-        if data['password'] != data['confirm_password']:
-            raise serializers.ValidationError({"password": "As senhas não coincidem."})
-        return data
+    def validate(self, attrs):
+        """
+        Valida os dados, garantindo que as senhas coincidam e
+        executando os validadores de força de senha do Django.
+        """
+        if attrs['password'] != attrs['confirm_password']:
+            # Levanta como lista para consistência com validate_password
+            raise serializers.ValidationError({"password": ["As senhas não coincidem."]})
 
-    def validate_password(self, value):
-        """Aplica os validadores de força de senha do Django."""
+        user_temp = User(
+            username=attrs.get('username'),
+            email=attrs.get('email'),
+            first_name=attrs.get('nome', '') # 'nome' é source='first_name'
+        )
+
         try:
-            validate_password(value)
+            validate_password(password=attrs['password'], user=user_temp)
         except DjangoValidationError as e:
-            raise serializers.ValidationError(list(e.messages))
-        return value
+            raise serializers.ValidationError({'password': list(e.messages)})
+
+        return attrs
 
     def create(self, validated_data):
-        """Cria e retorna uma nova instância de User com os dados validados."""
-        groups_data = validated_data.pop('groups', None)
+        """
+        Cria o objeto User, define o nome e grupos, e retorna o usuário.
+        """
         validated_data.pop('confirm_password')
+        nome = validated_data.pop('first_name', None)
+        groups_data = validated_data.pop('groups', [])
 
+        # Cria o usuário (campos restantes: username, password, email, is_superuser)
         user = User.objects.create_user(**validated_data)
 
+        # Define o nome, se fornecido
+        if nome:
+            user.first_name = nome
+            user.save(update_fields=['first_name'])
+
+        # Define os grupos, se fornecidos
         if groups_data:
             user.groups.set(groups_data)
 
-        Token.objects.get_or_create(user=user)
-        return user
-
+        return user # Retorna apenas o objeto User (a view cuidará do token)
 
 class PasswordChangeSerializer(serializers.Serializer):
     """Serializa os dados para a alteração de senha de um usuário autenticado."""

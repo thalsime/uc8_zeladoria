@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from core.permissions import IsAdminUser
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework import generics
+from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import Group, User
 from .models import Profile
 from .serializers import (UserSerializer, LoginSerializer, UserCreateSerializer,
@@ -73,27 +74,21 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
     def create_user(self, request):
-        """Cria uma nova conta de usuário no sistema.
-
-        Recebe os dados do novo usuário, valida-os e, se forem válidos,
-        cria o usuário e retorna seus dados e um token de acesso. Acesso
-        restrito a administradores.
-
-        Args:
-            request (Request): O objeto da requisição HTTP.
-
-        Returns:
-            Response: Uma resposta com os dados do novo usuário e seu token.
         """
-        serializer = UserCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        return Response({
-            'message': 'Usuário criado com sucesso.',
-            'user': UserSerializer(user).data,
-            'token': user.auth_token.key
-        }, status=status.HTTP_201_CREATED)
+        Cria um novo usuário e retorna seus dados e um token de autenticação.
+        Acessível apenas por administradores (is_staff ou is_superuser).
+        """
+        serializer = UserCreateSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = serializer.save()
+            token = Token.objects.create(user=user)
+            serialized_user = UserSerializer(user, context={'request': request}).data
+            return Response({
+                "message": "Usuário criado com sucesso.",
+                "user": serialized_user,
+                'token': token.key # Acessa a chave do token que acabamos de criar
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def change_password(self, request):
