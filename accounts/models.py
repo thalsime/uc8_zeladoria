@@ -32,15 +32,28 @@ class Profile(models.Model):
 
     def save(self, *args, **kwargs):
         """Sobrescreve o método save para gerenciar e processar a foto de perfil."""
+        old_instance = None
         if self.pk:
             try:
+                # Busca a instância antiga ANTES de qualquer modificação
                 old_instance = Profile.objects.get(pk=self.pk)
-                if old_instance.profile_picture and old_instance.profile_picture != self.profile_picture:
-                    old_instance.profile_picture.delete(save=False)
             except Profile.DoesNotExist:
                 pass
 
-        process_and_save_image(self.profile_picture, size=(300, 300))
+        imagem_mudou = False
+        if old_instance:
+            # Verifica se uma imagem foi enviada E é diferente da antiga, OU se a imagem antiga foi removida
+            if self.profile_picture != old_instance.profile_picture:
+                 imagem_mudou = True
+                 # Se a imagem mudou e existia uma antiga, deleta o arquivo antigo
+                 if old_instance.profile_picture:
+                     old_instance.profile_picture.delete(save=False)
+        elif self.profile_picture: # Se é uma nova instância E tem imagem
+             imagem_mudou = True
+
+        # Só processa se a imagem mudou OU se é uma nova instância com imagem
+        if imagem_mudou and self.profile_picture:
+             process_and_save_image(self.profile_picture, size=(300, 300))
 
         super().save(*args, **kwargs)
 

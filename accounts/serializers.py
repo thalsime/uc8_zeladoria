@@ -26,7 +26,23 @@ class ProfileSerializer(serializers.ModelSerializer):
             instance.user.first_name = nome
             instance.user.save()
 
-        return super().update(instance, validated_data)
+        # Explicitamente trata a remoção da foto de perfil no PUT se não for enviada
+        is_put = not self.partial # Verifica se é PUT (não parcial)
+        profile_picture_in_data = 'profile_picture' in validated_data
+
+
+        if is_put and not profile_picture_in_data:
+            # Se for PUT e 'profile_picture' NÃO veio nos dados validados,
+            # força a definição como None na instância ANTES do super().update()
+            # Isso garante que o save() do modelo veja a intenção de limpar o campo.
+            if instance.profile_picture: # Se realmente havia uma imagem antiga
+                 instance.profile_picture.delete(save=False) # Tenta deletar o arquivo antigo explicitamente
+            instance.profile_picture = None
+
+        # Chama o update padrão, que agora funcionará corretamente
+        # para os outros campos e para o profile_picture (se ele veio nos dados)
+        instance = super().update(instance, validated_data)
+        return instance
 
 class NestedProfileSerializer(serializers.ModelSerializer):
     """Serializador simplificado do perfil para uso aninhado."""

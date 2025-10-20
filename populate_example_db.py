@@ -95,13 +95,14 @@ def run_population():
     print_success(f"Grupos '{ZELADORIA_GROUP_NAME}' e '{SOLICITANTE_GROUP_NAME}' garantidos.")
 
     print_info("Criando usuários...")
-    senha_padrao = "Uma_Senha_Bem_Grande@123"
+    senha_padrao = "Senac@098"
     usuarios_a_criar = [
         {"username": "senac", "is_superuser": True, "is_staff": True, "grupos": [grupo_zeladoria, grupo_solicitante]},
         {"username": "administrador", "is_superuser": True, "is_staff": True, "grupos": []},
         {"username": "assistente", "is_superuser": False, "is_staff": True, "grupos": [grupo_zeladoria, grupo_solicitante]},
         {"username": "zelador", "is_superuser": False, "is_staff": False, "grupos": [grupo_zeladoria]},
         {"username": "colaborador", "is_superuser": False, "is_staff": False, "grupos": [grupo_solicitante]},
+        {"username": "funcionario", "is_superuser": False, "is_staff": False, "grupos": [grupo_solicitante]},
     ]
     # Itera sobre a lista de dicionários para criar cada usuário.
     for dados_usuario in usuarios_a_criar:
