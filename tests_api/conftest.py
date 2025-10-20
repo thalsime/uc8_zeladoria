@@ -1,11 +1,8 @@
-"""Arquivo de configuração central para a suíte de testes da API.
-
-Define fixtures reutilizáveis para toda a sessão de testes, como:
-- Carregamento de variáveis de ambiente.
-- URL base da API.
-- Gestão de tokens de autenticação (com cache) para diferentes perfis.
-- Criação de ativos de teste, como imagens temporárias.
 """
+Arquivo de configuração central para a suíte de testes da API.
+Define fixtures reutilizáveis para toda a sessão de testes.
+"""
+
 import os
 import pytest
 import requests
@@ -16,13 +13,13 @@ from PIL import Image
 from typing import Dict, Any
 
 
-# Carrega as variáveis de ambiente do arquivo .env.test de forma robusta
 dotenv_path = Path(__file__).parent / ".env.test"
 load_dotenv(dotenv_path=dotenv_path)
 
 
 class TokenManager:
     """Gerencia e armazena em cache os tokens para a sessão de testes."""
+
     _tokens = {}
 
     @classmethod
@@ -45,7 +42,6 @@ class TokenManager:
             response.raise_for_status()
             response_data = response.json()
 
-            # CORREÇÃO FINAL: A API retorna a chave como 'token', não 'key'.
             token = response_data.get("token")
 
             if not token:
@@ -57,7 +53,10 @@ class TokenManager:
             cls._tokens[username_env] = token
             return token
         except requests.RequestException as e:
-            pytest.fail(f"Falha ao obter token para {username}: {e}\nResposta: {e.response.text if e.response else 'N/A'}")
+            pytest.fail(
+                f"Falha ao obter token para {username}: {e}\nResposta: {e.response.text if e.response else 'N/A'}"
+            )
+
 
 @pytest.fixture(scope="session")
 def api_base_url() -> str:
@@ -67,31 +66,42 @@ def api_base_url() -> str:
         pytest.fail("A variável API_BASE_URL não está definida no .env.test")
     return f"{url}/api"
 
+
 @pytest.fixture(scope="session")
 def auth_header_admin(api_base_url) -> dict:
     """Fornece um cabeçalho de autorização para um usuário Admin."""
-    token = TokenManager.get_token(api_base_url, "TEST_USER_ADMIN_USERNAME", "TEST_USER_ADMIN_PASSWORD")
+    token = TokenManager.get_token(
+        api_base_url, "TEST_USER_ADMIN_USERNAME", "TEST_USER_ADMIN_PASSWORD"
+    )
     return {"Authorization": f"Token {token}"}
+
 
 @pytest.fixture(scope="session")
 def auth_header_zelador(api_base_url) -> dict:
     """Fornece um cabeçalho de autorização para um usuário Zelador."""
-    token = TokenManager.get_token(api_base_url, "TEST_USER_ZELADOR_USERNAME", "TEST_USER_ZELADOR_PASSWORD")
+    token = TokenManager.get_token(
+        api_base_url, "TEST_USER_ZELADOR_USERNAME", "TEST_USER_ZELADOR_PASSWORD"
+    )
     return {"Authorization": f"Token {token}"}
+
 
 @pytest.fixture(scope="session")
 def auth_header_solicitante(api_base_url) -> dict:
     """Fornece um cabeçalho de autorização para um usuário Solicitante."""
-    token = TokenManager.get_token(api_base_url, "TEST_USER_SOLICITANTE_USERNAME", "TEST_USER_SOLICITANTE_PASSWORD")
+    token = TokenManager.get_token(
+        api_base_url, "TEST_USER_SOLICITANTE_USERNAME", "TEST_USER_SOLICITANTE_PASSWORD"
+    )
     return {"Authorization": f"Token {token}"}
+
 
 @pytest.fixture
 def test_image_path(tmp_path):
     """Cria uma imagem de teste temporária e retorna seu caminho."""
-    image = Image.new('RGB', (10, 10), color='blue')
+    image = Image.new("RGB", (10, 10), color="blue")
     file_path = tmp_path / "test_image.png"
     image.save(file_path)
     return file_path
+
 
 @pytest.fixture
 def sala_de_teste(api_base_url, auth_header_admin):
@@ -99,50 +109,50 @@ def sala_de_teste(api_base_url, auth_header_admin):
     Fixture que cria uma sala de teste antes de cada teste que a utiliza
     e a remove ao final, garantindo o isolamento dos testes.
     """
-    # Define dados base DENTRO da fixture para evitar problemas de escopo
+
     DADOS_BASE_SALA = {
         "descricao": "Sala fixture para testes automatizados.",
         "capacidade": 15,
         "localizacao": "Corredor Fixture Bloco T",
-        # "ativa": True, # Removido - 'ativa' é True por padrão no modelo/serializer
     }
 
-    # Dados únicos para a sala a ser criada
     dados_criacao = DADOS_BASE_SALA.copy()
-    # Garante nome único para cada execução de teste que usa a fixture
+
     dados_criacao["nome_numero"] = f"Sala Fixture {uuid.uuid4()}"
 
-    # Cria a sala
     response = requests.post(
-        f"{api_base_url}/salas/",
-        headers=auth_header_admin,
-        data=dados_criacao # Usar 'data' para multipart/form-data
+        f"{api_base_url}/salas/", headers=auth_header_admin, data=dados_criacao
     )
-    # Adiciona verificação detalhada em caso de falha na criação
-    assert response.status_code == 201, f"Falha ao CRIAR sala na fixture sala_de_teste. Status: {response.status_code}, Resposta: {response.text}"
+
+    assert (
+        response.status_code == 201
+    ), f"Falha ao CRIAR sala na fixture sala_de_teste. Status: {response.status_code}, Resposta: {response.text}"
     sala_criada = response.json()
 
-    yield sala_criada  # Fornece a sala criada para o teste
+    yield sala_criada
 
-    # Limpeza: remove a sala após a execução do teste
-    sala_uuid = sala_criada.get("qr_code_id") # Usar .get() para segurança
+    sala_uuid = sala_criada.get("qr_code_id")
     if sala_uuid:
-        response_delete = requests.delete(f"{api_base_url}/salas/{sala_uuid}/", headers=auth_header_admin)
-        # Opcional: Verificar se a exclusão foi bem-sucedida, embora falhas aqui possam mascarar falhas no teste
-        # assert response_delete.status_code in [204, 404], f"Falha ao DELETAR sala na fixture sala_de_teste. Status: {response_delete.status_code}"
+        response_delete = requests.delete(
+            f"{api_base_url}/salas/{sala_uuid}/", headers=auth_header_admin
+        )
+
 
 @pytest.fixture(scope="session")
 def auth_header_assistente(api_base_url) -> dict:
     """Fornece um cabeçalho de autorização para um usuário Assistente (Zeladoria)."""
-    # Use as variáveis de ambiente corretas para o assistente
-    token = TokenManager.get_token(api_base_url, "TEST_USER_ASSISTENTE_USERNAME", "TEST_USER_ASSISTENTE_PASSWORD")
+
+    token = TokenManager.get_token(
+        api_base_url, "TEST_USER_ASSISTENTE_USERNAME", "TEST_USER_ASSISTENTE_PASSWORD"
+    )
     return {"Authorization": f"Token {token}"}
+
 
 @pytest.fixture
 def iniciar_limpeza_para_teste(
     api_base_url: str,
     auth_header_zelador: Dict[str, str],
-    sala_de_teste: Dict[str, Any] # Depende da fixture sala_de_teste
+    sala_de_teste: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
     Fixture auxiliar que inicia uma limpeza para uma sala de teste
@@ -152,11 +162,13 @@ def iniciar_limpeza_para_teste(
     sala_uuid = sala_de_teste["qr_code_id"]
     response = requests.post(
         f"{api_base_url}/salas/{sala_uuid}/iniciar_limpeza/",
-        headers=auth_header_zelador
+        headers=auth_header_zelador,
     )
-    # Usar assert para falhar o teste imediatamente se a fixture não puder ser configurada
-    assert response.status_code == 201, f"Fixture 'iniciar_limpeza_para_teste': Falha ao iniciar limpeza: {response.text}"
+
+    assert (
+        response.status_code == 201
+    ), f"Fixture 'iniciar_limpeza_para_teste': Falha ao iniciar limpeza: {response.text}"
     registro_limpeza = response.json()
-    # Adiciona o UUID da sala ao dicionário retornado
-    registro_limpeza['sala_uuid_test'] = sala_uuid
+
+    registro_limpeza["sala_uuid_test"] = sala_uuid
     return registro_limpeza
