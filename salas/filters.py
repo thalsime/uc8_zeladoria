@@ -59,7 +59,6 @@ class SalaFilter(django_filters.FilterSet):
         """
         now = timezone.now()
 
-        # Subconsultas (permanecem as mesmas)
         ultima_limpeza_subquery = LimpezaRegistro.objects.filter(
             sala=OuterRef('pk'), data_hora_fim__isnull=False
         ).order_by('-data_hora_fim').values('data_hora_fim')[:1]
@@ -72,14 +71,12 @@ class SalaFilter(django_filters.FilterSet):
             sala=OuterRef('pk'), data_hora_fim__isnull=True
         )
 
-        # Anotar o queryset base (permanece o mesmo)
         annotated_queryset = queryset.annotate(
             ultima_limpeza_fim=Subquery(ultima_limpeza_subquery),
             ultimo_relatorio_data=Subquery(ultimo_relatorio_subquery),
             tem_limpeza_em_andamento=Exists(limpeza_em_andamento_subquery)
         )
 
-        # Expressão reutilizável para calcular quando a limpeza expira (permanece a mesma)
         duration_expr = ExpressionWrapper(
             F('validade_limpeza_horas') * timedelta(hours=1),
             output_field=DurationField()
@@ -90,29 +87,27 @@ class SalaFilter(django_filters.FilterSet):
         )
 
         if value == 'Em Limpeza':
-            # Apenas argumento nomeado, sem Q objects - OK
             return annotated_queryset.filter(tem_limpeza_em_andamento=True)
 
         elif value == 'Suja':
-            # Apenas Q objects - OK
+            condition_suja = Q(ultimo_relatorio_data__isnull=False) & \
+                             (Q(ultima_limpeza_fim__isnull=True) | Q(ultimo_relatorio_data__gt=F('ultima_limpeza_fim')))
             return annotated_queryset.filter(
-                Q(ultimo_relatorio_data__isnull=False) &
-                (Q(ultima_limpeza_fim__isnull=True) | Q(ultimo_relatorio_data__gt=F('ultima_limpeza_fim')))
+                condition_suja,
+                tem_limpeza_em_andamento=False
             )
 
         elif value == 'Limpa':
             annotated_queryset_for_limpa = annotated_queryset.annotate(
                 cleaning_expires_at=cleaning_expires_at_expr
             )
-            # --- INÍCIO DA CORREÇÃO DE ORDEM ---
-            # Q object PRIMEIRO, depois argumentos nomeados
+            condition_nao_suja = (Q(ultimo_relatorio_data__isnull=True) | Q(ultimo_relatorio_data__lt=F('ultima_limpeza_fim')))
             return annotated_queryset_for_limpa.filter(
-                (Q(ultimo_relatorio_data__isnull=True) | Q(ultimo_relatorio_data__lt=F('ultima_limpeza_fim'))), # Q object posicional
-                tem_limpeza_em_andamento=False, # Argumento nomeado
-                ultima_limpeza_fim__isnull=False, # Argumento nomeado
-                cleaning_expires_at__gte=now # Argumento nomeado
+                condition_nao_suja,
+                tem_limpeza_em_andamento=False,
+                ultima_limpeza_fim__isnull=False,
+                cleaning_expires_at__gte=now
             )
-            # --- FIM DA CORREÇÃO DE ORDEM ---
 
         elif value == 'Limpeza Pendente':
             annotated_queryset_for_pendente = annotated_queryset.annotate(
@@ -120,15 +115,12 @@ class SalaFilter(django_filters.FilterSet):
             )
             validade_expirada_condition = Q(cleaning_expires_at__lt=now)
             nunca_limpa_ou_expirou_condition = Q(ultima_limpeza_fim__isnull=True) | validade_expirada_condition
-
-            # --- INÍCIO DA CORREÇÃO DE ORDEM ---
-            # Q objects PRIMEIRO, depois argumentos nomeados
+            condition_nao_suja = (Q(ultimo_relatorio_data__isnull=True) | Q(ultimo_relatorio_data__lt=F('ultima_limpeza_fim')))
             return annotated_queryset_for_pendente.filter(
-                (Q(ultimo_relatorio_data__isnull=True) | Q(ultimo_relatorio_data__lt=F('ultima_limpeza_fim'))), # Q object posicional (condição NÃO Suja)
-                nunca_limpa_ou_expirou_condition, # Q object posicional (condição Pendente)
-                tem_limpeza_em_andamento=False # Argumento nomeado
+                condition_nao_suja,
+                nunca_limpa_ou_expirou_condition,
+                tem_limpeza_em_andamento=False
             )
-            # --- FIM DA CORREÇÃO DE ORDEM ---
 
         return queryset
 
